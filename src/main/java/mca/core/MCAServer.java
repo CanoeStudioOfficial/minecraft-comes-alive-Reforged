@@ -1,12 +1,5 @@
 package mca.core;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
-
 import mca.api.objects.NPC;
 import mca.api.objects.Player;
 import mca.api.objects.Pos;
@@ -17,7 +10,8 @@ import mca.entity.EntityGrimReaper;
 import mca.entity.EntityVillagerMCA;
 import mca.entity.data.PlayerSaveData;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.text.TextComponentString;
+
+import java.util.*;
 
 public class MCAServer {
     private static MCAServer instance;

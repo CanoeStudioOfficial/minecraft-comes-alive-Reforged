@@ -1,8 +1,5 @@
 package mca.entity.ai;
 
-import java.util.Comparator;
-import java.util.List;
-
 import mca.api.objects.Pos;
 import mca.entity.EntityVillagerMCA;
 import mca.enums.EnumChore;
@@ -14,7 +11,9 @@ import net.minecraft.item.ItemFishFood;
 import net.minecraft.item.ItemFishingRod;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumHand;
-import net.minecraft.util.math.BlockPos;
+
+import java.util.Comparator;
+import java.util.List;
 
 public class EntityAIFishing extends AbstractEntityAIChore {
     private Pos targetWater;

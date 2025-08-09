@@ -1,12 +1,12 @@
 package mca.entity.ai;
 
-import java.util.Optional;
-import java.util.UUID;
-
 import mca.api.objects.Player;
 import mca.core.MCA;
 import mca.entity.EntityVillagerMCA;
 import net.minecraft.entity.ai.EntityAIBase;
+
+import java.util.Optional;
+import java.util.UUID;
 
 public abstract class AbstractEntityAIChore extends EntityAIBase {
     protected final EntityVillagerMCA villager;

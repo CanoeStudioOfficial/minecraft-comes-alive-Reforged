@@ -1,11 +1,5 @@
 package mca.entity.ai;
 
-import static net.minecraft.block.BlockBed.OCCUPIED;
-import static net.minecraft.block.BlockBed.PART;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import mca.api.objects.Pos;
 import mca.core.minecraft.ProfessionsMCA;
 import mca.entity.EntityVillagerMCA;
@@ -18,6 +12,12 @@ import net.minecraft.init.Blocks;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static net.minecraft.block.BlockBed.OCCUPIED;
+import static net.minecraft.block.BlockBed.PART;
 
 public class EntityAISleeping extends AbstractEntityAIChore {
     public EntityAISleeping(EntityVillagerMCA villagerIn) {

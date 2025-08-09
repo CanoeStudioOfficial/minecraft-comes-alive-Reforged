@@ -1,22 +1,6 @@
 package mca.api;
 
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Random;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
-import org.apache.commons.io.IOUtils;
-
 import com.google.common.base.Charsets;
-
 import mca.api.objects.APIButton;
 import mca.api.objects.Gift;
 import mca.api.objects.Player;
@@ -34,6 +18,12 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import net.minecraftforge.fml.common.registry.VillagerRegistry;
+import org.apache.commons.io.IOUtils;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.io.InputStream;
+import java.util.*;
 
 /**
  * Class API handles interaction with MCA's configurable options via JSON in the resources folder

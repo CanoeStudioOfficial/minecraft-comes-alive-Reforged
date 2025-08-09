@@ -1,11 +1,11 @@
 package mca.api.objects;
 
-import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import mca.entity.EntityVillagerMCA;
 import mca.enums.EnumConstraint;
+
+import java.util.List;
 
 /**
  * APIButton is a button defined in assets/mca/api/gui/*

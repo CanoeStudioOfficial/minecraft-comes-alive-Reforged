@@ -1,8 +1,5 @@
 package mca.command;
 
-import java.util.Arrays;
-import java.util.Optional;
-
 import mca.api.objects.Player;
 import mca.core.Constants;
 import mca.core.MCA;
@@ -14,6 +11,9 @@ import net.minecraft.command.WrongUsageException;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.TextComponentString;
+
+import java.util.Arrays;
+import java.util.Optional;
 
 public class CommandMCA extends CommandBase {
     @Override

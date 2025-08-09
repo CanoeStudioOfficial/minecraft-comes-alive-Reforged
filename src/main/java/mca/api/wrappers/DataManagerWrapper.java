@@ -1,11 +1,5 @@
 package mca.api.wrappers;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.UUID;
-
 import lombok.Getter;
 import mca.core.MCA;
 import net.minecraft.item.ItemStack;
@@ -18,6 +12,10 @@ import net.minecraft.network.datasync.EntityDataManager.DataEntry;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentString;
+
+import java.util.HashMap;
+import java.util.Map.Entry;
+import java.util.UUID;
 
 public class DataManagerWrapper {
 	@Getter private EntityDataManager vanillaManager;

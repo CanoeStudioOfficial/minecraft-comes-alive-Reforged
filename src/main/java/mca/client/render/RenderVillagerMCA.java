@@ -1,8 +1,6 @@
 package mca.client.render;
 
 import mca.api.objects.Pos;
-import org.lwjgl.opengl.GL11;
-
 import mca.client.model.ModelVillagerMCA;
 import mca.entity.EntityVillagerMCA;
 import mca.enums.EnumAgeState;
@@ -19,8 +17,7 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import org.lwjgl.opengl.GL11;
 
 public class RenderVillagerMCA<T extends EntityVillagerMCA> extends RenderBiped<EntityVillagerMCA> {
     private static final ResourceLocation gui = new ResourceLocation("mca:textures/gui.png");

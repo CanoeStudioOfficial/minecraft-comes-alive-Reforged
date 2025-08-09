@@ -1,7 +1,5 @@
 package mca.entity.ai;
 
-import java.util.Optional;
-
 import lombok.RequiredArgsConstructor;
 import mca.api.objects.Player;
 import mca.api.objects.Pos;
@@ -15,6 +13,8 @@ import net.minecraft.init.SoundEvents;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.SoundCategory;
+
+import java.util.Optional;
 
 @RequiredArgsConstructor
 public class EntityAIProcreate extends EntityAIBase {

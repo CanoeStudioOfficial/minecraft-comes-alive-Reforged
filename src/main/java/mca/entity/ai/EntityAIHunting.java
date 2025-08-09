@@ -1,8 +1,5 @@
 package mca.entity.ai;
 
-import java.util.Comparator;
-import java.util.Optional;
-
 import mca.entity.EntityVillagerMCA;
 import mca.enums.EnumChore;
 import net.minecraft.entity.item.EntityItem;
@@ -11,6 +8,9 @@ import net.minecraft.entity.passive.EntityTameable;
 import net.minecraft.item.ItemSword;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumHand;
+
+import java.util.Comparator;
+import java.util.Optional;
 
 public class EntityAIHunting extends AbstractEntityAIChore {
     private int ticks = 0;

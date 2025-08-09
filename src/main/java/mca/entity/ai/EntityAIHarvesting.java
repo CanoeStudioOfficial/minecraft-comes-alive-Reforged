@@ -1,8 +1,5 @@
 package mca.entity.ai;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import mca.api.objects.Pos;
 import mca.core.MCA;
 import mca.entity.EntityVillagerMCA;
@@ -16,7 +13,9 @@ import net.minecraft.item.ItemHoe;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.NonNullList;
-import net.minecraft.util.math.BlockPos;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class EntityAIHarvesting extends AbstractEntityAIChore {
     private int blockWork = 0;

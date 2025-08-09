@@ -1,11 +1,11 @@
 package mca.api.wrappers;
 
-import java.util.UUID;
-
 import lombok.Getter;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+
+import java.util.UUID;
 
 public class NBTWrapper {
 	@Getter private NBTTagCompound vanillaCompound;

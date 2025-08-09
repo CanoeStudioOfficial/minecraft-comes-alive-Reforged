@@ -1,16 +1,12 @@
 package mca.enums;
 
-import java.util.Arrays;
-import java.util.Optional;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import mca.core.MCA;
-import net.minecraft.item.ItemAxe;
-import net.minecraft.item.ItemFishingRod;
-import net.minecraft.item.ItemHoe;
-import net.minecraft.item.ItemPickaxe;
-import net.minecraft.item.ItemSword;
+import net.minecraft.item.*;
+
+import java.util.Arrays;
+import java.util.Optional;
 
 @AllArgsConstructor
 public enum EnumChore {
