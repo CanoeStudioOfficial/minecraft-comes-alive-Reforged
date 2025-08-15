@@ -1,5 +1,6 @@
 package mca.command;
 
+import mca.api.objects.Player;
 import mca.core.Constants;
 import mca.core.MCA;
 import mca.core.MCAServer;
@@ -12,6 +13,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.TextComponentString;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 public class CommandMCA extends CommandBase {
     @Override
@@ -36,9 +38,11 @@ public class CommandMCA extends CommandBase {
                 throw new WrongUsageException("");
             }
 
-            final EntityPlayer player = (EntityPlayer) commandSender;
+            final Player player = new Player((EntityPlayer)commandSender);
+            final MCAServer mcaServer = MCAServer.get();
             String subcommand = input[0].toLowerCase();
             String[] arguments = Arrays.copyOfRange(input, 1, input.length);
+            Optional<Player> target = player.world.getPlayerEntityByName(arguments[0]);
             MCA.getLog().info(player.getName() + " entered command " + Arrays.toString(input));
 
             switch (subcommand) {
@@ -46,19 +50,17 @@ public class CommandMCA extends CommandBase {
                     displayHelp(commandSender);
                     break;
                 case "propose":
-                    EntityPlayer target = player.world.getPlayerEntityByName(arguments[0]);
-                    if (target != null) {
-                        MCAServer.get().sendProposal(player, target);
+                    if (target.isPresent()) {
+                        mcaServer.sendProposal(player, target.get());
                     } else {
-                        player.sendMessage(new TextComponentString("Player not found on the server."));
+                        player.sendMessage("Player not found on the server.");
                     }
                     break;
                 case "accept":
-                    target = player.world.getPlayerEntityByName(arguments[0]);
-                    if (target != null) {
-                        MCAServer.get().acceptProposal(player, target);
+                    if (target.isPresent()) {
+                        MCAServer.get().acceptProposal(player, target.get());
                     } else {
-                        player.sendMessage(new TextComponentString("Player not found on the server."));
+                        player.sendMessage("Player not found on the server.");
                     }
                     break;
                 case "proposals":
@@ -71,11 +73,10 @@ public class CommandMCA extends CommandBase {
                     MCAServer.get().endMarriage(player);
                     break;
                 case "reject":
-                    target = player.world.getPlayerEntityByName(arguments[0]);
-                    if (target != null) {
-                        MCAServer.get().rejectProposal(player, target);
+                    if (target.isPresent()) {
+                        MCAServer.get().rejectProposal(player, target.get());
                     } else {
-                        player.sendMessage(new TextComponentString("Player not found on the server."));
+                        player.sendMessage("Player not found on the server.");
                     }
                     break;
                 default:

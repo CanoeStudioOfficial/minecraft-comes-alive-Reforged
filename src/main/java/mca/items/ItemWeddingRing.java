@@ -1,16 +1,17 @@
 package mca.items;
 
-import com.google.common.base.Optional;
+import mca.api.objects.Player;
 import mca.core.MCA;
 import mca.entity.EntityVillagerMCA;
 import mca.entity.data.PlayerHistory;
 import mca.entity.data.PlayerSaveData;
 import mca.enums.EnumDialogueType;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.EnumParticleTypes;
 
+import java.util.Optional;
+
 public class ItemWeddingRing extends ItemSpecialCaseGift {
-    public boolean handle(EntityPlayer player, EntityVillagerMCA villager) {
+    public boolean handle(Player player, EntityVillagerMCA villager) {
         PlayerSaveData playerData = PlayerSaveData.get(player);
         PlayerHistory history = villager.getPlayerHistoryFor(player.getUniqueID());
         String response;

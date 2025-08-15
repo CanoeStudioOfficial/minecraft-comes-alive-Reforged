@@ -1,7 +1,8 @@
 package mca.client.gui;
 
 import mca.api.API;
-import mca.api.types.APIButton;
+import mca.api.objects.APIButton;
+import mca.api.objects.Player;
 import mca.client.gui.component.GuiButtonEx;
 import mca.core.MCA;
 import mca.core.forge.NetMCA;
@@ -120,7 +121,7 @@ public class GuiVillagerEditor extends GuiScreen {
 
     private void drawEditorGui() {
         buttonList.clear();
-        API.addButtons("editor", villager, player, this);
+        API.addButtons("editor", villager, new Player(player), this);
     }
 
     @Override

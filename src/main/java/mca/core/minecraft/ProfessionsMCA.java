@@ -1,7 +1,6 @@
 package mca.core.minecraft;
 
 import mca.util.ItemStackCache;
-import mca.util.ResourceLocationCache;
 import net.minecraft.entity.IMerchant;
 import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.init.Blocks;
@@ -18,7 +17,6 @@ import net.minecraftforge.fml.common.registry.VillagerRegistry.VillagerCareer;
 import net.minecraftforge.fml.common.registry.VillagerRegistry.VillagerProfession;
 import net.minecraftforge.registries.IForgeRegistry;
 
-import java.util.Arrays;
 import java.util.Random;
 
 @GameRegistry.ObjectHolder("mca")
@@ -73,7 +71,7 @@ public class ProfessionsMCA {
 
     public static VillagerProfession randomProfession() {
         ResourceLocation resource = null;
-        while (resource == null || resource.getResourcePath().contains("nitwit") || inForbiddenProfessions(registry.getValue(resource))) {
+        while (resource == null || resource.getPath().contains("nitwit") || inForbiddenProfessions(registry.getValue(resource))) {
             int i = new Random().nextInt(registry.getKeys().size() - 1);
             resource = (ResourceLocation)registry.getKeys().toArray()[i];
         }

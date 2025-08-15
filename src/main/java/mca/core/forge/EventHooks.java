@@ -1,5 +1,8 @@
 package mca.core.forge;
 
+import mca.api.objects.NPC;
+import mca.api.objects.Pos;
+import mca.api.wrappers.WorldWrapper;
 import mca.client.network.ClientMessageQueue;
 import mca.core.Constants;
 import mca.core.MCA;
@@ -9,6 +12,7 @@ import mca.core.minecraft.ItemsMCA;
 import mca.core.minecraft.ProfessionsMCA;
 import mca.core.minecraft.WorldEventListenerMCA;
 import mca.entity.EntityVillagerMCA;
+import mca.entity.VillagerFactory;
 import mca.items.ItemBaby;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
@@ -20,7 +24,6 @@ import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.stats.StatList;
-import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.event.ClickEvent;
@@ -111,15 +114,17 @@ public class EventHooks {
         if (world.isRemote) return;
         if (!MCA.getConfig().overwriteOriginalVillagers) return;
 
+        // Replace original villagers
         if (entity.getClass().equals(EntityVillager.class)) {
             EntityVillager originalVillager = (EntityVillager) entity;
             originalVillager.setDead();
 
-            EntityVillagerMCA newVillager = new EntityVillagerMCA(world, com.google.common.base.Optional.of(originalVillager.getProfessionForge()), com.google.common.base.Optional.absent());
-            newVillager.setPosition(originalVillager.posX, originalVillager.posY, originalVillager.posZ);
-            newVillager.finalizeMobSpawn(world.getDifficultyForLocation(newVillager.getPos()), null, false);
-            newVillager.forcePositionAsHome();
-            world.spawnEntity(newVillager);
+            //TODO make sure careers work.
+            VillagerFactory factory = VillagerFactory.newVillager(new WorldWrapper(world))
+            		.withProfession(originalVillager.getProfessionForge())
+            		.withPosition(new NPC(originalVillager))
+            		.spawn();
+            factory.build().forcePositionAsHome();
         }
     }
 
@@ -149,7 +154,7 @@ public class EventHooks {
             Entity source = event.getSource() != null ? event.getSource().getTrueSource() : null;
             
             if (source instanceof EntityLivingBase && villager.getProfessionForge() != ProfessionsMCA.bandit) {
-                villager.world.loadedEntityList.stream().filter(e ->
+                villager.world.getLoadedEntityList().stream().filter(e ->
                         e instanceof EntityVillagerMCA &&
                         e.getDistance(villager) <= 10.0D &&
                         ((EntityVillagerMCA)e).getProfessionForge() == ProfessionsMCA.guard)
@@ -196,7 +201,7 @@ public class EventHooks {
             }
 
             if (totemsFound >= 3 && !event.getWorld().isDaytime()) {
-                MCAServer.get().setReaperSpawnPos(event.getWorld(), new BlockPos(x + 1, y + 10, z + 1));
+                MCAServer.get().setReaperSpawnPos(new WorldWrapper(event.getWorld()), new Pos(x + 1, y + 10, z + 1));
                 MCAServer.get().startSpawnReaper();
                 for (int i = 0; i < 2; i++) event.getWorld().setBlockToAir(new BlockPos(x, y - i, z));
             }
