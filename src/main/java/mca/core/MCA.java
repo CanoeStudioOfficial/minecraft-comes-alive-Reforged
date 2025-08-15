@@ -52,7 +52,7 @@ public class MCA {
     private static Logger logger;
     private static Localizer localizer;
     private static Config config;
-    public String[] supporters = new String[0];
+
 
     public static Logger getLog() {
         return logger;
@@ -117,11 +117,9 @@ public class MCA {
 
 
     public String getRandomSupporter() {
-        if (supporters.length > 0) {
-            return supporters[new Random().nextInt(supporters.length)];
-        } else {
+
             return API.getRandomName(EnumGender.getRandom());
-        }
+
     }
 
 }
