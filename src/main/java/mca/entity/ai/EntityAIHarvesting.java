@@ -99,7 +99,7 @@ public class EntityAIHarvesting extends AbstractEntityAIChore {
                         if (id != null && !id.getPath().contains("seeds")) {
                             villager.inventory.addItem(stack);
                         }
-                    
+
                     }
 
                     villager.swingArm(EnumHand.MAIN_HAND);
