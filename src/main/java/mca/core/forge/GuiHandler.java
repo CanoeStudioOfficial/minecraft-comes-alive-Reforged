@@ -1,11 +1,7 @@
 package mca.core.forge;
 
 import mca.api.objects.Player;
-import mca.client.gui.GuiInteract;
-import mca.client.gui.GuiNameBaby;
-import mca.client.gui.GuiStaffOfLife;
-import mca.client.gui.GuiVillagerEditor;
-import mca.client.gui.GuiWhistle;
+import mca.client.gui.*;
 import mca.core.Constants;
 import mca.core.MCA;
 import mca.entity.EntityVillagerMCA;

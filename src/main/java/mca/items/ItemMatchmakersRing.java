@@ -1,14 +1,14 @@
 package mca.items;
 
-import java.util.Comparator;
-import java.util.List;
-
-import java.util.Optional;
 import mca.api.objects.Player;
 import mca.entity.EntityVillagerMCA;
 import mca.enums.EnumMarriageState;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumParticleTypes;
+
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 
 public class ItemMatchmakersRing extends ItemSpecialCaseGift {
     public boolean handle(Player player, EntityVillagerMCA villager) {

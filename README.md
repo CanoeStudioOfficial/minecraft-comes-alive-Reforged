@@ -1,25 +1,21 @@
-Minecraft Comes Alive
-=====================
-Minecraft Comes Alive (MCA) is a Minecraft mod that replaces Minecraft's villagers with normal player-like NPCs. It works in single player, LAN, and SMP.
+## TemplateDevEnv
+_For Kotlin see [TemplateDevEnvKt](https://github.com/CleanroomMC/TemplateDevEnvKt)_
 
-Villagers can be interacted with - you can talk to them, ask them to follow you, set their home, give them gifts, etc. Interacting with people builds relationships. Get your relationship high enough and you will be able to marry someone.
+Template workspace for modding Minecraft 1.12.2. Licensed under MIT, it is made for public use.
 
-After getting married, you will be able to have children who will do many chores for you such as: Farming, Fishing, Woodcutting, Hunting, and Mining.
+This template runs on Java 21! Currently utilizies **Gradle 8.12** + **[RetroFuturaGradle](https://github.com/GTNewHorizons/RetroFuturaGradle) 1.4.1** + **Forge 14.23.5.2847**.
 
-Children will eventually grow up into adults. Adults can get married and have children of their own, and this cycle can repeat indefinitely!
+With **coremod and mixin support** that is easy to configure.
 
-## Dependencies
-At runtime, MCA has no external dependencies other than Minecraft Forge.
+### Instructions:
 
-For development, MCA depends on Lombok. It will be installed automatically when you set up your development environment. Install the Lombok plugin for your relevant IDE if you have trouble building in your IDE.
+1. Click `use this template` at the top.
+2. Clone the repository that you have created with this template to your local machine.
+3. Make sure IDEA is using Java 21 for Gradle before you sync the project. Verify this by going to IDEA's `Settings > Build, Execution, Deployment > Build Tools > Gradle > Gradle JVM`.
+4. Open the project folder in IDEA. When prompted, click "Load Gradle Project" as it detects the `build.gradle`, if you weren't prompted, right-click the project's `build.gradle` in IDEA, select `Link Gradle Project`, after completion, hit `Refresh All` in the gradle tab on the right.
+5. Run gradle tasks such as `runClient` and `runServer` in the IDEA gradle tab, or use the auto-imported run configurations like `1. Run Client`.
 
-## Contributing
-Any contributions to are welcome. Simply clone into your workspace, set it up, make your changes, and submit a pull request for review.
-
-## Credits
-These individuals made substantial contributions to MCA - without them, continued progress may have been impossible.
- - SheWolfDeadly
- - ntzrmtthihu777
- - ko2fan
- - Akjosch
- - Innectic
+### Notes:
+- Dependencies script in [gradle/scripts/dependencies.gradle](gradle/scripts/dependencies.gradle), explanations are commented in the file.
+- Publishing script in [gradle/scripts/publishing.gradle](gradle/scripts/publishing.gradle).
+- When writing Mixins on IntelliJ, it is advisable to use latest [MinecraftDev Fork for RetroFuturaGradle](https://github.com/eigenraven/MinecraftDev/releases).

@@ -1,7 +1,5 @@
 package mca.core.minecraft;
 
-import java.util.ArrayList;
-
 import mca.blocks.BlockVillagerSpawner;
 import mca.core.MCA;
 import net.minecraft.block.Block;
@@ -16,6 +14,8 @@ import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.registries.IForgeRegistry;
+
+import java.util.ArrayList;
 
 public final class BlocksMCA {
     public static final Block ROSE_GOLD_BLOCK = new BlockOre();

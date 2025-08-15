@@ -1,7 +1,5 @@
 package mca.core.minecraft;
 
-import java.util.Random;
-
 import mca.util.ItemStackCache;
 import net.minecraft.entity.IMerchant;
 import net.minecraft.entity.passive.EntityVillager;
@@ -18,6 +16,8 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.common.registry.VillagerRegistry.VillagerCareer;
 import net.minecraftforge.fml.common.registry.VillagerRegistry.VillagerProfession;
 import net.minecraftforge.registries.IForgeRegistry;
+
+import java.util.Random;
 
 @GameRegistry.ObjectHolder("mca")
 public class ProfessionsMCA {

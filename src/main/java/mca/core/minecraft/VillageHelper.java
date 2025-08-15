@@ -1,7 +1,5 @@
 package mca.core.minecraft;
 
-import java.util.List;
-
 import mca.api.objects.PlayerMP;
 import mca.api.objects.Pos;
 import mca.api.wrappers.WorldWrapper;
@@ -10,9 +8,10 @@ import mca.entity.EntityVillagerMCA;
 import mca.entity.VillagerFactory;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.village.Village;
+
+import java.util.List;
 
 public class VillageHelper {
     public static void tick(WorldWrapper world) {

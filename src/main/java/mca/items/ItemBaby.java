@@ -1,9 +1,5 @@
 package mca.items;
 
-import java.util.List;
-
-import java.util.Optional;
-
 import mca.api.API;
 import mca.api.wrappers.WorldWrapper;
 import mca.core.Constants;
@@ -30,9 +26,10 @@ import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.FMLCommonHandler;
-import net.minecraftforge.fml.common.registry.VillagerRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+
+import java.util.List;
 
 public class ItemBaby extends Item {
     private boolean isMale;

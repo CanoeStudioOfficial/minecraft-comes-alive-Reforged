@@ -1,20 +1,8 @@
 package mca.core.minecraft;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
-
 import mca.core.Constants;
 import mca.core.MCA;
-import mca.items.ItemBaby;
-import mca.items.ItemEngagementRing;
-import mca.items.ItemGuideBook;
-import mca.items.ItemMatchmakersRing;
-import mca.items.ItemSpawnEgg;
-import mca.items.ItemStaffOfLife;
-import mca.items.ItemVillagerEditor;
-import mca.items.ItemWeddingRing;
-import mca.items.ItemWhistle;
+import mca.items.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ItemModelMesher;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
@@ -27,6 +15,10 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 
 public final class ItemsMCA {
     public static final ItemSpawnEgg EGG_MALE = new ItemSpawnEgg(true);

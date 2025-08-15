@@ -1,10 +1,10 @@
 package mca.util;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class ItemStackCache {
     private static Map<Item, ItemStack> cache = new HashMap<>();

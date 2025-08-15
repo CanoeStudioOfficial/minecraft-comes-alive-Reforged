@@ -1,13 +1,13 @@
 package mca.entity.ai;
 
-import java.util.Optional;
-
 import mca.api.objects.Player;
 import mca.core.Constants;
 import mca.entity.EntityVillagerMCA;
 import mca.enums.EnumMoveState;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.pathfinding.PathNavigate;
+
+import java.util.Optional;
 
 public class EntityAIMoveState extends EntityAIBase {
 	private final EntityVillagerMCA villager;

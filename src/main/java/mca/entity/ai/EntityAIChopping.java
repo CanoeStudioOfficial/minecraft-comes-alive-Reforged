@@ -1,8 +1,5 @@
 package mca.entity.ai;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import mca.api.objects.Pos;
 import mca.entity.EntityVillagerMCA;
 import mca.enums.EnumChore;
@@ -14,7 +11,9 @@ import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemAxe;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumHand;
-import net.minecraft.util.math.BlockPos;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class EntityAIChopping extends AbstractEntityAIChore {
     private int chopTicks;

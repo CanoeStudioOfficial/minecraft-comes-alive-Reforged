@@ -1,7 +1,17 @@
 package mca.util;
 
-import static org.apache.http.protocol.HTTP.USER_AGENT;
+import com.google.gson.Gson;
+import mca.api.objects.Pos;
+import mca.api.wrappers.WorldWrapper;
+import mca.core.MCA;
+import net.minecraft.block.Block;
+import net.minecraft.entity.Entity;
+import net.minecraft.init.Blocks;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
+import org.apache.commons.io.IOUtils;
 
+import javax.annotation.Nullable;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -9,23 +19,10 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
-import javax.annotation.Nullable;
-
-import mca.api.objects.Pos;
-import mca.api.wrappers.WorldWrapper;
-import org.apache.commons.io.IOUtils;
-
-import java.util.Optional;
-import com.google.gson.Gson;
-
-import mca.core.MCA;
-import net.minecraft.block.Block;
-import net.minecraft.entity.Entity;
-import net.minecraft.init.Blocks;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import static org.apache.http.protocol.HTTP.USER_AGENT;
 
 public class Util {
     private static final String RESOURCE_PREFIX = "assets/mca/";

@@ -1,15 +1,13 @@
 package mca.api.objects;
 
-import java.util.Optional;
-import java.util.UUID;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import mca.entity.EntityVillagerMCA;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentString;
+
+import java.util.UUID;
 
 @AllArgsConstructor
 public class NPC {

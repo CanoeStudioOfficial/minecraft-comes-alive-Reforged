@@ -1,12 +1,5 @@
 package mca.entity.data;
 
-import static mca.entity.EntityVillagerMCA.SPOUSE_NAME;
-import static mca.entity.EntityVillagerMCA.SPOUSE_UUID;
-import static mca.entity.EntityVillagerMCA.VILLAGER_NAME;
-
-import java.util.Optional;
-import java.util.UUID;
-
 import lombok.Getter;
 import mca.api.objects.NPC;
 import mca.api.wrappers.NBTWrapper;
@@ -14,7 +7,11 @@ import mca.api.wrappers.WorldWrapper;
 import mca.core.Constants;
 import mca.entity.EntityVillagerMCA;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.text.TextComponentString;
+
+import java.util.Optional;
+import java.util.UUID;
+
+import static mca.entity.EntityVillagerMCA.*;
 
 @Getter
 public class ParentData {

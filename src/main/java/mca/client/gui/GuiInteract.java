@@ -1,12 +1,5 @@
 package mca.client.gui;
 
-import java.io.IOException;
-import java.util.Optional;
-
-import org.lwjgl.input.Keyboard;
-import org.lwjgl.input.Mouse;
-import org.lwjgl.opengl.GL11;
-
 import mca.api.API;
 import mca.api.objects.Player;
 import mca.client.gui.component.GuiButtonEx;
@@ -23,6 +16,12 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
+import org.lwjgl.opengl.GL11;
+
+import java.io.IOException;
+import java.util.Optional;
 
 @SideOnly(Side.CLIENT)
 public class GuiInteract extends GuiScreen {

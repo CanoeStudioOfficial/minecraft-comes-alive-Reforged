@@ -1,7 +1,5 @@
 package mca.api.platforms;
 
-import javax.annotation.Nonnull;
-
 import mca.api.objects.NPC;
 import mca.api.objects.Pos;
 import mca.api.wrappers.DataManagerWrapper;
@@ -23,6 +21,8 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import net.minecraftforge.fml.common.registry.VillagerRegistry;
+
+import javax.annotation.Nonnull;
 
 public abstract class VillagerPlatform extends EntityVillager {
     private static final int VANILLA_CAREER_ID_FIELD_INDEX = 13;
