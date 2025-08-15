@@ -209,6 +209,8 @@ gui.label.following=Following
 
 gui.info.gift.line1=Gift Available
 gui.info.gift.line2=(Click to take)
+gui.marriage.failed=Players are prohibited from marrying villagers
+
 
 spouse.chore.mining.orenotify=There's some %v2% nearby...
 spouse.chore.mining.nopick=I forgot my pickaxe, dear, did you bring an extra one?

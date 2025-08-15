@@ -151,8 +151,8 @@ public class EntityGrimReaper extends EntityMob {
 
             if (arrow.shootingEntity instanceof EntityPlayer && getAttackState() != EnumReaperAttackState.REST) {
                 EntityPlayer player = (EntityPlayer) arrow.shootingEntity;
-                double newX = player.posX + rand.nextFloat() >= 0.50F ? 2 : -2;
-                double newZ = player.posZ + rand.nextFloat() >= 0.50F ? 2 : -2;
+                double newX = player.posX + (rand.nextFloat() > 0.5F ? 2 : -2);
+                double newZ = player.posZ + (rand.nextFloat() > 0.5F ? 2 : -2);
 
                 teleportTo(newX, player.posY, newZ);
             }
@@ -231,7 +231,7 @@ public class EntityGrimReaper extends EntityMob {
                     } else // If the player is not blocking, ready the scythe, or randomly block their attack.
                     {
                         // Don't block if we've already committed to an attack.
-                        if (rand.nextFloat() >= 40.0F && getAttackState() != EnumReaperAttackState.PRE) {
+                        if (rand.nextFloat() >= 0.4F && getAttackState() != EnumReaperAttackState.PRE) {
                             setStateTransitionCooldown(20);
                             setAttackState(EnumReaperAttackState.BLOCK);
                         } else {
