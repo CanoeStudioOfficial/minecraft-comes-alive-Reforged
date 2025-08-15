@@ -1,17 +1,16 @@
 package mca.client.gui;
 
 import lombok.NonNull;
-import mca.core.forge.NetMCA;
-import net.minecraft.nbt.NBTTagCompound;
-import org.apache.commons.lang3.StringUtils;
-
 import mca.core.MCA;
+import mca.core.forge.NetMCA;
 import mca.entity.EntityVillagerMCA;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 

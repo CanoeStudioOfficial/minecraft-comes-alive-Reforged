@@ -4,7 +4,6 @@ import mca.client.model.ModelVillagerMCA;
 import mca.entity.EntityVillagerMCA;
 import mca.enums.EnumAgeState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.model.ModelBiped;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;

@@ -1,7 +1,5 @@
 package mca.items;
 
-import java.util.List;
-
 import mca.core.Constants;
 import mca.core.MCA;
 import net.minecraft.client.util.ITooltipFlag;
@@ -11,6 +9,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.EnumHand;
 import net.minecraft.world.World;
+
+import java.util.List;
 
 public class ItemWhistle extends Item {
     public ItemWhistle() {
