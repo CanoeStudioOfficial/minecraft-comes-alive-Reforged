@@ -14,6 +14,7 @@ import mca.core.minecraft.RoseGoldOreGenerator;
 import mca.entity.EntityGrimReaper;
 import mca.entity.EntityVillagerMCA;
 import mca.enums.EnumGender;
+import mca.mca.Tags;
 import mca.util.Util;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.ItemStack;
@@ -39,11 +40,10 @@ import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-@Mod(modid = MCA.MODID, name = MCA.NAME, version = MCA.VERSION, guiFactory = "mca.client.MCAGuiFactory")
+@Mod(modid = Tags.MOD_ID, name = Tags.MOD_NAME, version = Tags.VERSION, guiFactory = "mca.client.MCAGuiFactory")
 public class MCA {
-    public static final String MODID = "mca";
-    public static final String NAME = "Minecraft Comes Alive";
-    public static final String VERSION = "6.1.0";
+    public static final String MODID = Tags.MOD_ID;
+
     @SidedProxy(clientSide = "mca.core.forge.ClientProxy", serverSide = "mca.core.forge.ServerProxy")
     public static ServerProxy proxy;
     public static CreativeTabs creativeTab;

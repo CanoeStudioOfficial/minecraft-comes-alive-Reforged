@@ -1,5 +1,6 @@
 package mca.core.minecraft;
 
+import mca.core.MCA;
 import mca.util.ItemStackCache;
 import net.minecraft.entity.IMerchant;
 import net.minecraft.entity.passive.EntityVillager;
@@ -19,7 +20,7 @@ import net.minecraftforge.registries.IForgeRegistry;
 
 import java.util.Random;
 
-@GameRegistry.ObjectHolder("mca")
+@GameRegistry.ObjectHolder(MCA.MODID)
 public class ProfessionsMCA {
     public static final VillagerProfession guard = new VillagerProfession("mca:guard", "minecraft:textures/entity/villager/villager.png", "minecraft:textures/entity/zombie_villager/zombie_villager.png");
     public static final VillagerProfession bandit = new VillagerProfession("mca:bandit", "minecraft:textures/entity/villager/villager.png", "minecraft:textures/entity/zombie_villager/zombie_villager.png");
@@ -78,7 +79,7 @@ public class ProfessionsMCA {
         return registry.getValue(resource);
     }
 
-    @Mod.EventBusSubscriber(modid = "mca")
+    @Mod.EventBusSubscriber(modid = MCA.MODID)
     public static class RegistrationHandler {
         /**
          * Register this mod's {@link VillagerProfession}s.

@@ -89,9 +89,10 @@ public class EventHooks {
 
         if (entity.getClass().equals(EntityVillager.class)) {
             EntityVillager originalVillager = (EntityVillager) entity;
-            originalVillager.setDead();
-
-            EntityVillagerMCA newVillager = new EntityVillagerMCA(world, com.google.common.base.Optional.of(originalVillager.getProfessionForge()), com.google.common.base.Optional.absent());
+            event.setCanceled(true);
+            EntityVillagerMCA newVillager = new EntityVillagerMCA(world,
+                    com.google.common.base.Optional.of(originalVillager.getProfessionForge()),
+                    com.google.common.base.Optional.absent());
             newVillager.setPosition(originalVillager.posX, originalVillager.posY, originalVillager.posZ);
             newVillager.finalizeMobSpawn(world.getDifficultyForLocation(newVillager.getPos()), null, false);
             newVillager.forcePositionAsHome();
