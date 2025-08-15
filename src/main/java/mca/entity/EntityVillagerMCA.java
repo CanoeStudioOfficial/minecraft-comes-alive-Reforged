@@ -189,6 +189,9 @@ public class EntityVillagerMCA extends VillagerPlatform {
     public void update() {
         updateSwinging();
 
+        if (!world.isRemote && this.ticksExisted == 1 && home.equals(BlockPos.ORIGIN)) {
+            forcePositionAsHome();
+        }
         if (this.isServerWorld()) {
             onEachServerUpdate();
         } else {
