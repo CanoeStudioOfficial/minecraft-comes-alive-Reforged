@@ -94,6 +94,8 @@ public class EventHooks {
             EntityVillager originalVillager = (EntityVillager) entity;
             originalVillager.setDead();
 
+
+
             //TODO make sure careers work.
             VillagerFactory factory = VillagerFactory.newVillager(new WorldWrapper(world))
             		.withProfession(originalVillager.getProfessionForge())
