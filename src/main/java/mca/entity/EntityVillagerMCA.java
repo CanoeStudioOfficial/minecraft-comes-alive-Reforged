@@ -284,6 +284,9 @@ public class EntityVillagerMCA extends EntityVillager {
         updateSwinging();
         updateSleeping();
 
+        if (!world.isRemote && this.ticksExisted == 1 && home.equals(BlockPos.ORIGIN)) {
+            forcePositionAsHome();
+        }
         if (this.isServerWorld()) {
             onEachServerUpdate();
         } else {
