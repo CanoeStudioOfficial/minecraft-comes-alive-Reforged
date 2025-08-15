@@ -11,8 +11,10 @@ import mca.entity.EntityVillagerMCA;
 import mca.enums.EnumConstraint;
 import mca.enums.EnumGender;
 import mca.util.Util;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.resources.LanguageManager;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.StringUtils;
@@ -47,7 +49,10 @@ public class API {
         Collections.addAll(skinGroups, skins);
 
         // Load names
-        InputStream namesStream = StringUtils.class.getResourceAsStream("/assets/mca/lang/names.lang");
+        LanguageManager languageManager = Minecraft.getMinecraft().getLanguageManager();
+        String currentLangCode = languageManager.getCurrentLanguage().getLanguageCode();
+        String langFilePath = String.format("/assets/mca/lang/%s.lang", currentLangCode);
+        InputStream namesStream = StringUtils.class.getResourceAsStream(langFilePath);
         try {
             // read in all names and process into the correct list
             List<String> lines = IOUtils.readLines(namesStream, Charsets.UTF_8);
