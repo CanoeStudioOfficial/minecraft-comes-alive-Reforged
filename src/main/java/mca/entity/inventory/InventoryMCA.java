@@ -41,7 +41,7 @@ public class InventoryMCA extends InventoryBasic {
         return false;
     }
 
-    
+
     /**
      * Gets the best quality (max damage) item of the specified type that is in the inventory.
      *

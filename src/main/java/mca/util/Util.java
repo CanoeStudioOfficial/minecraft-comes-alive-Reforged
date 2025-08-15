@@ -12,17 +12,12 @@ import net.minecraft.world.World;
 import org.apache.commons.io.IOUtils;
 
 import javax.annotation.Nullable;
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
-import static org.apache.http.protocol.HTTP.USER_AGENT;
 
 public class Util {
     private static final String RESOURCE_PREFIX = "assets/mca/";
