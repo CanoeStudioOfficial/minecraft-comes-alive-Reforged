@@ -1,69 +1,3 @@
-/**
- * It is advised that you do not edit anything in the build.gradle; unless you are sure of what you are doing
- */
-import com.gtnewhorizons.retrofuturagradle.mcp.InjectTagsTask
-import org.jetbrains.changelog.Changelog
-import org.jetbrains.gradle.ext.Gradle
-
-plugins {
-    id 'java'
-    id 'java-library'
-    id 'maven-publish'
-    id 'org.jetbrains.gradle.plugin.idea-ext' version '1.1.9'
-    id 'com.gtnewhorizons.retrofuturagradle' version '1.4.1'
-    id 'com.matthewprenger.cursegradle' version '1.4.0' apply false
-    id 'com.modrinth.minotaur' version '2.+' apply false
-    id 'org.jetbrains.changelog' version '2.2.1'
-}
-
-apply from: 'gradle/scripts/helpers.gradle'
-
-// Early Assertions
-assertProperty 'mod_version'
-assertProperty 'root_package'
-assertProperty 'mod_id'
-assertProperty 'mod_name'
-
-assertSubProperties 'use_tags', 'tag_class_name'
-assertSubProperties 'use_access_transformer', 'access_transformer_locations'
-assertSubProperties 'use_mixins', 'mixin_booter_version', 'mixin_refmap'
-assertSubProperties 'is_coremod', 'coremod_includes_mod', 'coremod_plugin_class_name'
-assertSubProperties 'use_asset_mover', 'asset_mover_version'
-
-setDefaultProperty 'use_modern_java_syntax', false, false
-setDefaultProperty 'generate_sources_jar', true, false
-setDefaultProperty 'generate_javadocs_jar', true, false
-setDefaultProperty 'mapping_channel', true, 'stable'
-setDefaultProperty 'mapping_version', true, '39'
-setDefaultProperty 'use_dependency_at_files', true, true
-setDefaultProperty 'minecraft_username', true, 'Developer'
-setDefaultProperty 'extra_jvm_args', false, ''
-setDefaultProperty 'extra_tweak_classes', false, ''
-setDefaultProperty 'change_minecraft_sources', false, false
-
-version = propertyString('mod_version')
-group = propertyString('root_package')
-
-base {
-    archivesName.set(propertyString('mod_id'))
-}
-
-tasks.decompressDecompiledSources.enabled !propertyBool('change_minecraft_sources')
-
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(propertyBool('use_modern_java_syntax') ? 16 : 8))
-        // Azul covers the most platforms for Java 8 toolchains, crucially including MacOS arm64
-        vendor.set(JvmVendorSpec.AZUL)
-    }
-    if (propertyBool('generate_sources_jar')) {
-        withSourcesJar()
-    }
-    if (propertyBool('generate_javadocs_jar')) {
-        withJavadocJar()
-    }
-}
-
 configurations {
     embed
     implementation.extendsFrom(embed)
@@ -79,8 +13,7 @@ minecraft {
 
     username.set(propertyString('minecraft_username'))
     
-    // Add any additional tweaker classes here
-    extraTweakClasses.addAll(propertyStringList('extra_tweak_classes'))
+
 
     // Add various JVM arguments here for runtime
     def args = ['-ea:' + group]
