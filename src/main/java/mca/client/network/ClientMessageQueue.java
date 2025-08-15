@@ -4,8 +4,11 @@ import mca.core.MCA;
 import mca.core.forge.NetMCA;
 import mca.entity.EntityVillagerMCA;
 import net.minecraft.client.Minecraft;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.world.World;
+import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 
 import java.util.Optional;
@@ -38,7 +41,7 @@ public class ClientMessageQueue {
             Optional<EntityVillagerMCA> villager = getVillagerByUUID(player.getEntityWorld(), msg.getEntityUUID());
 
             if (villager.isPresent()) {
-            	villager.get().setCareerId(msg.getCareerId());
+                ObfuscationReflectionHelper.setPrivateValue(EntityVillager.class, villager.get(), msg.getCareerId(), EntityVillagerMCA.VANILLA_CAREER_ID_FIELD_INDEX);
             }
         } catch (ClassCastException e) {
             MCA.getLog().error("Failed to cast entity to villager on career ID update.");

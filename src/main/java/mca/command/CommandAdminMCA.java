@@ -1,5 +1,6 @@
 package mca.command;
 
+import com.google.common.base.Optional;
 import mca.core.Constants;
 import mca.core.MCA;
 import mca.core.minecraft.ItemsMCA;
@@ -19,7 +20,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.TextComponentString;
 
 import java.util.Arrays;
-import java.util.Optional;
 import java.util.UUID;
 
 public class CommandAdminMCA extends CommandBase {
@@ -155,9 +155,9 @@ public class CommandAdminMCA extends CommandBase {
     }
 
     private void resetPlayerData(EntityPlayer sender, String[] arguments) {
-        Optional<Entity> target = sender.world.loadedEntityList.stream()
-                .filter(e -> e instanceof EntityPlayer && e.getName().equals(arguments[0])).findFirst();
-                
+        Optional<Entity> target = com.google.common.base.Optional.fromJavaUtil(sender.world.loadedEntityList.stream()
+                .filter(e -> e instanceof EntityPlayer && e.getName().equals(arguments[0]))
+                .findFirst());
         if (!target.isPresent()) {
             sendMessage(sender, "Player not found on the server.");
         } else {

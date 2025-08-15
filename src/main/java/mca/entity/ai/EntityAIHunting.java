@@ -60,7 +60,7 @@ public class EntityAIHunting extends AbstractEntityAIChore {
 
             if (!pathSuccess || target.isDead) {
                 // search for EntityItems around the target and grab them
-                villager.world.getLoadedEntityList().stream()
+                villager.world.loadedEntityList.stream()
                         .filter((e) -> e instanceof EntityItem && e.getDistance(target) <= 5.0D)
                         .forEach((item) -> {
                             villager.inventory.addItem(((EntityItem) item).getItem());

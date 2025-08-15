@@ -1,8 +1,8 @@
 package mca.items;
 
-import mca.api.objects.Player;
 import mca.entity.EntityVillagerMCA;
 import net.minecraft.client.util.ITooltipFlag;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
@@ -12,7 +12,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 public class ItemEngagementRing extends ItemWeddingRing {
-    public boolean handle(Player player, EntityVillagerMCA villager) {
+    public boolean handle(EntityPlayer player, EntityVillagerMCA villager) {
         return super.handle(player, villager);
     }
 

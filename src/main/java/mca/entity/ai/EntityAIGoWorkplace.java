@@ -24,7 +24,7 @@ public class EntityAIGoWorkplace extends AbstractEntityAIChore {
         }
 
         double validArea = 576.0D; //allows 24 blocks radius to work
-        double distance = villager.getDistanceSq(villager.getWorkplace().getBlockPos());
+        double distance = villager.getDistanceSq(villager.getWorkplace());
 
         if (!atWork) {
             if (distance < 9.0) {
@@ -44,6 +44,7 @@ public class EntityAIGoWorkplace extends AbstractEntityAIChore {
     }
 
     public void startExecuting() {
+        //MCA.getLog().info(villager.getName() + " goes to work");
         villager.moveTowardsBlock(villager.getWorkplace());
     }
 

@@ -1,12 +1,11 @@
 package mca.entity.ai;
 
-import mca.api.objects.Player;
+import com.google.common.base.Optional;
+import mca.core.Constants;
 import mca.core.MCA;
 import mca.entity.EntityVillagerMCA;
 import net.minecraft.entity.ai.EntityAIBase;
-
-import java.util.Optional;
-import java.util.UUID;
+import net.minecraft.entity.player.EntityPlayer;
 
 public abstract class AbstractEntityAIChore extends EntityAIBase {
     protected final EntityVillagerMCA villager;
@@ -26,7 +25,8 @@ public abstract class AbstractEntityAIChore extends EntityAIBase {
         }
     }
 
-    Optional<Player> getAssigningPlayer() {
-    	return villager.world.getPlayerEntityByUUID(villager.get(EntityVillagerMCA.CHORE_ASSIGNING_PLAYER).or(new UUID(0,0)));
+    Optional<EntityPlayer> getAssigningPlayer() {
+        EntityPlayer player = villager.world.getPlayerEntityByUUID(villager.get(EntityVillagerMCA.CHORE_ASSIGNING_PLAYER).or(Constants.ZERO_UUID));
+        return Optional.fromNullable(player);
     }
 }

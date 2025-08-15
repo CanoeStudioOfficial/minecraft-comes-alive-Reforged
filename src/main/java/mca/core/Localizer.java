@@ -1,8 +1,6 @@
 package mca.core;
 
 import com.google.common.base.Charsets;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.LanguageManager;
 import net.minecraft.util.StringUtils;
 import org.apache.commons.io.IOUtils;
 
@@ -16,36 +14,24 @@ public class Localizer {
     private static final ArrayList<String> EMPTY_LIST = new ArrayList<>();
 
     public Localizer() {
-        InputStream inStream = null;
+        InputStream inStream = StringUtils.class.getResourceAsStream("/assets/mca/lang/en_us.lang");
+
         try {
-
-            LanguageManager languageManager = Minecraft.getMinecraft().getLanguageManager();
-            String currentLangCode = languageManager.getCurrentLanguage().getLanguageCode();
-
-            String langFilePath = String.format("/assets/mca/lang/%s.lang", currentLangCode);
-            inStream = StringUtils.class.getResourceAsStream(langFilePath);
-
-            if (inStream == null) {
-                MCA.getLog().warn("Language file not found : " + langFilePath + "，Fall back to default language en_us.lang");
-                inStream = StringUtils.class.getResourceAsStream("/assets/mca/lang/en_us.lang");
-            }
-
-            if (inStream == null) {
-                MCA.getLog().error("Language file not found : /assets/mca/lang/en_us.lang");
-                return;
-            }
-
             List<String> lines = IOUtils.readLines(inStream, Charsets.UTF_8);
 
             for (String line : lines) {
-                if (line.startsWith("#") || line.isEmpty()) continue;
-                String[] split = line.split("=", 2); // 避免值中出现 "=" 导致 split 数组越界
-                if (split.length < 2) continue;
-                localizerMap.put(split[0], split[1]);
-            }
+                if (line.startsWith("#") || line.isEmpty()) {
+                    continue;
+                }
 
+                String[] split = line.split("\\=");
+                String key = split[0];
+                String value = split[1];
+
+                localizerMap.put(key, value);
+            }
         } catch (IOException e) {
-            MCA.getLog().error("Failed to initialize language file : " + e.getMessage());
+            MCA.getLog().error("Error initializing localizer: " + e);
         }
     }
 
@@ -58,14 +44,10 @@ public class Localizer {
     public String localize(String key, ArrayList<String> vars) {
         String result = localizerMap.getOrDefault(key, key);
         if (result.equals(key)) {
-            List<String> responses = localizerMap.entrySet().stream()
-                    .filter(entry -> entry.getKey().contains(key))
-                    .map(Map.Entry::getValue)
-                    .collect(Collectors.toList());
-            if (!responses.isEmpty()) {
-                result = responses.get(new Random().nextInt(responses.size()));
-            }
+            List<String> responses = localizerMap.entrySet().stream().filter(entry -> entry.getKey().contains(key)).map(Map.Entry::getValue).collect(Collectors.toList());
+            if (responses.size() > 0) result = responses.get(new Random().nextInt(responses.size()));
         }
+
         return parseVars(result, vars).replaceAll("\\\\", "");
     }
 
@@ -74,12 +56,12 @@ public class Localizer {
         str = str.replaceAll("%Supporter%", MCA.getInstance().getRandomSupporter());
 
         String varString = "%v" + index + "%";
-        while (str.contains("%v") && index < 10) {
+        while (str.contains("%v") && index < 10) { // signature of a var being present
             try {
                 str = str.replaceAll(varString, vars.get(index - 1));
             } catch (IndexOutOfBoundsException e) {
                 str = str.replaceAll(varString, "");
-                MCA.getLog().warn("Failed to substitute variables : " + varString + " in string : " + str);
+                MCA.getLog().warn("Failed to replace variable in localized string: " + str);
             } finally {
                 index++;
                 varString = "%v" + index + "%";

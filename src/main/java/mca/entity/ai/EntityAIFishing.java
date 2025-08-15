@@ -1,6 +1,5 @@
 package mca.entity.ai;
 
-import mca.api.objects.Pos;
 import mca.entity.EntityVillagerMCA;
 import mca.enums.EnumChore;
 import mca.util.Util;
@@ -11,12 +10,13 @@ import net.minecraft.item.ItemFishFood;
 import net.minecraft.item.ItemFishingRod;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumHand;
+import net.minecraft.util.math.BlockPos;
 
 import java.util.Comparator;
 import java.util.List;
 
 public class EntityAIFishing extends AbstractEntityAIChore {
-    private Pos targetWater;
+    private BlockPos targetWater;
     private boolean hasCastRod;
     private int ticks;
 
@@ -42,11 +42,11 @@ public class EntityAIFishing extends AbstractEntityAIChore {
         }
 
         if (targetWater == null) {
-            List<Pos> nearbyStaticLiquid = Util.getNearbyBlocks(Util.wrapPos(villager), villager.world, BlockStaticLiquid.class, 12, 3);
+            List<BlockPos> nearbyStaticLiquid = Util.getNearbyBlocks(villager.getPos(), villager.world, BlockStaticLiquid.class, 12, 3);
             targetWater = nearbyStaticLiquid.stream()
                     .filter((p) -> villager.world.getBlockState(p).getBlock() == Blocks.WATER)
                     .min(Comparator.comparingDouble(villager::getDistanceSq)).orElse(null);
-        } else if (villager.getDistanceSq(targetWater) > 5.0D) villager.getNavigator().setPath(villager.getNavigator().getPathToPos(targetWater.getBlockPos()), 0.8D);
+        } else if (villager.getDistanceSq(targetWater) > 5.0D) villager.getNavigator().setPath(villager.getNavigator().getPathToPos(targetWater), 0.8D);
         else if (villager.getDistanceSq(targetWater) < 5.0D) {
             villager.getNavigator().clearPath();
 

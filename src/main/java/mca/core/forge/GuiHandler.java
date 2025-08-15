@@ -1,6 +1,5 @@
 package mca.core.forge;
 
-import mca.api.objects.Player;
 import mca.client.gui.*;
 import mca.core.Constants;
 import mca.core.MCA;
@@ -34,7 +33,7 @@ public class GuiHandler implements IGuiHandler {
                 if (entity == null) return null;
                 return new GuiChest(player.inventory, ((EntityVillagerMCA) entity).inventory);
             case Constants.GUI_ID_INTERACT:
-                return new GuiInteract((EntityVillagerMCA) world.getEntityByID(entityId), new Player(player));
+                return new GuiInteract((EntityVillagerMCA) world.getEntityByID(entityId), player);
             case Constants.GUI_ID_NAMEBABY:
                 return new GuiNameBaby(player, player.inventory.getStackInSlot(player.inventory.currentItem));
             case Constants.GUI_ID_STAFFOFLIFE:

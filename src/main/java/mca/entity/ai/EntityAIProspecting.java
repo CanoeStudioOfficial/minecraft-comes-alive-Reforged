@@ -1,6 +1,5 @@
 package mca.entity.ai;
 
-import mca.api.objects.Pos;
 import mca.entity.EntityVillagerMCA;
 import mca.enums.EnumChore;
 import mca.util.Util;
@@ -9,6 +8,7 @@ import net.minecraft.block.BlockOre;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemPickaxe;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.math.BlockPos;
 
 public class EntityAIProspecting extends AbstractEntityAIChore {
     private int ticks;
@@ -39,7 +39,7 @@ public class EntityAIProspecting extends AbstractEntityAIChore {
         float notifyRate = Math.max(600 - efficiency * 50, 100);
 
         if (ticks >= notifyRate) {
-            Pos closestOre = Util.getNearestPoint(Util.wrapPos(villager), Util.getNearbyBlocks(Util.wrapPos(villager), villager.world, BlockOre.class, 4, 3));
+            BlockPos closestOre = Util.getNearestPoint(villager.getPos(), Util.getNearbyBlocks(villager.getPos(), villager.world, BlockOre.class, 4, 3));
 
             if (closestOre != null) {
                 Block block = villager.world.getBlockState(closestOre).getBlock();

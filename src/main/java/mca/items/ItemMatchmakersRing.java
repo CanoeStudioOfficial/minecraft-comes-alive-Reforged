@@ -1,18 +1,17 @@
 package mca.items;
 
-import mca.api.objects.Player;
+import com.google.common.base.Optional;
 import mca.entity.EntityVillagerMCA;
 import mca.enums.EnumMarriageState;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumParticleTypes;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 
 public class ItemMatchmakersRing extends ItemSpecialCaseGift {
-    public boolean handle(Player player, EntityVillagerMCA villager) {
-
+    public boolean handle(EntityPlayer player, EntityVillagerMCA villager) {
         // ensure two rings are in the inventory
         if (player.inventory.getStackInSlot(player.inventory.currentItem).getCount() < 2) {
             villager.say(Optional.of(player), "interaction.matchmaker.fail.needtwo");
@@ -25,8 +24,8 @@ public class ItemMatchmakersRing extends ItemSpecialCaseGift {
             return false;
         }
 
-        List<EntityVillagerMCA> villagers = villager.world.getVanillaWorld().getEntities(EntityVillagerMCA.class, v -> v != null && !v.isMarried() && !v.isChild() && v.getDistance(villager) < 3.0D && v != villager);
-        Optional<EntityVillagerMCA> target = villagers.stream().min(Comparator.comparingDouble(villager::getDistance));
+        List<EntityVillagerMCA> villagers = villager.world.getEntities(EntityVillagerMCA.class, v -> v != null && !v.isMarried() && !v.isChild() && v.getDistance(villager) < 3.0D && v != villager);
+        java.util.Optional<EntityVillagerMCA> target = villagers.stream().min(Comparator.comparingDouble(villager::getDistance));
 
         // ensure we found a nearby villager
         if (!target.isPresent()) {
@@ -36,10 +35,10 @@ public class ItemMatchmakersRing extends ItemSpecialCaseGift {
 
         // setup the marriage by assigning spouse UUIDs
         EntityVillagerMCA spouse = target.get();
-        villager.set(EntityVillagerMCA.SPOUSE_UUID, com.google.common.base.Optional.of(target.get().getUniqueID()));
+        villager.set(EntityVillagerMCA.SPOUSE_UUID, Optional.of(target.get().getUniqueID()));
         villager.set(EntityVillagerMCA.MARRIAGE_STATE, EnumMarriageState.MARRIED.getId());
         villager.set(EntityVillagerMCA.SPOUSE_NAME, spouse.get(EntityVillagerMCA.VILLAGER_NAME));
-        spouse.set(EntityVillagerMCA.SPOUSE_UUID, com.google.common.base.Optional.of(villager.getUniqueID()));
+        spouse.set(EntityVillagerMCA.SPOUSE_UUID, Optional.of(villager.getUniqueID()));
         spouse.set(EntityVillagerMCA.MARRIAGE_STATE, EnumMarriageState.MARRIED.getId());
         spouse.set(EntityVillagerMCA.SPOUSE_NAME, villager.get(EntityVillagerMCA.VILLAGER_NAME));
 

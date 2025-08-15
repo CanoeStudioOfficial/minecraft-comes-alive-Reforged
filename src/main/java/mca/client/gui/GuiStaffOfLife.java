@@ -1,10 +1,8 @@
 package mca.client.gui;
 
-import mca.api.wrappers.WorldWrapper;
 import mca.core.MCA;
 import mca.core.forge.NetMCA;
 import mca.entity.EntityVillagerMCA;
-import mca.entity.VillagerFactory;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.inventory.GuiInventory;
@@ -77,7 +75,7 @@ public class GuiStaffOfLife extends GuiScreen {
         villagerData = data;
 
         if (data.size() > 0) {
-            dummy = VillagerFactory.newVillager(new WorldWrapper(player.world)).build();
+            dummy = new EntityVillagerMCA(player.world);
             keys.addAll(data.keySet());
             selectData(0);
         } else {

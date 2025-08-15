@@ -1,8 +1,5 @@
 package mca.core.forge;
 
-import mca.api.objects.NPC;
-import mca.api.objects.Pos;
-import mca.api.wrappers.WorldWrapper;
 import mca.client.network.ClientMessageQueue;
 import mca.core.Constants;
 import mca.core.MCA;
@@ -12,7 +9,6 @@ import mca.core.minecraft.ItemsMCA;
 import mca.core.minecraft.ProfessionsMCA;
 import mca.core.minecraft.WorldEventListenerMCA;
 import mca.entity.EntityVillagerMCA;
-import mca.entity.VillagerFactory;
 import mca.items.ItemBaby;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
@@ -24,7 +20,10 @@ import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.stats.StatList;
+import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.event.ClickEvent;
 import net.minecraft.world.World;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
@@ -82,6 +81,29 @@ public class EventHooks {
     }
 
     @SubscribeEvent
+    public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
+        if (!MCA.updateAvailable) return;
+        TextComponentString updateMessage = new TextComponentString(Constants.Color.DARKGREEN + "An update for Minecraft Comes Alive is available: v" + MCA.latestVersion);
+        String updateURLText = Constants.Color.YELLOW + "Click " + Constants.Color.BLUE + Constants.Format.ITALIC + Constants.Format.UNDERLINE + "here" + Constants.Format.RESET + Constants.Color.YELLOW + " to download the update.";
+
+        TextComponentString chatComponentUpdate = new TextComponentString(updateURLText);
+        chatComponentUpdate.getStyle().setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://minecraftcomesalive.com/download"));
+        chatComponentUpdate.getStyle().setUnderlined(true);
+
+        event.player.sendMessage(updateMessage);
+        event.player.sendMessage(chatComponentUpdate);
+
+        MCA.updateAvailable = false;
+    }
+
+    @SubscribeEvent
+    public void onWorldUnload(WorldEvent.Unload event) {
+        // Only send crash reports on unloading the overworld. This will never change based on other mods installed
+        // and ensures only one crash report is sent per instance.
+        if (!event.getWorld().isRemote && event.getWorld().provider.getDimension() == 0) MCA.getInstance().checkForCrashReports();
+    }
+
+    @SubscribeEvent
     public void onEntityJoinWorld(EntityJoinWorldEvent event) {
         World world = event.getWorld();
         Entity entity = event.getEntity();
@@ -89,19 +111,15 @@ public class EventHooks {
         if (world.isRemote) return;
         if (!MCA.getConfig().overwriteOriginalVillagers) return;
 
-        // Replace original villagers
         if (entity.getClass().equals(EntityVillager.class)) {
             EntityVillager originalVillager = (EntityVillager) entity;
             originalVillager.setDead();
 
-
-
-            //TODO make sure careers work.
-            VillagerFactory factory = VillagerFactory.newVillager(new WorldWrapper(world))
-            		.withProfession(originalVillager.getProfessionForge())
-            		.withPosition(new NPC(originalVillager))
-            		.spawn();
-            factory.build().forcePositionAsHome();
+            EntityVillagerMCA newVillager = new EntityVillagerMCA(world, com.google.common.base.Optional.of(originalVillager.getProfessionForge()), com.google.common.base.Optional.absent());
+            newVillager.setPosition(originalVillager.posX, originalVillager.posY, originalVillager.posZ);
+            newVillager.finalizeMobSpawn(world.getDifficultyForLocation(newVillager.getPos()), null, false);
+            newVillager.forcePositionAsHome();
+            world.spawnEntity(newVillager);
         }
     }
 
@@ -131,7 +149,7 @@ public class EventHooks {
             Entity source = event.getSource() != null ? event.getSource().getTrueSource() : null;
             
             if (source instanceof EntityLivingBase && villager.getProfessionForge() != ProfessionsMCA.bandit) {
-                villager.world.getLoadedEntityList().stream().filter(e ->
+                villager.world.loadedEntityList.stream().filter(e ->
                         e instanceof EntityVillagerMCA &&
                         e.getDistance(villager) <= 10.0D &&
                         ((EntityVillagerMCA)e).getProfessionForge() == ProfessionsMCA.guard)
@@ -178,7 +196,7 @@ public class EventHooks {
             }
 
             if (totemsFound >= 3 && !event.getWorld().isDaytime()) {
-                MCAServer.get().setReaperSpawnPos(new WorldWrapper(event.getWorld()), new Pos(x + 1, y + 10, z + 1));
+                MCAServer.get().setReaperSpawnPos(event.getWorld(), new BlockPos(x + 1, y + 10, z + 1));
                 MCAServer.get().startSpawnReaper();
                 for (int i = 0; i < 2; i++) event.getWorld().setBlockToAir(new BlockPos(x, y - i, z));
             }

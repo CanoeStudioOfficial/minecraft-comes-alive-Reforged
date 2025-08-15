@@ -4,17 +4,12 @@ import io.netty.buffer.ByteBuf;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import mca.api.objects.NPC;
-import mca.api.objects.Player;
-import mca.api.objects.PlayerMP;
-import mca.api.wrappers.WorldServerWrapper;
 import mca.client.gui.GuiStaffOfLife;
 import mca.client.gui.GuiWhistle;
 import mca.client.network.ClientMessageQueue;
 import mca.core.MCA;
 import mca.core.minecraft.ProfessionsMCA;
 import mca.entity.EntityVillagerMCA;
-import mca.entity.VillagerFactory;
 import mca.entity.data.SavedVillagers;
 import mca.entity.inventory.InventoryMCA;
 import mca.items.ItemBaby;
@@ -23,6 +18,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
@@ -41,7 +37,9 @@ import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import net.minecraftforge.fml.common.registry.VillagerRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import scala.collection.parallel.ParIterableLike;
 
+import javax.annotation.Nullable;
 import java.util.*;
 
 public class NetMCA {
@@ -110,18 +108,13 @@ public class NetMCA {
     public static class ButtonActionHandler implements IMessageHandler<ButtonAction, IMessage> {
         @Override
         public IMessage onMessage(ButtonAction message, MessageContext ctx) {
-            PlayerMP player = new PlayerMP(ctx.getServerHandler().player);
-            WorldServerWrapper world = player.getVanillaWorldServer();
+            EntityPlayerMP player = ctx.getServerHandler().player;
 
             // The message can target a particular villager, or the server itself.
-            if (message.targetsServer()) {
-                ServerMessageHandler.handleMessage(player, message);
-            } else { // Target is a villager
-                world.getNPCByUUID(message.targetUUID).ifPresent(
-                    v -> world.addScheduledTask(() ->
-                    v.asVillager().handleButtonClick(player, message.guiKey, message.buttonId)));
-            }
-
+            if (!message.targetsServer()) {
+                EntityVillagerMCA villager = (EntityVillagerMCA) player.getServerWorld().getEntityFromUuid(message.targetUUID);
+                if (villager != null) player.getServerWorld().addScheduledTask(() -> villager.handleButtonClick(player, message.guiKey, message.buttonId));
+            } else ServerMessageHandler.handleMessage(player, message);
             return null;
         }
     }
@@ -130,19 +123,18 @@ public class NetMCA {
     @NoArgsConstructor
     public static class Say implements IMessage {
         private String phraseId;
-        private UUID speakingEntityUUID;
+        private int speakingEntityId;
 
         @Override
         public void toBytes(ByteBuf buf) {
             ByteBufUtils.writeUTF8String(buf, this.phraseId);
-            buf.writeLong(speakingEntityUUID.getMostSignificantBits());
-            buf.writeLong(speakingEntityUUID.getLeastSignificantBits());
+            buf.writeInt(this.speakingEntityId);
         }
 
         @Override
         public void fromBytes(ByteBuf buf) {
             this.phraseId = ByteBufUtils.readUTF8String(buf);
-            this.speakingEntityUUID = new UUID(buf.readLong(), buf.readLong());
+            this.speakingEntityId = buf.readInt();
         }
     }
 
@@ -150,9 +142,11 @@ public class NetMCA {
 
         @Override
         public IMessage onMessage(Say message, MessageContext ctx) {
-            Player player = new Player(getPlayerClient());
-            Optional<NPC> npc = player.world.getNPCByUUID(message.speakingEntityUUID);
-            npc.ifPresent(v -> v.asVillager().say(java.util.Optional.of(player), message.phraseId));
+            EntityPlayer player = getPlayerClient();
+            EntityVillagerMCA villager = (EntityVillagerMCA) player.getEntityWorld().getEntityByID(message.speakingEntityId);
+
+            if (villager != null) villager.say(com.google.common.base.Optional.of(player), message.phraseId);
+
             return null;
         }
     }
@@ -237,14 +231,23 @@ public class NetMCA {
 
         @Override
         public IMessage onMessage(CareerRequest message, MessageContext ctx) {
-            PlayerMP player = new PlayerMP(ctx.getServerHandler().player);
+            EntityPlayerMP player = ctx.getServerHandler().player;
             int careerId = -255;
 
-            Optional<EntityVillagerMCA> villager = player.world.getVillagerByUUID(message.entityUUID);
-            if (villager.isPresent()) {
-                careerId = villager.get().getCareerId();
-            } else {
-                MCA.getLog().error("UUID of requested villager was not a villager or entity could not be found.");
+            try {
+                EntityVillagerMCA villager = (EntityVillagerMCA) player.getServerWorld().getEntityFromUuid(message.entityUUID);
+
+                if (villager != null) careerId = ObfuscationReflectionHelper.getPrivateValue(EntityVillager.class, villager, EntityVillagerMCA.VANILLA_CAREER_ID_FIELD_INDEX);
+            } catch (ClassCastException ignored) {
+                MCA.getLog().error("UUID provided in career request does not match an MCA villager!: " + message.entityUUID.toString());
+                return null;
+            } catch (NullPointerException ignored) {
+                MCA.getLog().error("UUID provided in career request does not match a loaded MCA villager!: " + message.entityUUID.toString());
+                return null;
+            }
+
+            if (careerId == -255) {
+                MCA.getLog().error("Career ID wasn't assigned for UUID: " + message.entityUUID);
                 return null;
             }
 
@@ -326,7 +329,7 @@ public class NetMCA {
 
         @Override
         public IMessage onMessage(SavedVillagersRequest message, MessageContext ctx) {
-            return new SavedVillagersResponse(new Player(ctx.getServerHandler().player));
+            return new SavedVillagersResponse(ctx.getServerHandler().player);
         }
     }
 
@@ -334,7 +337,7 @@ public class NetMCA {
     public static class SavedVillagersResponse implements IMessage {
         private Map<String, NBTTagCompound> villagers = new HashMap<>();
 
-        public SavedVillagersResponse(Player player) {
+        public SavedVillagersResponse(EntityPlayer player) {
             villagers = SavedVillagers.get(player.world).getMap();
         }
 
@@ -388,16 +391,19 @@ public class NetMCA {
 
         @Override
         public IMessage onMessage(ReviveVillager message, MessageContext ctx) {
-            Player player = new Player(ctx.getServerHandler().player);
+            EntityPlayer player = ctx.getServerHandler().player;
             SavedVillagers villagers = SavedVillagers.get(player.world);
             NBTTagCompound nbt = SavedVillagers.get(player.world).loadByUUID(message.target);
             if (nbt != null) {
-                EntityVillagerMCA villager = VillagerFactory.newVillager(player.world).withPosition(player).spawn().build();
+                EntityVillagerMCA villager = new EntityVillagerMCA(player.world);
+                villager.setPosition(player.posX, player.posY, player.posZ);
+                player.world.spawnEntity(villager);
+
                 villager.readEntityFromNBT(nbt);
                 villager.reset();
 
                 villagers.remove(message.target);
-                player.inventory.mainInventory.get(player.inventory.currentItem).damageItem(1, player.getPlayer());
+                player.inventory.mainInventory.get(player.inventory.currentItem).damageItem(1, player);
             }
 
             return null;
@@ -428,7 +434,7 @@ public class NetMCA {
         @Override
         public IMessage onMessage(SetName message, MessageContext ctx) {
             World world = ctx.getServerHandler().player.world;
-            Optional<Entity> entity = world.loadedEntityList.stream().filter((e) -> e.getUniqueID().equals(message.entityUUID)).findFirst();
+            java.util.Optional<Entity> entity = world.loadedEntityList.stream().filter((e) -> e.getUniqueID().equals(message.entityUUID)).findFirst();
             if (!entity.isPresent()) return null;
             if (entity.get() instanceof EntityVillagerMCA) {
                 EntityVillagerMCA villager = (EntityVillagerMCA) entity.get();
@@ -461,7 +467,7 @@ public class NetMCA {
         @Override
         public IMessage onMessage(SpawnParticles message, MessageContext ctx) {
             World world = getPlayerClient().world;
-            Optional<Entity> entity = world.loadedEntityList.stream().filter((e) -> e.getUniqueID().equals(message.entityUUID)).findFirst();
+            java.util.Optional<Entity> entity = world.loadedEntityList.stream().filter((e) -> e.getUniqueID().equals(message.entityUUID)).findFirst();
             if (!entity.isPresent()) return null;
             if (entity.get() instanceof EntityVillagerMCA) {
                 EntityVillagerMCA villager = (EntityVillagerMCA) entity.get();
@@ -483,11 +489,11 @@ public class NetMCA {
     public static class GetFamilyHandler implements IMessageHandler<GetFamily, IMessage> {
         @Override
         public IMessage onMessage(GetFamily message, MessageContext ctx) {
-            Player player = new Player(ctx.getServerHandler().player);
+            EntityPlayer player = ctx.getServerHandler().player;
             List<EntityVillagerMCA> villagers = new ArrayList<>();
             List<NBTTagCompound> familyData = new ArrayList<>();
 
-            player.world.getLoadedEntityList().stream().filter(e -> e instanceof EntityVillagerMCA).forEach(e -> villagers.add((EntityVillagerMCA)e));
+            player.world.loadedEntityList.stream().filter(e -> e instanceof EntityVillagerMCA).forEach(e -> villagers.add((EntityVillagerMCA)e));
             villagers.stream().filter(e -> e.isMarriedTo(player.getUniqueID()) || e.playerIsParent(player)).forEach(e -> {
                 NBTTagCompound nbt = new NBTTagCompound();
                 e.writeEntityToNBT(nbt);

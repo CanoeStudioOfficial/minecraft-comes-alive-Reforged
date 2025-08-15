@@ -1,10 +1,9 @@
 package mca.api;
 
 import com.google.common.base.Charsets;
-import mca.api.objects.APIButton;
-import mca.api.objects.Gift;
-import mca.api.objects.Player;
-import mca.api.objects.SkinsGroup;
+import mca.api.types.APIButton;
+import mca.api.types.Gift;
+import mca.api.types.SkinsGroup;
 import mca.client.gui.component.GuiButtonEx;
 import mca.core.Constants;
 import mca.core.MCA;
@@ -12,10 +11,9 @@ import mca.entity.EntityVillagerMCA;
 import mca.enums.EnumConstraint;
 import mca.enums.EnumGender;
 import mca.util.Util;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.resources.LanguageManager;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
@@ -49,11 +47,7 @@ public class API {
         Collections.addAll(skinGroups, skins);
 
         // Load names
-        LanguageManager languageManager = Minecraft.getMinecraft().getLanguageManager();
-        String currentLangCode = languageManager.getCurrentLanguage().getLanguageCode();
-        String langFilePath = String.format("/assets/mca/lang/%s.lang", currentLangCode);
-        InputStream namesStream = StringUtils.class.getResourceAsStream(langFilePath);
-
+        InputStream namesStream = StringUtils.class.getResourceAsStream("/assets/mca/lang/names.lang");
         try {
             // read in all names and process into the correct list
             List<String> lines = IOUtils.readLines(namesStream, Charsets.UTF_8);
@@ -180,7 +174,7 @@ public class API {
      * @param player   EntityPlayer who has opened the GUI
      * @param screen   GuiScreen instance the buttons should be added to
      */
-    public static void addButtons(String guiKey, @Nullable EntityVillagerMCA villager, Player player, GuiScreen screen) {
+    public static void addButtons(String guiKey, @Nullable EntityVillagerMCA villager, EntityPlayer player, GuiScreen screen) {
         List<GuiButton> buttonList = ObfuscationReflectionHelper.getPrivateValue(GuiScreen.class, screen, Constants.GUI_SCREEN_BUTTON_LIST_FIELD_INDEX);
         for (APIButton b : buttonMap.get(guiKey)) {
             GuiButtonEx guiButton = new GuiButtonEx(screen, b);

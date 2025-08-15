@@ -30,7 +30,7 @@ public class EntityAIGoHangout extends AbstractEntityAIChore {
         }
 
         double validArea = 64.0D; //allows 8 blocks radius to stay
-        double distance = villager.getDistanceSq(villager.getHangout().getBlockPos());
+        double distance = villager.getDistanceSq(villager.getHangout());
 
         if (!atHangout) {
             if (distance < 9.0) {

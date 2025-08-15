@@ -1,18 +1,17 @@
 package mca.client.gui;
 
 import lombok.NonNull;
-import mca.api.wrappers.WorldWrapper;
-import mca.core.MCA;
 import mca.core.forge.NetMCA;
+import net.minecraft.nbt.NBTTagCompound;
+import org.apache.commons.lang3.StringUtils;
+
+import mca.core.MCA;
 import mca.entity.EntityVillagerMCA;
-import mca.entity.VillagerFactory;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 
@@ -139,7 +138,7 @@ public class GuiWhistle extends GuiScreen {
         try {
             NBTTagCompound firstData = dataList.get(0);
             villagerNameButton.displayString = firstData.getString("name");
-            dummyHuman = VillagerFactory.newVillager(new WorldWrapper(Minecraft.getMinecraft().world)).build();
+            dummyHuman = new EntityVillagerMCA(Minecraft.getMinecraft().world);
             updateDummyVillagerWithData(firstData);
         }
 
