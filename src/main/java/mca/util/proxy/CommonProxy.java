@@ -1,6 +1,6 @@
-package mca.core.forge;
+package mca.util.proxy;
 
-public class ServerProxy {
+public class CommonProxy {
     public void registerEntityRenderers() {
         // Server-side, no rendering.
     }
