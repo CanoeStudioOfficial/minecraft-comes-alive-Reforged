@@ -37,9 +37,7 @@ public class MCA {
     @Mod.Instance
     private static MCA instance;
     private static Logger logger;
-    private static Localizer localizer;
     private static Config config;
-
 
     public static Logger getLog() {
         return logger;
@@ -50,21 +48,19 @@ public class MCA {
     }
 
     public static Localizer getLocalizer() {
-        return localizer;
+        // 通过proxy获取Localizer，确保只在客户端初始化
+        return proxy.getLocalizer();
     }
 
     public static Config getConfig() {
         return config;
     }
 
-
-
     @EventHandler
     public void preInit(FMLPreInitializationEvent event) {
         instance = this;
         logger = event.getModLog();
-        proxy.registerEntityRenderers();
-        localizer = new Localizer();
+        proxy.registerEntityRenderers(); // 这里会初始化客户端的Localizer
         config = new Config(event);
         creativeTab = new CreativeTabs("MCA") {
             @Override
@@ -75,8 +71,6 @@ public class MCA {
         MinecraftForge.EVENT_BUS.register(new EventHooks());
         NetworkRegistry.INSTANCE.registerGuiHandler(this, new GuiHandler());
         NetMCA.registerMessages();
-
-
     }
 
     @EventHandler
@@ -101,12 +95,9 @@ public class MCA {
         event.registerServerCommand(new CommandAdminMCA());
     }
 
-
-
     public String getRandomSupporter() {
-
-            return API.getRandomName(EnumGender.getRandom());
-
+        return API.getRandomName(EnumGender.getRandom());
     }
+
 
 }
