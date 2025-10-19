@@ -19,7 +19,6 @@ import java.util.ArrayList;
 
 public final class BlocksMCA {
     public static final Block ROSE_GOLD_BLOCK = new BlockOre();
-    public static final Block ROSE_GOLD_ORE = new BlockOre();
     public static final BlockVillagerSpawner VILLAGER_SPAWNER = new BlockVillagerSpawner();
 
     private static final ArrayList<Block> BLOCKS = new ArrayList<>();
@@ -27,18 +26,14 @@ public final class BlocksMCA {
     public static void register(RegistryEvent.Register<Block> event) {
         ROSE_GOLD_BLOCK.setHardness(3.0F).setResistance(5.0F).setCreativeTab(MCA.creativeTab);
         ROSE_GOLD_BLOCK.setHarvestLevel("pickaxe", 2);
-        ROSE_GOLD_ORE.setHardness(3.0F).setResistance(5.0F).setCreativeTab(MCA.creativeTab);
-        ROSE_GOLD_ORE.setHarvestLevel("pickaxe", 2);
         VILLAGER_SPAWNER.setCreativeTab(MCA.creativeTab);
 
         Block[] blocks = {
                 ROSE_GOLD_BLOCK,
-                ROSE_GOLD_ORE,
                 VILLAGER_SPAWNER
         };
 
         setBlockName(ROSE_GOLD_BLOCK, "rose_gold_block");
-        setBlockName(ROSE_GOLD_ORE, "rose_gold_ore");
         setBlockName(VILLAGER_SPAWNER, "villager_spawner");
 
         for (Block block : blocks) {
@@ -51,7 +46,6 @@ public final class BlocksMCA {
         IForgeRegistry<Item> registry = event.getRegistry();
         ItemBlock[] items = {
                 new ItemBlock(ROSE_GOLD_BLOCK),
-                new ItemBlock(ROSE_GOLD_ORE),
                 new ItemBlock(VILLAGER_SPAWNER)
         };
 

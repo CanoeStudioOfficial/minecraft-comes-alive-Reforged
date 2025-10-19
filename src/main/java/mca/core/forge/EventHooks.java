@@ -56,7 +56,6 @@ public class EventHooks {
         ItemsMCA.register(event);
         BlocksMCA.registerItemBlocks(event);
 
-        GameRegistry.addSmelting(BlocksMCA.ROSE_GOLD_ORE, new ItemStack(ItemsMCA.ROSE_GOLD_INGOT), 5.0F);
     }
 
     @SubscribeEvent
