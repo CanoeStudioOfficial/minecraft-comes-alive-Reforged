@@ -38,16 +38,9 @@ item.whistle.name=哨子
 item.villager_editor.name=村民编辑器
 item.egg_grim_reaper.name=生成 死神
 item.staff_of_life.name=生命权杖
-item.book_death.name=死亡，以及如何复活它！
-item.book_romance.name=你与人际关系
-item.book_family.name=管理你的家庭 第11卷
-item.book_rose_gold.name=关于玫瑰金
-item.book_infection.name=小心感染！
-tile.rose_gold_ore.name=玫瑰金矿石
 tile.rose_gold_block.name=玫瑰金块
 tile.mca:villager_spawner.name=村民生成器
 tile.mca:rose_gold_block.name=玫瑰金块
-tile.mca:rose_gold_ore.name=玫瑰金矿石
 
 ################################
 # Relations

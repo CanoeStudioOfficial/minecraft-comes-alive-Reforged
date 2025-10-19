@@ -38,16 +38,9 @@ item.whistle.name=Whistle
 item.villager_editor.name=Villager Editor
 item.egg_grim_reaper.name=Spawn Grim Reaper
 item.staff_of_life.name=Staff of Life
-item.book_death.name=Death, and How to Cure It!
-item.book_romance.name=Relationships and You
-item.book_family.name=Managing Your Family Vol. XI
-item.book_rose_gold.name=On Rose Gold
-item.book_infection.name=Beware the Infection!
-tile.rose_gold_ore.name=Rose Gold Ore
 tile.rose_gold_block.name=Rose Gold Block
 tile.mca:villager_spawner.name=Villager Spawner
 tile.mca:rose_gold_block.name=Rose Gold Block
-tile.mca:rose_gold_ore.name=Rose Gold Ore
 
 ################################
 # Relations
