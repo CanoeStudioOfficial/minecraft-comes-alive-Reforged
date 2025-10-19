@@ -20,7 +20,6 @@ public final class Config implements Serializable {
     public int guardSpawnRate;
     public int chanceToHaveTwins;
     public int marriageHeartsRequirement;
-    public int roseGoldSpawnWeight;
     public int babyGrowUpTime;
     public int childGrowUpTime;
     public int villagerSpawnerCap;
@@ -48,7 +47,6 @@ public final class Config implements Serializable {
         guardSpawnRate = config.get("General", "Guard Spawn Rate", 6, "How many villagers that should be in a village before a guard spawns.").getInt();
         chanceToHaveTwins = config.get("General", "Chance to Have Twins", 2, "Chance that you will have twins. Default is 2 for 2%.").getInt();
         marriageHeartsRequirement = config.get("General", "Marriage Hearts Requirement", 100, "Number of hearts required to get married.").getInt();
-        roseGoldSpawnWeight = config.get("General", "Rose Gold Spawn Weight", 6, "Spawn weights for Rose Gold").getInt();
         babyGrowUpTime = config.get("General", "Baby Grow Up Time (Minutes)", 30, "Minutes it takes for a baby to be ready to grow up.").getInt();
         childGrowUpTime = config.get("General", "Child Grow Up Time (Minutes)", 60, "Minutes it takes for a child to grow into an adult.").getInt();
         villagerSpawnerCap = config.get("General", "Villager Spawner Cap", 5, "Maximum number of villagers that a spawner will create in the area before it stops.").getInt();

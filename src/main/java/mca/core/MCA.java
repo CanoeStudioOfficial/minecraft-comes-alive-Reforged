@@ -1,6 +1,5 @@
 package mca.core;
 
-import com.google.gson.Gson;
 import mca.api.API;
 import mca.command.CommandAdminMCA;
 import mca.command.CommandMCA;
@@ -10,35 +9,21 @@ import mca.core.forge.NetMCA;
 import mca.core.forge.ServerProxy;
 import mca.core.minecraft.ItemsMCA;
 import mca.core.minecraft.ProfessionsMCA;
-import mca.core.minecraft.RoseGoldOreGenerator;
 import mca.entity.EntityGrimReaper;
 import mca.entity.EntityVillagerMCA;
 import mca.enums.EnumGender;
 import mca.mca.Tags;
-import mca.util.Util;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.*;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
 import net.minecraftforge.fml.common.registry.EntityRegistry;
-import net.minecraftforge.fml.common.registry.GameRegistry;
-import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.Logger;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLConnection;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
 
 @Mod(modid = Tags.MOD_ID, name = Tags.MOD_NAME, version = Tags.VERSION, guiFactory = "mca.client.MCAGuiFactory")
 public class MCA {
@@ -94,7 +79,6 @@ public class MCA {
 
     @EventHandler
     public void init(FMLInitializationEvent event) {
-        GameRegistry.registerWorldGenerator(new RoseGoldOreGenerator(), MCA.getConfig().roseGoldSpawnWeight);
         EntityRegistry.registerModEntity(new ResourceLocation(MODID, "EntityVillagerMCA"), EntityVillagerMCA.class, EntityVillagerMCA.class.getSimpleName(), 1120, this, 50, 2, true);
         EntityRegistry.registerModEntity(new ResourceLocation(MODID, "GrimReaperMCA"), EntityGrimReaper.class, EntityGrimReaper.class.getSimpleName(), 1121, this, 50, 2, true);
         ProfessionsMCA.registerCareers();
