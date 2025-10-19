@@ -18,6 +18,8 @@ import net.minecraftforge.fml.common.registry.VillagerRegistry.VillagerCareer;
 import net.minecraftforge.fml.common.registry.VillagerRegistry.VillagerProfession;
 import net.minecraftforge.registries.IForgeRegistry;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 @GameRegistry.ObjectHolder(MCA.MODID)
@@ -71,12 +73,26 @@ public class ProfessionsMCA {
     }
 
     public static VillagerProfession randomProfession() {
-        ResourceLocation resource = null;
-        while (resource == null || resource.getPath().contains("nitwit") || inForbiddenProfessions(registry.getValue(resource))) {
-            int i = new Random().nextInt(registry.getKeys().size() - 1);
-            resource = (ResourceLocation)registry.getKeys().toArray()[i];
+        if (registry == null || registry.getKeys().isEmpty()) {
+            MCA.getLog().error("Villager profession registry 未初始化或为空，无法随机选择职业，回退为 guard。");
+            return guard;
+
         }
-        return registry.getValue(resource);
+
+        List<VillagerProfession> candidates = new ArrayList<>();
+        for (ResourceLocation key : registry.getKeys()) {
+            VillagerProfession profession = registry.getValue(key);
+            if (profession != null && !key.getPath().contains("nitwit") && !inForbiddenProfessions(profession)) {
+                candidates.add(profession);
+            }
+        }
+
+        if (candidates.isEmpty()) {
+            MCA.getLog().error("Villager profession registry 中没有可用职业，无法随机选择，回退为 guard。");
+            return guard;
+        }
+
+        return candidates.get(new Random().nextInt(candidates.size()));
     }
 
     @Mod.EventBusSubscriber(modid = MCA.MODID)

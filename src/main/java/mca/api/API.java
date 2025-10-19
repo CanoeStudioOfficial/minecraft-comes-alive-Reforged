@@ -36,7 +36,7 @@ public class API {
     private static List<String> maleNames = new ArrayList<>();
     private static List<String> femaleNames = new ArrayList<>();
     private static List<SkinsGroup> skinGroups = new ArrayList<>();
-    private static Random rng;
+    private static Random rng = new Random();
 
     /**
      * Performs initialization of the API
@@ -112,17 +112,43 @@ public class API {
 
         //Default skin behavior
         Optional<SkinsGroup> group = skinGroups.stream()
-                        .filter(g -> g.getGender() == gender && profession.getRegistryName() != null && g.getProfession().equals(profession.getRegistryName().toString()))
-                        .findFirst();
+                .filter(g -> g.getGender() == gender && profession.getRegistryName() != null && g.getProfession().equals(profession.getRegistryName().toString()))
+                .findFirst();
 
-        return group.map(g -> g.getPaths()[rng.nextInt(g.getPaths().length - 1)]).orElseGet(() -> {
-            MCA.getLog().warn("No skin found for profession: `" + profession.getRegistryName() + "`. A random skin will be generated.");
-            SkinsGroup randomGroup = null;
-            while (randomGroup == null || randomGroup.getGender() != gender) {
-                randomGroup = skinGroups.get(rng.nextInt(skinGroups.size() - 1));
+        // group 存在且 paths 不为空
+        if (group.isPresent()) {
+            String[] paths = group.get().getPaths();
+            if (paths == null || paths.length == 0) {
+                MCA.getLog().error("SkinsGroup paths 为空，无法分配皮肤！");
+                return "mca:skins/default.png";
             }
-            return randomGroup.getPaths()[rng.nextInt(randomGroup.getPaths().length)];
-        });
+            return paths[rng.nextInt(paths.length)];
+        }
+
+        // skinGroups 为空
+        if (skinGroups.isEmpty()) {
+            MCA.getLog().error("skinGroups 为空，无法分配皮肤！");
+            return "mca:skins/default.png";
+        }
+
+        // 随机选取同性别的 SkinsGroup
+        List<SkinsGroup> genderGroups = new ArrayList<>();
+        for (SkinsGroup g : skinGroups) {
+            if (g.getGender() == gender) {
+                genderGroups.add(g);
+            }
+        }
+        if (genderGroups.isEmpty()) {
+            MCA.getLog().error("没有找到对应性别的 SkinsGroup，无法分配皮肤！");
+            return "mca:skins/default.png";
+        }
+        SkinsGroup randomGroup = genderGroups.get(rng.nextInt(genderGroups.size()));
+        String[] paths = randomGroup.getPaths();
+        if (paths == null || paths.length == 0) {
+            MCA.getLog().error("随机选中的 SkinsGroup paths 为空，无法分配皮肤！");
+            return "mca:skins/default.png";
+        }
+        return paths[rng.nextInt(paths.length)];
     }
 
     /**
@@ -166,8 +192,19 @@ public class API {
      * @return A gender appropriate name based on the provided gender.
      */
     public static String getRandomName(@Nonnull EnumGender gender) {
-        if (gender == EnumGender.MALE) return maleNames.get(rng.nextInt(maleNames.size()));
-        else if (gender == EnumGender.FEMALE) return femaleNames.get(rng.nextInt(femaleNames.size()));
+        if (gender == EnumGender.MALE) {
+            if (maleNames.isEmpty()) {
+                MCA.getLog().error("maleNames 列表为空，无法生成随机名字！");
+                return "Steve";
+            }
+            return maleNames.get(rng.nextInt(maleNames.size()));
+        } else if (gender == EnumGender.FEMALE) {
+            if (femaleNames.isEmpty()) {
+                MCA.getLog().error("femaleNames 列表为空，无法生成随机名字！");
+                return "Alex";
+            }
+            return femaleNames.get(rng.nextInt(femaleNames.size()));
+        }
         return "";
     }
 
