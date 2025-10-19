@@ -20,8 +20,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import net.minecraftforge.fml.common.registry.VillagerRegistry;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
 import org.apache.commons.io.IOUtils;
 
 import javax.annotation.Nonnull;
@@ -46,28 +44,10 @@ public class API {
     public static void init() {
         rng = new Random();
 
-        // Load gifts and assign to the appropriate map with a key value pair and print warnings on potential issues
-        Gift[] gifts = Util.readResourceAsJSON("api/gifts.json", Gift[].class);
-        for (Gift gift : gifts) {
-            if (!gift.exists()) {
-                MCA.getLog().warn("Could not find gift item or block in registry: " + gift.getName());
-            } else {
-                giftMap.put(gift.getName(), gift);
-            }
-        }
-
-        // 加载皮肤数据（服务端和客户端都需要）
+        // Load skins
         SkinsGroup[] skins = Util.readResourceAsJSON("api/skins.json", SkinsGroup[].class);
         Collections.addAll(skinGroups, skins);
 
-        // 服务端不加载名称和按钮数据，这些只在客户端需要
-    }
-
-    /**
-     * 初始化客户端特定的数据
-     */
-    @SideOnly(Side.CLIENT)
-    public static void initClientData() {
         // Load names
         LanguageManager languageManager = Minecraft.getMinecraft().getLanguageManager();
         String currentLangCode = languageManager.getCurrentLanguage().getLanguageCode();
@@ -90,6 +70,16 @@ public class API {
         buttonMap.put("editor", Util.readResourceAsJSON("api/gui/editor.json", APIButton[].class));
         buttonMap.put("work", Util.readResourceAsJSON("api/gui/work.json", APIButton[].class));
         buttonMap.put("location", Util.readResourceAsJSON("api/gui/location.json", APIButton[].class));
+
+        // Load gifts and assign to the appropriate map with a key value pair and print warnings on potential issues
+        Gift[] gifts = Util.readResourceAsJSON("api/gifts.json", Gift[].class);
+        for (Gift gift : gifts) {
+            if (!gift.exists()) {
+                MCA.getLog().warn("Could not find gift item or block in registry: " + gift.getName());
+            } else {
+                giftMap.put(gift.getName(), gift);
+            }
+        }
     }
 
     /**
@@ -122,8 +112,8 @@ public class API {
 
         //Default skin behavior
         Optional<SkinsGroup> group = skinGroups.stream()
-                .filter(g -> g.getGender() == gender && profession.getRegistryName() != null && g.getProfession().equals(profession.getRegistryName().toString()))
-                .findFirst();
+                        .filter(g -> g.getGender() == gender && profession.getRegistryName() != null && g.getProfession().equals(profession.getRegistryName().toString()))
+                        .findFirst();
 
         return group.map(g -> g.getPaths()[rng.nextInt(g.getPaths().length - 1)]).orElseGet(() -> {
             MCA.getLog().warn("No skin found for profession: `" + profession.getRegistryName() + "`. A random skin will be generated.");
@@ -141,12 +131,7 @@ public class API {
      * @param id String id matching the targeted button
      * @return Instance of APIButton matching the ID provided
      */
-    @SideOnly(Side.CLIENT)
     public static Optional<APIButton> getButtonById(String key, String id) {
-        if (!buttonMap.containsKey(key)) {
-            MCA.getLog().warn("Button map key not found: " + key);
-            return Optional.empty();
-        }
         return Arrays.stream(buttonMap.get(key)).filter(b -> b.getIdentifier().equals(id)).findFirst();
     }
 
@@ -181,16 +166,8 @@ public class API {
      * @return A gender appropriate name based on the provided gender.
      */
     public static String getRandomName(@Nonnull EnumGender gender) {
-        // 如果名称列表为空（服务端），返回默认名称
-        if (maleNames.isEmpty() && femaleNames.isEmpty()) {
-            return gender == EnumGender.MALE ? "Steve" : "Alex";
-        }
-
-        if (gender == EnumGender.MALE) {
-            return maleNames.isEmpty() ? "Steve" : maleNames.get(rng.nextInt(maleNames.size()));
-        } else if (gender == EnumGender.FEMALE) {
-            return femaleNames.isEmpty() ? "Alex" : femaleNames.get(rng.nextInt(femaleNames.size()));
-        }
+        if (gender == EnumGender.MALE) return maleNames.get(rng.nextInt(maleNames.size()));
+        else if (gender == EnumGender.FEMALE) return femaleNames.get(rng.nextInt(femaleNames.size()));
         return "";
     }
 
@@ -202,13 +179,7 @@ public class API {
      * @param player   EntityPlayer who has opened the GUI
      * @param screen   GuiScreen instance the buttons should be added to
      */
-    @SideOnly(Side.CLIENT)
     public static void addButtons(String guiKey, @Nullable EntityVillagerMCA villager, EntityPlayer player, GuiScreen screen) {
-        if (!buttonMap.containsKey(guiKey)) {
-            MCA.getLog().warn("Button map key not found for GUI: " + guiKey);
-            return;
-        }
-
         List<GuiButton> buttonList = ObfuscationReflectionHelper.getPrivateValue(GuiScreen.class, screen, Constants.GUI_SCREEN_BUTTON_LIST_FIELD_INDEX);
         for (APIButton b : buttonMap.get(guiKey)) {
             GuiButtonEx guiButton = new GuiButtonEx(screen, b);
@@ -235,7 +206,6 @@ public class API {
      * @param screen GuiScreen containing the button
      * @return GuiButtonEx matching the provided id
      */
-    @SideOnly(Side.CLIENT)
     public static Optional<GuiButtonEx> getButton(String id, GuiScreen screen) {
         List<GuiButton> buttonList = ObfuscationReflectionHelper.getPrivateValue(GuiScreen.class, screen, Constants.GUI_SCREEN_BUTTON_LIST_FIELD_INDEX);
         Optional<GuiButton> button = buttonList.stream().filter(
