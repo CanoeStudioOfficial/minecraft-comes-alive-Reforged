@@ -10,8 +10,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.List;
 
 public class InventoryMCA extends InventoryBasic {
     private final EntityVillagerMCA villager;
