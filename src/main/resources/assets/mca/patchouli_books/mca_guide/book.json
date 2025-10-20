@@ -3,7 +3,7 @@
   "landing_text": "mca.guide.desc",
   "version": 1,
   "model": "mca:mcaguide",
-  "creative_tab": "theaurorian",
+  "creative_tab": "MCA",
   "show_progress": false,
   "nameplate_color": "008cff"
 }
