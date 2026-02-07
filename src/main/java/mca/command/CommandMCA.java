@@ -93,6 +93,11 @@ public class CommandMCA extends CommandBase {
         return 0;
     }
 
+    @Override
+    public boolean checkPermission(MinecraftServer server, ICommandSender sender) {
+        return true;
+    }
+
     private void sendMessage(ICommandSender commandSender, String message) {
         commandSender.sendMessage(new TextComponentString(Constants.Color.GOLD + "[MCA] " + Constants.Format.RESET + message));
     }
