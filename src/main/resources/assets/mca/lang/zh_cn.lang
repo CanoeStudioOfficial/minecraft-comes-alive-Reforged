@@ -15,6 +15,9 @@ entity.Villager.warrior=战士
 entity.Villager.archer=弓箭手
 entity.Villager.hero=英雄
 entity.Villager.child=孩子
+entity.Villager.red_engineer=红衣技工
+entity.Villager.sinister_merchant=阴险商人
+entity.Villager.alchemist=炼金术士
 
 ##############################
 # Items & Blocks

@@ -84,7 +84,6 @@ public class MCA {
     public void init(FMLInitializationEvent event) {
         EntityRegistry.registerModEntity(new ResourceLocation(MODID, "EntityVillagerMCA"), EntityVillagerMCA.class, EntityVillagerMCA.class.getSimpleName(), 1120, this, 50, 2, true);
         EntityRegistry.registerModEntity(new ResourceLocation(MODID, "GrimReaperMCA"), EntityGrimReaper.class, EntityGrimReaper.class.getSimpleName(), 1121, this, 50, 2, true);
-        ProfessionsMCA.registerCareers();
 
         proxy.registerModelMeshers();
         ItemsMCA.assignCreativeTabs();

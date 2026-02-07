@@ -15,6 +15,9 @@ entity.Villager.warrior=Warrior
 entity.Villager.archer=Archer
 entity.Villager.hero=Hero
 entity.Villager.child=Child
+entity.Villager.red_engineer=Red Engineer
+entity.Villager.sinister_merchant=Sinister Merchant
+entity.Villager.alchemist=Alchemist
 
 ##############################
 # Items & Blocks

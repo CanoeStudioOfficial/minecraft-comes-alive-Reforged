@@ -29,6 +29,9 @@ public class ProfessionsMCA {
     public static final VillagerProfession child = new VillagerProfession("mca:child", "minecraft:textures/entity/villager/villager.png", "minecraft:textures/entity/zombie_villager/zombie_villager.png");
     public static final VillagerProfession baker = new VillagerProfession("mca:baker", "minecraft:textures/entity/villager/farmer.png", "minecraft:textures/entity/zombie_villager/zombie_farmer.png");
     public static final VillagerProfession miner = new VillagerProfession("mca:miner", "minecraft:textures/entity/villager/smith.png", "minecraft:textures/entity/zombie_villager/zombie_smith.png");
+    public static final VillagerProfession red_engineer = new VillagerProfession("mca:red_engineer", "minecraft:textures/entity/villager/priest.png", "minecraft:textures/entity/zombie_villager/zombie_priest.png");
+    public static final VillagerProfession sinister_merchant = new VillagerProfession("mca:sinister_merchant", "minecraft:textures/entity/villager/villager.png", "minecraft:textures/entity/zombie_villager/zombie_villager.png");
+    public static final VillagerProfession alchemist = new VillagerProfession("mca:alchemist", "minecraft:textures/entity/villager/priest.png", "minecraft:textures/entity/zombie_villager/zombie_priest.png");
 
     public static VillagerCareer guard_warrior;
     public static VillagerCareer guard_archer;
@@ -39,6 +42,9 @@ public class ProfessionsMCA {
     public static VillagerCareer child_child;
     public static VillagerCareer baker_baker;
     public static VillagerCareer miner_miner;
+    public static VillagerCareer red_engineer_career;
+    public static VillagerCareer sinister_merchant_career;
+    public static VillagerCareer alchemist_career;
 
     public static IForgeRegistry<VillagerProfession> registry;
 
@@ -56,6 +62,9 @@ public class ProfessionsMCA {
         child_child = new VillagerCareer(child, "child");
         baker_baker = new VillagerCareer(baker, "baker");
         miner_miner = new VillagerCareer(miner, "miner");
+        red_engineer_career = new VillagerCareer(red_engineer, "red_engineer");
+        sinister_merchant_career = new VillagerCareer(sinister_merchant, "sinister_merchant");
+        alchemist_career = new VillagerCareer(alchemist, "alchemist");
 
         baker_baker.addTrade(1, new BakerTradesLvl1());
         baker_baker.addTrade(2, new BakerTradesLvl2());
@@ -64,6 +73,14 @@ public class ProfessionsMCA {
         miner_miner.addTrade(1, new MinerTradesLvl1());
         miner_miner.addTrade(2, new MinerTradesLvl2());
         miner_miner.addTrade(3, new MinerTradesLvl3());
+
+        red_engineer_career.addTrade(1, new RedEngineerTradesLvl1());
+        red_engineer_career.addTrade(2, new RedEngineerTradesLvl2());
+
+        sinister_merchant_career.addTrade(1, new SinisterMerchantTradesLvl1());
+
+        alchemist_career.addTrade(1, new AlchemistTradesLvl1());
+        alchemist_career.addTrade(2, new AlchemistTradesLvl2());
     }
 
     public static ItemStack getDefaultHeldItem(VillagerProfession profession, VillagerCareer career) {
@@ -110,6 +127,12 @@ public class ProfessionsMCA {
             registry.register(child);
             registry.register(baker);
             registry.register(miner);
+            registry.register(red_engineer);
+            registry.register(sinister_merchant);
+            registry.register(alchemist);
+
+            // Important: Register careers immediately after professions are registered
+            registerCareers();
         }
     }
 
@@ -168,6 +191,48 @@ public class ProfessionsMCA {
             recipeList.add(new MerchantRecipe(new ItemStack(Items.EMERALD, 4), new ItemStack(Items.IRON_PICKAXE, 1)));
             recipeList.add(new MerchantRecipe(new ItemStack(Blocks.EMERALD_BLOCK, 1), new ItemStack(Items.DIAMOND_PICKAXE, 1)));
             recipeList.add(new MerchantRecipe(new ItemStack(Items.IRON_INGOT, 8), new ItemStack(Items.DIAMOND, 1)));
+        }
+    }
+
+    public static class RedEngineerTradesLvl1 implements EntityVillager.ITradeList {
+        @Override
+        public void addMerchantRecipe(IMerchant merchant, MerchantRecipeList recipeList, Random random) {
+            recipeList.add(new MerchantRecipe(new ItemStack(Items.EMERALD, 1), new ItemStack(Items.REDSTONE, 16)));
+            recipeList.add(new MerchantRecipe(new ItemStack(Items.EMERALD, 2), new ItemStack(Blocks.PISTON, 1)));
+        }
+    }
+
+    public static class RedEngineerTradesLvl2 implements EntityVillager.ITradeList {
+        @Override
+        public void addMerchantRecipe(IMerchant merchant, MerchantRecipeList recipeList, Random random) {
+            recipeList.add(new MerchantRecipe(new ItemStack(Items.EMERALD, 4), new ItemStack(Blocks.STICKY_PISTON, 1)));
+            recipeList.add(new MerchantRecipe(new ItemStack(Items.EMERALD, 3), new ItemStack(Items.REPEATER, 1)));
+            recipeList.add(new MerchantRecipe(new ItemStack(Items.EMERALD, 3), new ItemStack(Items.COMPARATOR, 1)));
+        }
+    }
+
+    public static class SinisterMerchantTradesLvl1 implements EntityVillager.ITradeList {
+        @Override
+        public void addMerchantRecipe(IMerchant merchant, MerchantRecipeList recipeList, Random random) {
+            recipeList.add(new MerchantRecipe(new ItemStack(Items.EMERALD, 10), new ItemStack(Items.SKULL, 1, 1))); // Wither Skeleton Skull
+            recipeList.add(new MerchantRecipe(new ItemStack(Items.EMERALD, 64), new ItemStack(Items.NETHER_STAR, 1)));
+        }
+    }
+
+    public static class AlchemistTradesLvl1 implements EntityVillager.ITradeList {
+        @Override
+        public void addMerchantRecipe(IMerchant merchant, MerchantRecipeList recipeList, Random random) {
+            recipeList.add(new MerchantRecipe(new ItemStack(Items.EMERALD, 1), new ItemStack(Items.GLASS_BOTTLE, 8)));
+            recipeList.add(new MerchantRecipe(new ItemStack(Items.EMERALD, 2), new ItemStack(Items.NETHER_WART, 4)));
+        }
+    }
+
+    public static class AlchemistTradesLvl2 implements EntityVillager.ITradeList {
+        @Override
+        public void addMerchantRecipe(IMerchant merchant, MerchantRecipeList recipeList, Random random) {
+            recipeList.add(new MerchantRecipe(new ItemStack(Items.EMERALD, 4), new ItemStack(Items.BLAZE_POWDER, 2)));
+            recipeList.add(new MerchantRecipe(new ItemStack(Items.EMERALD, 3), new ItemStack(Items.GHAST_TEAR, 1)));
+            recipeList.add(new MerchantRecipe(new ItemStack(Items.EMERALD, 5), new ItemStack(Items.BREWING_STAND, 1)));
         }
     }
 
