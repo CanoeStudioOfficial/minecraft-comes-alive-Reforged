@@ -88,7 +88,7 @@ public class ItemMemorial extends Item
 			
 			else
 			{
-				tooltip.add(Constants.Color.GREEN + name + " the " + MCA.getLocalizer().getString(data.getProfession().getLocalizationId()));
+				tooltip.add(Constants.Color.GREEN + name);
 				tooltip.add("Captured by: " + ownerName);
 			}
 		}

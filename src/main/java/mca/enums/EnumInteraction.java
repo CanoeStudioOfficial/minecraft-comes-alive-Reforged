@@ -1,7 +1,6 @@
 package mca.enums;
 
-import mca.actions.ActionUpdateMood;
-import mca.data.PlayerMemory;
+import mca.entity.data.PlayerHistory;
 import mca.entity.EntityVillagerMCA;
 
 public enum EnumInteraction 
@@ -157,11 +156,9 @@ public enum EnumInteraction
 		return returnAmount;
 	}
 	
-	public int getSuccessChance(EntityVillagerMCA villager, PlayerMemory memory)
+	public int getSuccessChance(EntityVillagerMCA villager, PlayerHistory history)
 	{
-		return getBaseChance() - memory.getInteractionFatigue() * 6
-				+ villager.attributes.getPersonality().getSuccessModifierForInteraction(this) 
-				+ villager.getBehavior(ActionUpdateMood.class).getMood(villager.attributes.getPersonality()).getSuccessModifierForInteraction(this)
-				+ getBonusChanceForCurrentPoints(memory.getHearts());
+		return getBaseChance() - history.getInteractionFatigue() * 6
+				+ getBonusChanceForCurrentPoints(history.getHearts());
 	}
 }
