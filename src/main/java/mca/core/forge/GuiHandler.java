@@ -5,10 +5,12 @@ import mca.core.Constants;
 import mca.core.MCA;
 import mca.entity.EntityVillagerMCA;
 import net.minecraft.client.gui.GuiScreenBook;
+import net.minecraft.client.gui.inventory.GuiEditSign;
 import net.minecraft.client.gui.inventory.GuiChest;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.ContainerChest;
+import net.minecraft.tileentity.TileEntitySign;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.network.IGuiHandler;
 
@@ -20,13 +22,15 @@ public class GuiHandler implements IGuiHandler {
                 EntityVillagerMCA villager = (EntityVillagerMCA) world.getEntityByID(entityId);
                 if (villager == null || villager.inventory == null) return null;
                 return new ContainerChest(player.inventory, villager.inventory, player);
+            case Constants.GUI_ID_TOMBSTONE:
+                return null;
             default:
                 return null;
         }
     }
 
     @Override
-    public Object getClientGuiElement(int guiId, EntityPlayer player, World world, int entityId, int unused1, int unused2) {
+    public Object getClientGuiElement(int guiId, EntityPlayer player, World world, int entityId, int posY, int posZ) {
         switch (guiId) {
             case Constants.GUI_ID_INVENTORY:
                 Entity entity = world.getEntityByID(entityId);
@@ -44,6 +48,8 @@ public class GuiHandler implements IGuiHandler {
                 return new GuiScreenBook(player, player.inventory.getCurrentItem(), false);
             case Constants.GUI_ID_WHISTLE:
                 return new GuiWhistle();
+            case Constants.GUI_ID_TOMBSTONE:
+                return new GuiEditSign((TileEntitySign) world.getTileEntity(new net.minecraft.util.math.BlockPos(entityId, posY, posZ)));
             default:
                 MCA.getLog().fatal("Failed to handle provided GUI ID on client: " + guiId);
                 return null;

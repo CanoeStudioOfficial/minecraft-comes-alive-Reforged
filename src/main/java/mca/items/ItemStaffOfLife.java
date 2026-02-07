@@ -3,6 +3,7 @@ package mca.items;
 import mca.core.Constants;
 import mca.core.MCA;
 import mca.entity.data.PlayerSaveData;
+import mca.entity.data.TransitiveVillagerData;
 import mca.enums.EnumMarriageState;
 import mca.enums.EnumMemorialType;
 import mca.tile.TileMemorial;

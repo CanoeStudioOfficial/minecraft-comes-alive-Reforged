@@ -18,7 +18,8 @@ public class ItemSpawnGrimReaper extends Item
 
 		this.setCreativeTab(MCA.getCreativeTab());
 		this.setMaxStackSize(1);
-		this.setUnlocalizedName(itemName);
+		this.setRegistryName(itemName);
+		this.setTranslationKey(itemName);
 	}
 
 	@Override

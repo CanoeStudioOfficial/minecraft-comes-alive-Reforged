@@ -69,6 +69,10 @@ public class Localizer {
         return parseVars(result, vars).replaceAll("\\\\", "");
     }
 
+    public String getString(String key) {
+        return localize(key);
+    }
+
     private String parseVars(String str, ArrayList<String> vars) {
         int index = 1;
         str = str.replaceAll("%Supporter%", MCA.getInstance().getRandomSupporter());

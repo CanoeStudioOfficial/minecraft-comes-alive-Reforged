@@ -64,7 +64,9 @@ public class MCA {
         return config;
     }
 
-
+    public static CreativeTabs getCreativeTab() {
+        return creativeTab;
+    }
 
     @EventHandler
     public void preInit(FMLPreInitializationEvent event) {
