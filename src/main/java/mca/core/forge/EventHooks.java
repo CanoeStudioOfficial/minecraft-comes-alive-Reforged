@@ -65,38 +65,9 @@ public class EventHooks {
         if (event.getWorld().isRemote) event.getWorld().addEventListener(new WorldEventListenerMCA());
     }
 
-    private int clientTickCounter;
-
     @SubscribeEvent
     public void onClientTick(TickEvent.ClientTickEvent event) {
         ClientMessageQueue.processScheduledMessages();
-
-        if (event.phase == TickEvent.Phase.END) {
-            net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getMinecraft();
-            
-            if (MCA.playPortalAnimation) {
-                net.minecraft.client.entity.EntityPlayerSP player = mc.player;
-                if (player != null) {
-                    player.prevTimeInPortal = player.timeInPortal;
-                    player.timeInPortal -= 0.0125F;
-
-                    if (player.timeInPortal <= 0.0F) {
-                        MCA.playPortalAnimation = false;
-                    }
-                }
-            }
-
-            if (clientTickCounter <= 0) {
-                     clientTickCounter = 10; // 0.5 seconds (20 ticks per second / 2)
- 
-                     if (MCA.destinySpawnFlag && mc.world != null && MCA.destinyCenterPoint != null) {
-                         mca.util.SchematicLoader.spawnStructure("assets/mca/schematic/destiny-test.schematic", MCA.destinyCenterPoint, mc.world);
-                         MCA.destinySpawnFlag = false;
-                     }
-                 } else {
-                clientTickCounter--;
-            }
-        }
     }
 
     @SubscribeEvent
@@ -202,16 +173,6 @@ public class EventHooks {
                 MCAServer.get().startSpawnReaper();
                 for (int i = 0; i < 2; i++) event.getWorld().setBlockToAir(new BlockPos(x, y - i, z));
             }
-        }
-    }
-
-    @SubscribeEvent
-    public void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
-        EntityPlayer player = event.player;
-        PlayerSaveData data = PlayerSaveData.get(player);
-
-        if (!data.isHasChosenDestiny() && !player.inventory.mainInventory.stream().anyMatch(s -> s.getItem() == ItemsMCA.CRYSTAL_BALL) && MCA.getConfig().giveCrystalBall) {
-            player.inventory.addItemStackToInventory(new ItemStack(ItemsMCA.CRYSTAL_BALL));
         }
     }
 

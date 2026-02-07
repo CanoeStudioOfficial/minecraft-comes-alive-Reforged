@@ -12,8 +12,4 @@ public class ServerProxy {
     public void registerModelMeshers() {
 
     }
-
-    public void registerTileEntityRenderers() {
-
-    }
 }
