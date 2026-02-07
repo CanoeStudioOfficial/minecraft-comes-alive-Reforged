@@ -19,7 +19,6 @@ import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 
 /** Class for an item dropped containing data about the villager who died. */
@@ -80,23 +79,23 @@ public class ItemMemorial extends Item
 			String name = data.getName();
 			String relationId = EnumRelation.getById(stack.getTagCompound().getInteger("ownerRelation")).getPhraseId(); 
 			
-			tooltip.add(TextFormatting.WHITE + "Belonged to: ");
+			tooltip.add(Constants.Color.WHITE + "Belonged to: ");
 
 			if (!relationId.equals("relation.none"))
 			{
-				tooltip.add(TextFormatting.GREEN + name + ", " + MCA.getLocalizer().getString(relationId) + " of " + ownerName);
+				tooltip.add(Constants.Color.GREEN + name + ", " + MCA.getLocalizer().getString(relationId) + " of " + ownerName);
 			}
 			
 			else
 			{
-				tooltip.add(TextFormatting.GREEN + name + " the " + MCA.getLocalizer().getString(data.getProfession().getLocalizationId()));
+				tooltip.add(Constants.Color.GREEN + name + " the " + MCA.getLocalizer().getString(data.getProfession().getLocalizationId()));
 				tooltip.add("Captured by: " + ownerName);
 			}
 		}
 
 		else
 		{
-			tooltip.add(TextFormatting.GREEN + "CREATIVE " + TextFormatting.RESET + "- No villager attached.");
+			tooltip.add(Constants.Color.GREEN + "CREATIVE " + Constants.Format.RESET + "- No villager attached.");
 			tooltip.add("Right-click a villager to attach them");
 		}
 

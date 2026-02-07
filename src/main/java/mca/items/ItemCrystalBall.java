@@ -48,7 +48,6 @@ public class ItemCrystalBall extends ItemSingle
 			
 			else if (!mc.isIntegratedServerRunning())
 			{
-				player.openGui(MCA.getInstance(), Constants.GUI_ID_SETUP, world, (int)player.posX, (int)player.posY, (int)player.posZ);
 			}
 		}
 		
