@@ -322,8 +322,5 @@ public final class ItemsMCA {
         stack.setTagCompound(nbt);
     }
 
-    private static void setItemName(Item item, String itemName) {
-        item.setTranslationKey(itemName);
-        item.setRegistryName(new ResourceLocation(MCA.MODID + ":" + itemName));
-    }
+    
 }
