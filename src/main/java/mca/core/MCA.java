@@ -73,6 +73,7 @@ public class MCA {
         instance = this;
         logger = event.getModLog();
         proxy.registerEntityRenderers();
+        proxy.registerTileEntityRenderers();
         localizer = new Localizer();
         config = new Config(event);
         creativeTab = new CreativeTabs("MCA") {

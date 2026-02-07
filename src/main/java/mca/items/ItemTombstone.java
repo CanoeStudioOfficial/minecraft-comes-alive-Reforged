@@ -48,7 +48,7 @@ public class ItemTombstone extends Item
 				world.setBlockState(pos, BlocksMCA.TOMBSTONE.getDefaultState().withProperty(BlockTombstone.ROTATION, Integer.valueOf(i)), 3);
 			}
 			
-			stack.shrink(-1);
+			stack.shrink(1);
 			final TileTombstone tombstone = (TileTombstone) world.getTileEntity(pos);
 			
 			if (tombstone != null)
