@@ -48,7 +48,9 @@ public class API {
         // Load skins
         skinGroups.clear();
         SkinsGroup[] skins = Util.readResourceAsJSON("api/skins.json", SkinsGroup[].class);
-        Collections.addAll(skinGroups, skins);
+        if (skins != null) {
+            Collections.addAll(skinGroups, skins);
+        }
 
         // Load names
         maleNames.clear();
@@ -100,11 +102,13 @@ public class API {
 
         // Load gifts and assign to the appropriate map with a key value pair and print warnings on potential issues
         Gift[] gifts = Util.readResourceAsJSON("api/gifts.json", Gift[].class);
-        for (Gift gift : gifts) {
-            if (!gift.exists()) {
-                MCA.getLog().warn("Could not find gift item or block in registry: " + gift.getName());
-            } else {
-                giftMap.put(gift.getName(), gift);
+        if (gifts != null) {
+            for (Gift gift : gifts) {
+                if (!gift.exists()) {
+                    MCA.getLog().warn("Could not find gift item or block in registry: " + gift.getName());
+                } else {
+                    giftMap.put(gift.getName(), gift);
+                }
             }
         }
     }

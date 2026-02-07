@@ -43,6 +43,9 @@ public class MCA {
 
 
     public static Logger getLog() {
+        if (logger == null) {
+            logger = org.apache.logging.log4j.LogManager.getLogger(MODID);
+        }
         return logger;
     }
 

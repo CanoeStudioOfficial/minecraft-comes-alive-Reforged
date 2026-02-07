@@ -12,7 +12,9 @@ import org.apache.commons.io.IOUtils;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -44,12 +46,16 @@ public class Util {
      */
     public static String readResource(String path) {
         String location = RESOURCE_PREFIX + path;
+        InputStream stream = MCA.class.getResourceAsStream("/" + location);
 
-        try (InputStreamReader reader = new InputStreamReader(
-                MCA.class.getClassLoader().getResourceAsStream(location))) {
+        if (stream == null) {
+            throw new RuntimeException("Failed to find resource: " + location);
+        }
+
+        try (InputStreamReader reader = new InputStreamReader(stream, StandardCharsets.UTF_8)) {
             return IOUtils.toString(reader);
         } catch (IOException e) {
-            throw new RuntimeException("Failed to read resource from JAR: " + location, e);
+            throw new RuntimeException("Failed to read resource: " + location, e);
         }
     }
 
