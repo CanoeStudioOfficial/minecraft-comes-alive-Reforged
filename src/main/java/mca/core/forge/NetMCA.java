@@ -112,7 +112,7 @@ public class NetMCA {
             if (!message.targetsServer()) {
                 EntityVillagerMCA villager = (EntityVillagerMCA) player.getServerWorld().getEntityFromUuid(message.targetUUID);
                 if (villager != null) player.getServerWorld().addScheduledTask(() -> villager.handleButtonClick(player, message.guiKey, message.buttonId));
-            } else ServerMessageHandler.handleMessage(player, message);
+            } else player.getServerWorld().addScheduledTask(() -> ServerMessageHandler.handleMessage(player, message));
             return null;
         }
     }

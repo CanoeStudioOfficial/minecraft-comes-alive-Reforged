@@ -14,12 +14,13 @@ import mca.util.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.resources.LanguageManager;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import net.minecraftforge.fml.common.registry.VillagerRegistry;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 import org.apache.commons.io.IOUtils;
 
 import javax.annotation.Nonnull;
@@ -45,22 +46,48 @@ public class API {
         rng = new Random();
 
         // Load skins
+        skinGroups.clear();
         SkinsGroup[] skins = Util.readResourceAsJSON("api/skins.json", SkinsGroup[].class);
         Collections.addAll(skinGroups, skins);
 
         // Load names
-        LanguageManager languageManager = Minecraft.getMinecraft().getLanguageManager();
-        String currentLangCode = languageManager.getCurrentLanguage().getLanguageCode();
-        String langFilePath = String.format("/assets/mca/lang/%s.lang", currentLangCode);
-        InputStream namesStream = StringUtils.class.getResourceAsStream(langFilePath);
+        maleNames.clear();
+        femaleNames.clear();
+        String langCode = "en_us";
         try {
-            // read in all names and process into the correct list
-            List<String> lines = IOUtils.readLines(namesStream, Charsets.UTF_8);
-            lines.stream().filter((l) -> l.contains("name.male")).forEach((l) -> maleNames.add(l.split("\\=")[1]));
-            lines.stream().filter((l) -> l.contains("name.female")).forEach((l) -> femaleNames.add(l.split("\\=")[1]));
-        } catch (Exception e) {
-            MCA.getLog().fatal(e);
-            throw new RuntimeException("Failed to load all NPC names from file", e);
+            if (net.minecraftforge.fml.common.FMLCommonHandler.instance().getSide().isClient()) {
+                langCode = net.minecraft.client.Minecraft.getMinecraft().getLanguageManager().getCurrentLanguage().getLanguageCode();
+            }
+        } catch (Throwable t) {
+            langCode = "en_us";
+        }
+
+        String langFilePath = String.format("/assets/mca/lang/%s.lang", langCode);
+        InputStream namesStream = API.class.getResourceAsStream(langFilePath);
+        
+        if (namesStream == null && !langCode.equals("en_us")) {
+            langFilePath = "/assets/mca/lang/en_us.lang";
+            namesStream = API.class.getResourceAsStream(langFilePath);
+        }
+
+        if (namesStream != null) {
+            try {
+                // read in all names and process into the correct list
+                List<String> lines = IOUtils.readLines(namesStream, Charsets.UTF_8);
+                for (String line : lines) {
+                    if (line.contains("name.male")) {
+                        maleNames.add(line.split("=")[1].trim());
+                    } else if (line.contains("name.female")) {
+                        femaleNames.add(line.split("=")[1].trim());
+                    }
+                }
+            } catch (Exception e) {
+                MCA.getLog().fatal("Failed to load all NPC names from file: " + langFilePath, e);
+            } finally {
+                IOUtils.closeQuietly(namesStream);
+            }
+        } else {
+            MCA.getLog().error("Could not find names lang file: " + langFilePath);
         }
 
         // Read in buttons
@@ -157,8 +184,15 @@ public class API {
      * @param id String id matching the targeted button
      * @return Instance of APIButton matching the ID provided
      */
-    public static Optional<APIButton> getButtonById(String key, String id) {
-        return Arrays.stream(buttonMap.get(key)).filter(b -> b.getIdentifier().equals(id)).findFirst();
+    @Nullable
+    public static APIButton getButtonById(String key, String id) {
+        APIButton[] buttons = buttonMap.get(key);
+        if (buttons == null) return null;
+
+        for (APIButton b : buttons) {
+            if (b.getIdentifier().equals(id)) return b;
+        }
+        return null;
     }
 
     /**
@@ -216,6 +250,7 @@ public class API {
      * @param player   EntityPlayer who has opened the GUI
      * @param screen   GuiScreen instance the buttons should be added to
      */
+    @SideOnly(Side.CLIENT)
     public static void addButtons(String guiKey, @Nullable EntityVillagerMCA villager, EntityPlayer player, GuiScreen screen) {
         List<GuiButton> buttonList = ObfuscationReflectionHelper.getPrivateValue(GuiScreen.class, screen, Constants.GUI_SCREEN_BUTTON_LIST_FIELD_INDEX);
         for (APIButton b : buttonMap.get(guiKey)) {
@@ -243,6 +278,7 @@ public class API {
      * @param screen GuiScreen containing the button
      * @return GuiButtonEx matching the provided id
      */
+    @SideOnly(Side.CLIENT)
     public static Optional<GuiButtonEx> getButton(String id, GuiScreen screen) {
         List<GuiButton> buttonList = ObfuscationReflectionHelper.getPrivateValue(GuiScreen.class, screen, Constants.GUI_SCREEN_BUTTON_LIST_FIELD_INDEX);
         Optional<GuiButton> button = buttonList.stream().filter(

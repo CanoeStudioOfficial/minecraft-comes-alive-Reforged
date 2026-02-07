@@ -616,10 +616,10 @@ public class EntityVillagerMCA extends EntityVillager {
 
     public void handleButtonClick(EntityPlayerMP player, String guiKey, String buttonId) {
         PlayerHistory history = getPlayerHistoryFor(player.getUniqueID());
-        java.util.Optional<APIButton> button = API.getButtonById(guiKey, buttonId);
-        if (!button.isPresent()) {
+        APIButton button = API.getButtonById(guiKey, buttonId);
+        if (button == null) {
             MCA.getLog().warn("Button not found for key and ID: " + guiKey + ", " + buttonId);
-        } else if (button.get().isInteraction()) handleInteraction(player, history, button.get());
+        } else if (button.isInteraction()) handleInteraction(player, history, button);
 
         switch (buttonId) {
             case "gui.button.move":
