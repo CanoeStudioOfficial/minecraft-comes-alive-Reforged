@@ -63,11 +63,11 @@ public class API {
         }
 
         String langFilePath = String.format("/assets/mca/lang/%s.lang", langCode);
-        InputStream namesStream = API.class.getResourceAsStream(langFilePath);
+        InputStream namesStream = MCA.class.getResourceAsStream(langFilePath);
         
         if (namesStream == null && !langCode.equals("en_us")) {
             langFilePath = "/assets/mca/lang/en_us.lang";
-            namesStream = API.class.getResourceAsStream(langFilePath);
+            namesStream = MCA.class.getResourceAsStream(langFilePath);
         }
 
         if (namesStream != null) {
