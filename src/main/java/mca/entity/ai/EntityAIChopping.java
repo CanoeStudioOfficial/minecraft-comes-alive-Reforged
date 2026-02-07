@@ -37,18 +37,23 @@ public class EntityAIChopping extends AbstractEntityAIChore {
             villager.stopChore();
         }
         if (targetTree == null) {
-            List<BlockPos> nearbyLogs = Util.getNearbyBlocks(villager.getPos(), villager.world, BlockLog.class, 10, 5);
+            List<BlockPos> nearbyLogs = Util.getNearbyBlocks(villager.getPosition(), villager.world, BlockLog.class, 10, 5);
             List<BlockPos> nearbyTrees = new ArrayList<>();
 
-            // valid "trees" are logs on the ground with leaves around them
+            // valid "trees" are logs on the ground with multiple leaves around/above them
             nearbyLogs.stream()
                     .filter(log -> {
                         IBlockState down = villager.world.getBlockState(log.down());
-                        List<BlockPos> leaves = Util.getNearbyBlocks(log, villager.world, BlockLeaves.class, 1, 5);
-                        return leaves.size() > 0 && (down.getBlock() == Blocks.GRASS || down.getBlock() == Blocks.DIRT);
+                        boolean isOnTreeBase = down.getBlock() == Blocks.GRASS || down.getBlock() == Blocks.DIRT;
+                        
+                        if (isOnTreeBase) {
+                            List<BlockPos> leaves = Util.getNearbyBlocks(log, villager.world, BlockLeaves.class, 3, 8);
+                            return leaves.size() >= 3; // Must have at least 3 leaf blocks nearby to be considered a tree
+                        }
+                        return false;
                     })
                     .forEach(nearbyTrees::add);
-            targetTree = Util.getNearestPoint(villager.getPos(), nearbyTrees);
+            targetTree = Util.getNearestPoint(villager.getPosition(), nearbyTrees);
             return;
         }
         double distance = Math.sqrt(villager.getDistanceSq(targetTree));

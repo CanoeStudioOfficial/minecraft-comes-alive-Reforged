@@ -62,27 +62,31 @@ public class RenderVillagerMCA<T extends EntityVillagerMCA> extends RenderBiped<
         final int darkHeartU = 96;
         int heartsDrawn = 0;
 
-        float maxHealthF = Math.round((float)maxHealth / 2.0F);
-        float currentHealthF = Math.round((float)currentHealth / 2.0F);
-        int heartsMax = Math.round((maxHealthF / maxHealthF) * 10.0F);
-        int heartsToDraw = Math.round((currentHealthF / maxHealthF) * 10.0F);
+        if (maxHealth <= 0) return;
+
+        float maxHealthF = (float) maxHealth / 2.0F;
+        float currentHealthF = (float) currentHealth / 2.0F;
+        int heartsMax = 10;
+        int heartsToDraw = (int) ((currentHealthF / maxHealthF) * 10.0F);
 
         for (int i = 0; i < heartsMax; i++) {
             int heartU = i < heartsToDraw ? redHeartU : darkHeartU;
             heartsDrawn++;
 
-            GL11.glPushMatrix();{
-                GL11.glTranslatef((float) posX + 0.0F, (float) posY + villager.height + 1.0F, (float) posZ);
-                GL11.glRotatef(-renderManager.playerViewY, 0.0F, 1.0F, 0.0F);
-                GL11.glRotatef(renderManager.playerViewX, 1.0F, 0.0F, 0.0F);
-                GL11.glScalef(-LABEL_SCALE, -LABEL_SCALE, LABEL_SCALE);
-                GL11.glDisable(GL11.GL_LIGHTING);
-                GL11.glTranslatef(-2.0F, 2.0F, -2.0F);
-                drawTexturedRectangle(gui, (int)posX + (heartsDrawn * 8) - 45, (int)posY - 4, heartU, 0, 16, 16);
-            }
-            GL11.glPopMatrix();
-            GL11.glDepthMask(true);
-            GL11.glEnable(GL11.GL_LIGHTING);
+            GlStateManager.pushMatrix();
+            GlStateManager.translate((float) posX, (float) posY + villager.height + 1.0F, (float) posZ);
+            GlStateManager.rotate(-renderManager.playerViewY, 0.0F, 1.0F, 0.0F);
+            GlStateManager.rotate(renderManager.playerViewX, 1.0F, 0.0F, 0.0F);
+            GlStateManager.scale(-LABEL_SCALE, -LABEL_SCALE, LABEL_SCALE);
+            GlStateManager.disableLighting();
+            GlStateManager.depthMask(false);
+            GlStateManager.translate(-2.0F, 2.0F, -2.0F);
+            
+            drawTexturedRectangle(gui, heartsDrawn * 8 - 45, -4, heartU, 0, 16, 16);
+            
+            GlStateManager.depthMask(true);
+            GlStateManager.enableLighting();
+            GlStateManager.popMatrix();
         }
     }
 

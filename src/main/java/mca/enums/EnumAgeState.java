@@ -28,12 +28,20 @@ public enum EnumAgeState {
     }
 
     public static EnumAgeState byCurrentAge(int startingAge, int growingAge) {
+        if (growingAge >= 0) {
+            return EnumAgeState.ADULT;
+        }
+
         int step = startingAge / 4;
-        if (growingAge >= step) return EnumAgeState.TEEN;
-        else if (growingAge >= step * 2) return EnumAgeState.CHILD;
-        else if (growingAge >= step * 3 && growingAge < step * 2) return EnumAgeState.TODDLER;
-        else if (growingAge >= step * 4 && growingAge < step * 3) return EnumAgeState.BABY;
-        return EnumAgeState.ADULT;
+        if (growingAge >= step) {
+            return EnumAgeState.TEEN;
+        } else if (growingAge >= step * 2) {
+            return EnumAgeState.CHILD;
+        } else if (growingAge >= step * 3) {
+            return EnumAgeState.TODDLER;
+        } else {
+            return EnumAgeState.BABY;
+        }
     }
 
     public String localizedName() {

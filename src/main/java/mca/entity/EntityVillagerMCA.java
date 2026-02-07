@@ -905,6 +905,7 @@ public class EntityVillagerMCA extends EntityVillager {
     public void startChore(EnumChore chore, EntityPlayer player) {
         set(ACTIVE_CHORE, chore.getId());
         set(CHORE_ASSIGNING_PLAYER, Optional.of(player.getUniqueID()));
+        set(MOVE_STATE, EnumMoveState.MOVE.getId());
     }
 
     public boolean playerIsParent(EntityPlayer player) {
@@ -1026,7 +1027,7 @@ public class EntityVillagerMCA extends EntityVillager {
                 stopSleeping();
             }
         } else {
-            this.setSize(0.6F, 1.8F);
+            this.setSizeForAge();
         }
     }
 
