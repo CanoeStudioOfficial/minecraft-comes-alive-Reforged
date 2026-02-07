@@ -16,8 +16,7 @@ out
 # gradle
 build
 .gradle
-logs
-
+old
 # other
 eclipse
 run
