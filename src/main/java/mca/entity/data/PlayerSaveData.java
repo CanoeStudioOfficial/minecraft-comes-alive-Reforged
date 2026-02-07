@@ -25,6 +25,10 @@ public class PlayerSaveData extends WorldSavedData {
     private EnumMarriageState marriageState = EnumMarriageState.NOT_MARRIED;
     private String spouseName = "";
     private boolean babyPresent = false;
+    private boolean hasChosenDestiny = true;
+    private mca.enums.EnumGender gender = mca.enums.EnumGender.UNASSIGNED;
+    private mca.enums.EnumGender genderPreference = mca.enums.EnumGender.UNASSIGNED;
+    private String mcaName = "";
 
     public PlayerSaveData(String id) {
         super(id);
@@ -52,6 +56,10 @@ public class PlayerSaveData extends WorldSavedData {
         nbt.setInteger("marriageState", marriageState.getId());
         nbt.setString("spouseName", spouseName);
         nbt.setBoolean("babyPresent", babyPresent);
+        nbt.setBoolean("hasChosenDestiny", hasChosenDestiny);
+        nbt.setInteger("gender", gender.getId());
+        nbt.setInteger("genderPreference", genderPreference.getId());
+        nbt.setString("mcaName", mcaName);
         return nbt;
     }
 
@@ -61,6 +69,10 @@ public class PlayerSaveData extends WorldSavedData {
         marriageState = EnumMarriageState.byId(nbt.getInteger("marriageState"));
         spouseName = nbt.getString("spouseName");
         babyPresent = nbt.getBoolean("babyPresent");
+        hasChosenDestiny = nbt.hasKey("hasChosenDestiny") ? nbt.getBoolean("hasChosenDestiny") : true;
+        gender = mca.enums.EnumGender.byId(nbt.getInteger("gender"));
+        genderPreference = mca.enums.EnumGender.byId(nbt.getInteger("genderPreference"));
+        mcaName = nbt.getString("mcaName");
     }
 
     public boolean isMarriedOrEngaged() {
@@ -83,6 +95,26 @@ public class PlayerSaveData extends WorldSavedData {
 
     public void setBabyPresent(boolean value) {
         this.babyPresent = value;
+        markDirty();
+    }
+
+    public void setHasChosenDestiny(boolean value) {
+        this.hasChosenDestiny = value;
+        markDirty();
+    }
+
+    public void setGender(mca.enums.EnumGender gender) {
+        this.gender = gender;
+        markDirty();
+    }
+
+    public void setGenderPreference(mca.enums.EnumGender genderPreference) {
+        this.genderPreference = genderPreference;
+        markDirty();
+    }
+
+    public void setMcaName(String mcaName) {
+        this.mcaName = mcaName;
         markDirty();
     }
 

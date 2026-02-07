@@ -48,6 +48,8 @@ public class GuiHandler implements IGuiHandler {
                 return new GuiScreenBook(player, player.inventory.getCurrentItem(), false);
             case Constants.GUI_ID_WHISTLE:
                 return new GuiWhistle();
+            case Constants.GUI_ID_SETUP:
+                return new GuiSetup(player);
             case Constants.GUI_ID_TOMBSTONE:
                 return new GuiEditSign((TileEntitySign) world.getTileEntity(new net.minecraft.util.math.BlockPos(entityId, posY, posZ)));
             default:

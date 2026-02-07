@@ -61,6 +61,33 @@ public class NetMCA {
         INSTANCE.registerMessage(CallToPlayerHandler.class, CallToPlayer.class, 14, Side.SERVER);
         INSTANCE.registerMessage(SetTextureHandler.class, SetTexture.class, 15, Side.SERVER);
         INSTANCE.registerMessage(SetProfessionHandler.class, SetProfession.class, 16, Side.SERVER);
+        INSTANCE.registerMessage(DestinyChoiceHandler.class, DestinyChoice.class, 17, Side.SERVER);
+    }
+
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class DestinyChoice implements IMessage {
+        @Getter
+        private int choiceId;
+
+        @Override
+        public void fromBytes(ByteBuf buf) {
+            choiceId = buf.readInt();
+        }
+
+        @Override
+        public void toBytes(ByteBuf buf) {
+            buf.writeInt(choiceId);
+        }
+    }
+
+    public static class DestinyChoiceHandler implements IMessageHandler<DestinyChoice, IMessage> {
+        @Override
+        public IMessage onMessage(DestinyChoice message, MessageContext ctx) {
+            EntityPlayerMP player = ctx.getServerHandler().player;
+            player.getServerWorld().addScheduledTask(() -> mca.server.ServerMessageHandler.handleDestinyChoice(player, message.getChoiceId()));
+            return null;
+        }
     }
 
     @SideOnly(Side.CLIENT)

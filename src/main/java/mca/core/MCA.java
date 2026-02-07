@@ -44,6 +44,9 @@ public class MCA {
     private static Localizer localizer;
     private static Config config;
 
+    public static boolean destinySpawnFlag = false;
+    public static boolean playPortalAnimation = false;
+    public static net.minecraft.util.math.BlockPos destinyCenterPoint;
 
     public static Logger getLog() {
         if (logger == null) {
