@@ -718,7 +718,7 @@ public class NetMCA {
                 }
 
                 // Handle destiny logic (simplified for now)
-                player.sendMessage(new TextComponentTranslation("notify.setup.destiny_chosen", new TextComponentTranslation("gui.button." + message.setupType.getName())));
+                player.sendMessage(new TextComponentTranslation("notify.setup.destiny_chose", new TextComponentTranslation("gui.button." + message.setupType.getName())));
                 
                 // Here we could trigger house spawning, etc.
             });

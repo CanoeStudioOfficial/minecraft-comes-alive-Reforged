@@ -73,6 +73,7 @@ public class Localizer {
         int index = 1;
         str = str.replaceAll("%Supporter%", MCA.getInstance().getRandomSupporter());
 
+        // Handle %v1%, %v2%, etc.
         String varString = "%v" + index + "%";
         while (str.contains("%v") && index < 10) {
             try {
@@ -83,6 +84,13 @@ public class Localizer {
             } finally {
                 index++;
                 varString = "%v" + index + "%";
+            }
+        }
+
+        // Handle %s (standard Minecraft/Java format)
+        if (str.contains("%s")) {
+            for (String var : vars) {
+                str = str.replaceFirst("%s", var);
             }
         }
 
