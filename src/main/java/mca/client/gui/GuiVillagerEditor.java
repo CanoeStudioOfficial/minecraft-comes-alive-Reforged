@@ -72,7 +72,7 @@ public class GuiVillagerEditor extends GuiScreen {
             mc.displayGuiScreen(null);
         } else if (btn.getIdentifier().equals("gui.button.copyuuid")) {
             Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(villager.getUniqueID().toString()), null);
-            Minecraft.getMinecraft().player.sendChatMessage("Villager UUID copied to clipboard.");
+            player.sendMessage(new net.minecraft.util.text.TextComponentTranslation("notify.editor.uuidcopied"));
         } else if (btn.getIdentifier().equals("gui.button.profession.set")) {
             String profession = professionTextField.getText();
             NetMCA.INSTANCE.sendToServer(new NetMCA.SetProfession(villager.getUniqueID(), profession));
@@ -126,7 +126,7 @@ public class GuiVillagerEditor extends GuiScreen {
     @Override
     public void drawScreen(int sizeX, int sizeY, float offset) {
         drawGradientRect(0, 0, width, height, -1072689136, -804253680);
-        drawString(fontRenderer, "Name:", width / 2 - 205, height / 2 - 110, 0xffffff);
+        drawString(fontRenderer, MCA.getLocalizer().localize("gui.editor.name"), width / 2 - 205, height / 2 - 110, 0xffffff);
         drawCenteredString(fontRenderer, MCA.getLocalizer().localize("gui.title.editor"), width / 2, height / 2 - 110, 0xffffff);
         nameTextField.drawTextBox();
         professionTextField.drawTextBox();

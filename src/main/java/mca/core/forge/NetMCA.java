@@ -30,6 +30,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import net.minecraftforge.fml.common.network.ByteBufUtils;
@@ -608,7 +609,7 @@ public class NetMCA {
                             EntityVillagerMCA villager = (EntityVillagerMCA)entity.get();
                             villager.setProfession(professionEntry.getValue());
                             villager.setVanillaCareer(i);
-                            player.sendMessage(new TextComponentString("Career set to " + message.profession));
+                            player.sendMessage(new TextComponentTranslation("notify.profession.set", message.profession));
                             isCareerSet = true;
                             break;
                         }
@@ -620,7 +621,7 @@ public class NetMCA {
             }
 
             if (!isCareerSet) {
-                player.sendMessage(new TextComponentString("Career not found: " + message.profession));
+                player.sendMessage(new TextComponentTranslation("notify.profession.notfound", message.profession));
             }
             return null;
         }
@@ -717,7 +718,7 @@ public class NetMCA {
                 }
 
                 // Handle destiny logic (simplified for now)
-                player.sendMessage(new TextComponentString("Destiny chosen: " + message.setupType.name()));
+                player.sendMessage(new TextComponentTranslation("notify.setup.destiny_chosen", new TextComponentTranslation("gui.button." + message.setupType.getName())));
                 
                 // Here we could trigger house spawning, etc.
             });

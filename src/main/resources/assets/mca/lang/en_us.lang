@@ -349,6 +349,22 @@ notify.childdied=Your child %v1% has died by %v2%
 notify.child.grownup=%v1% has grown into an adult!
 notify.revival.disabled=Revivals have been disabled by the server administrator.
 notify.trading.disabled=Trading is disabled by the server administrator.
+notify.setup.destiny_chosen=Destiny chosen: %v1%
+notify.profession.set=Career set to %v1%
+notify.profession.notfound=Career not found: %v1%
+notify.debug.raid.start=Starting raid on village...
+notify.debug.guards.spawn=Spawning village guards...
+notify.debug.village.rebuild=Rebuilding annihilated village...
+gui.staffoflife.novillagers=No villagers found.
+gui.editor.name=Name:
+notify.editor.uuidcopied=Villager UUID copied to clipboard.
+gui.whistle.loading=Loading
+gui.whistle.nofamily=No family members could be found in the area.
+tooltip.staffoflife.usesleft=Uses left: %v1%
+tooltip.staffoflife.desc1=Use to revive a previously dead
+tooltip.staffoflife.desc2=villager, but all of their memories
+tooltip.staffoflife.desc3=will be forgotten.
+tooltip.common.shiftforinfo=Hold %v1%SHIFT%v2% for info.
 gift.cake.fail=I will only eat cake if my spouse is nearby...please find them!
 
 ##################################

@@ -346,6 +346,22 @@ notify.childdied=你的孩子%v1%因为%v2%死掉了
 notify.child.grownup=%v1%已经长大成人了！
 notify.revival.disabled=复活已被服务器管理员禁用。
 notify.trading.disabled=交易已被服务器管理员禁用。
+notify.setup.destiny_chosen=已选择命运：%v1%
+notify.profession.set=职业已设置为：%v1%
+notify.profession.notfound=未找到职业：%v1%
+notify.debug.raid.start=村庄袭击开始...
+notify.debug.guards.spawn=正在生成村庄守卫...
+notify.debug.village.rebuild=正在重建被毁灭的村庄...
+gui.staffoflife.novillagers=未找到村民。
+gui.editor.name=名字:
+notify.editor.uuidcopied=村民 UUID 已复制到剪贴板。
+gui.whistle.loading=加载中
+gui.whistle.nofamily=在该区域找不到家庭成员。
+tooltip.staffoflife.usesleft=剩余次数: %v1%
+tooltip.staffoflife.desc1=用于复活先前死亡的
+tooltip.staffoflife.desc2=村民，但他们所有的记忆
+tooltip.staffoflife.desc3=都将被遗忘。
+tooltip.common.shiftforinfo=按住 %v1%SHIFT%v2% 查看详细信息。
 gift.cake.fail=我只会吃蛋糕，如果我的配偶在附近请找到他们！
 
 ##################################

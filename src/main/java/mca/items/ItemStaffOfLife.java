@@ -8,7 +8,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.EnumHand;
-import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -28,7 +28,7 @@ public class ItemStaffOfLife extends Item {
     @Override
     public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand handIn) {
         if (!MCA.getConfig().enableRevivals)
-            playerIn.sendMessage(new TextComponentString(MCA.getLocalizer().localize("notify.revival.disabled")));
+            playerIn.sendMessage(new TextComponentTranslation("notify.revival.disabled"));
 
         playerIn.openGui(MCA.getInstance(), Constants.GUI_ID_STAFFOFLIFE, playerIn.world, 0, 0, 0);
         return super.onItemRightClick(worldIn, playerIn, handIn);
@@ -36,12 +36,12 @@ public class ItemStaffOfLife extends Item {
 
     @Override
     public void addInformation(ItemStack itemStack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
-        tooltip.add("Uses left: " + (itemStack.getMaxDamage() - itemStack.getItemDamage() + 1));
+        tooltip.add(MCA.getLocalizer().localize("tooltip.staffoflife.usesleft", String.valueOf(itemStack.getMaxDamage() - itemStack.getItemDamage() + 1)));
         if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT)) {
-            tooltip.add("Use to revive a previously dead");
-            tooltip.add("villager, but all of their memories");
-            tooltip.add("will be forgotten.");
-        } else tooltip.add("Hold " + Constants.Color.YELLOW + "SHIFT" + Constants.Color.GRAY + " for info.");
+            tooltip.add(MCA.getLocalizer().localize("tooltip.staffoflife.desc1"));
+            tooltip.add(MCA.getLocalizer().localize("tooltip.staffoflife.desc2"));
+            tooltip.add(MCA.getLocalizer().localize("tooltip.staffoflife.desc3"));
+        } else tooltip.add(MCA.getLocalizer().localize("tooltip.common.shiftforinfo", Constants.Color.YELLOW, Constants.Color.GRAY));
     }
 
     @SideOnly(Side.CLIENT)

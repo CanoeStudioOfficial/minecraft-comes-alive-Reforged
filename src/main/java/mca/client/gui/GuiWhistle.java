@@ -103,12 +103,12 @@ public class GuiWhistle extends GuiScreen {
         drawCenteredString(fontRenderer, MCA.getLocalizer().localize("gui.title.whistle"), width / 2, height / 2 - 110, 0xffffff);
 
         if (loadingAnimationTicks != -1) {
-            drawString(fontRenderer, "Loading" + StringUtils.repeat(".", loadingAnimationTicks % 10), width / 2 - 20, height / 2 - 10, 0xffffff);
+            drawString(fontRenderer, MCA.getLocalizer().localize("gui.whistle.loading") + StringUtils.repeat(".", loadingAnimationTicks % 10), width / 2 - 20, height / 2 - 10, 0xffffff);
         }
 
         else {
             if (villagerDataList.size() == 0) {
-                drawCenteredString(fontRenderer, "No family members could be found in the area.", width / 2, height / 2 + 50, 0xffffff);
+                drawCenteredString(fontRenderer, MCA.getLocalizer().localize("gui.whistle.nofamily"), width / 2, height / 2 + 50, 0xffffff);
             }
 
             else {

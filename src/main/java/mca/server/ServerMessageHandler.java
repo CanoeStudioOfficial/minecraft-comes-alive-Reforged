@@ -4,6 +4,7 @@ import mca.core.forge.NetMCA;
 import mca.core.minecraft.VillageHelper;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.TextComponentTranslation;
 
 public class ServerMessageHandler {
 
@@ -22,16 +23,16 @@ public class ServerMessageHandler {
     }
 
     private static void startRaid(EntityPlayerMP player) {
-        player.sendMessage(new TextComponentString("Starting raid on village..."));
+        player.sendMessage(new TextComponentTranslation("notify.debug.raid.start"));
         VillageHelper.forceRaid(player);
     }
 
     private static void spawnGuards(EntityPlayerMP player) {
-        player.sendMessage(new TextComponentString("Spawning village guards..."));
+        player.sendMessage(new TextComponentTranslation("notify.debug.guards.spawn"));
         VillageHelper.tick(player.world);
     }
 
     private static void rebuildVillage(EntityPlayerMP player) {
-        player.sendMessage(new TextComponentString("Rebuilding annihilated village..."));
+        player.sendMessage(new TextComponentTranslation("notify.debug.village.rebuild"));
     }
 }

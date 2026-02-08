@@ -79,7 +79,7 @@ public class GuiStaffOfLife extends GuiScreen {
             keys.addAll(data.keySet());
             selectData(0);
         } else {
-            nameButton.displayString = "No villagers found.";
+            nameButton.displayString = MCA.getLocalizer().localize("gui.staffoflife.novillagers");
             backButton.enabled = false;
             nextButton.enabled = false;
             nameButton.enabled = false;

@@ -6,16 +6,15 @@ import mca.entity.EntityVillagerMCA;
 import mca.entity.data.PlayerHistory;
 import mca.entity.data.PlayerSaveData;
 import mca.enums.EnumDialogueType;
-import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.EnumParticleTypes;
-import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.TextComponentTranslation;
 
 public class ItemWeddingRing extends ItemSpecialCaseGift {
     public boolean handle(EntityPlayer player, EntityVillagerMCA villager) {
 
         if (!MCA.getConfig().allowPlayerMarriage) {
-            player.sendMessage(new TextComponentString(I18n.format("gui.marriage.failed")));
+            player.sendMessage(new TextComponentTranslation("gui.marriage.failed"));
             return false;
         }
 
