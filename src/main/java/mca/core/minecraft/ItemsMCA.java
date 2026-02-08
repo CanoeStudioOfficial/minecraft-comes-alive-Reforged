@@ -30,6 +30,7 @@ public final class ItemsMCA {
     public static final Item VILLAGER_EDITOR = new ItemVillagerEditor();
     public static final Item STAFF_OF_LIFE = new ItemStaffOfLife();
     public static final Item WHISTLE = new ItemWhistle();
+    public static final Item CRYSTAL_BALL = new ItemCrystalBall();
 
     private static final List<Item> ITEMS = new ArrayList<>();
 

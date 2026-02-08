@@ -10,9 +10,13 @@ import mca.client.network.ClientMessageQueue;
 import mca.core.MCA;
 import mca.core.minecraft.ProfessionsMCA;
 import mca.entity.EntityVillagerMCA;
+import mca.entity.data.PlayerSaveData;
 import mca.entity.data.SavedVillagers;
 import mca.entity.inventory.InventoryMCA;
+import mca.enums.EnumGender;
+import mca.enums.EnumSetupType;
 import mca.items.ItemBaby;
+import mca.items.ItemCrystalBall;
 import mca.server.ServerMessageHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
@@ -61,6 +65,8 @@ public class NetMCA {
         INSTANCE.registerMessage(CallToPlayerHandler.class, CallToPlayer.class, 14, Side.SERVER);
         INSTANCE.registerMessage(SetTextureHandler.class, SetTexture.class, 15, Side.SERVER);
         INSTANCE.registerMessage(SetProfessionHandler.class, SetProfession.class, 16, Side.SERVER);
+        INSTANCE.registerMessage(SetPlayerGenderHandler.class, SetPlayerGender.class, 17, Side.SERVER);
+        INSTANCE.registerMessage(SetupCompleteHandler.class, SetupComplete.class, 18, Side.SERVER);
     }
 
     @SideOnly(Side.CLIENT)
@@ -645,6 +651,76 @@ public class NetMCA {
             EntityPlayer player = ctx.getServerHandler().player;
             Optional<Entity> entity = player.world.loadedEntityList.stream().filter(e -> e.getUniqueID().equals(message.targetUUID)).findFirst();
             entity.ifPresent(e -> ((EntityVillagerMCA)e).set(EntityVillagerMCA.TEXTURE, message.texture));
+            return null;
+        }
+    }
+
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Getter
+    public static class SetPlayerGender implements IMessage {
+        private EnumGender gender;
+
+        @Override
+        public void toBytes(ByteBuf buf) {
+            buf.writeInt(gender.getId());
+        }
+
+        @Override
+        public void fromBytes(ByteBuf buf) {
+            this.gender = EnumGender.byId(buf.readInt());
+        }
+    }
+
+    public static class SetPlayerGenderHandler implements IMessageHandler<SetPlayerGender, IMessage> {
+        @Override
+        public IMessage onMessage(SetPlayerGender message, MessageContext ctx) {
+            EntityPlayerMP player = ctx.getServerHandler().player;
+            player.getServerWorld().addScheduledTask(() -> {
+                PlayerSaveData data = PlayerSaveData.get(player);
+                data.setGender(message.gender);
+            });
+            return null;
+        }
+    }
+
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Getter
+    public static class SetupComplete implements IMessage {
+        private EnumSetupType setupType;
+
+        @Override
+        public void toBytes(ByteBuf buf) {
+            buf.writeInt(setupType.getId());
+        }
+
+        @Override
+        public void fromBytes(ByteBuf buf) {
+            this.setupType = EnumSetupType.byId(buf.readInt());
+        }
+    }
+
+    public static class SetupCompleteHandler implements IMessageHandler<SetupComplete, IMessage> {
+        @Override
+        public IMessage onMessage(SetupComplete message, MessageContext ctx) {
+            EntityPlayerMP player = ctx.getServerHandler().player;
+            player.getServerWorld().addScheduledTask(() -> {
+                PlayerSaveData data = PlayerSaveData.get(player);
+                data.setHasChosenDestiny(true);
+
+                // Consume the crystal ball if the player has it
+                if (player.getHeldItemMainhand().getItem() instanceof ItemCrystalBall) {
+                    player.getHeldItemMainhand().shrink(1);
+                } else if (player.getHeldItemOffhand().getItem() instanceof ItemCrystalBall) {
+                    player.getHeldItemOffhand().shrink(1);
+                }
+
+                // Handle destiny logic (simplified for now)
+                player.sendMessage(new TextComponentString("Destiny chosen: " + message.setupType.name()));
+                
+                // Here we could trigger house spawning, etc.
+            });
             return null;
         }
     }

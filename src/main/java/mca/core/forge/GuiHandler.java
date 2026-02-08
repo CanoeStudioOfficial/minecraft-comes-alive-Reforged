@@ -44,6 +44,8 @@ public class GuiHandler implements IGuiHandler {
                 return new GuiScreenBook(player, player.inventory.getCurrentItem(), false);
             case Constants.GUI_ID_WHISTLE:
                 return new GuiWhistle();
+            case Constants.GUI_ID_SETUP:
+                return new GuiSetup();
             default:
                 MCA.getLog().fatal("Failed to handle provided GUI ID on client: " + guiId);
                 return null;

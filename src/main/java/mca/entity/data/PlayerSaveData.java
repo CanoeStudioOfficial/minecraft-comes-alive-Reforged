@@ -3,6 +3,7 @@ package mca.entity.data;
 import lombok.Getter;
 import mca.core.Constants;
 import mca.core.MCA;
+import mca.enums.EnumGender;
 import mca.enums.EnumMarriageState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
@@ -25,6 +26,8 @@ public class PlayerSaveData extends WorldSavedData {
     private EnumMarriageState marriageState = EnumMarriageState.NOT_MARRIED;
     private String spouseName = "";
     private boolean babyPresent = false;
+    private EnumGender gender = EnumGender.MALE;
+    private boolean hasChosenDestiny = false;
 
     public PlayerSaveData(String id) {
         super(id);
@@ -52,6 +55,8 @@ public class PlayerSaveData extends WorldSavedData {
         nbt.setInteger("marriageState", marriageState.getId());
         nbt.setString("spouseName", spouseName);
         nbt.setBoolean("babyPresent", babyPresent);
+        nbt.setInteger("gender", gender.getId());
+        nbt.setBoolean("hasChosenDestiny", hasChosenDestiny);
         return nbt;
     }
 
@@ -61,6 +66,18 @@ public class PlayerSaveData extends WorldSavedData {
         marriageState = EnumMarriageState.byId(nbt.getInteger("marriageState"));
         spouseName = nbt.getString("spouseName");
         babyPresent = nbt.getBoolean("babyPresent");
+        gender = EnumGender.byId(nbt.getInteger("gender"));
+        hasChosenDestiny = nbt.getBoolean("hasChosenDestiny");
+    }
+
+    public void setGender(EnumGender gender) {
+        this.gender = gender;
+        markDirty();
+    }
+
+    public void setHasChosenDestiny(boolean value) {
+        this.hasChosenDestiny = value;
+        markDirty();
     }
 
     public boolean isMarriedOrEngaged() {
