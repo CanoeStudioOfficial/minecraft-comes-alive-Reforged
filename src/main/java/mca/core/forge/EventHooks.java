@@ -8,11 +8,14 @@ import mca.core.minecraft.BlocksMCA;
 import mca.core.minecraft.ItemsMCA;
 import mca.core.minecraft.ProfessionsMCA;
 import mca.core.minecraft.WorldEventListenerMCA;
+import mca.core.minecraft.SoundsMCA;
+import mca.entity.EntityGrimReaper;
 import mca.entity.EntityVillagerMCA;
 import mca.items.ItemBaby;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.effect.EntityLightningBolt;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.entity.player.EntityPlayer;
@@ -20,8 +23,11 @@ import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.stats.StatList;
+import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldServer;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.PlaySoundAtEntityEvent;
@@ -48,6 +54,10 @@ public class EventHooks {
     // Maps a player UUID to the itemstack of their held ItemBaby. Filled when a player dies so the baby is never lost.
     public Map<UUID, ItemStack> limbo = new HashMap<>();
 
+    private int reaperSummonTicks = 0;
+    private BlockPos reaperSpawnPos = BlockPos.ORIGIN;
+    private World reaperSpawnWorld = null;
+
     @SubscribeEvent
     public void onRegisterItems(RegistryEvent.Register<Item> event) {
         ItemsMCA.register(event);
@@ -73,6 +83,40 @@ public class EventHooks {
     @SubscribeEvent
     public void onServerTick(TickEvent.ServerTickEvent event) {
         MCAServer.get().tick();
+
+        if (reaperSummonTicks > 0) {
+            reaperSummonTicks--;
+
+            // Spawn particles around the summon point.
+            if (reaperSpawnWorld instanceof WorldServer) {
+                WorldServer worldServer = (WorldServer) reaperSpawnWorld;
+                worldServer.spawnParticle(EnumParticleTypes.PORTAL, reaperSpawnPos.getX() + 0.5D, reaperSpawnPos.getY(), reaperSpawnPos.getZ() + 0.5D, 20, 0.5D, 0.5D, 0.5D, 0.1D);
+            }
+
+            // Lightning will strike periodically.
+            if (reaperSummonTicks % 40 == 0) { // Every 2 seconds
+                double dX = reaperSpawnPos.getX() + (reaperSpawnWorld.rand.nextInt(6) * (reaperSpawnWorld.rand.nextBoolean() ? 1 : -1));
+                double dZ = reaperSpawnPos.getZ() + (reaperSpawnWorld.rand.nextInt(6) * (reaperSpawnWorld.rand.nextBoolean() ? 1 : -1));
+                double y = reaperSpawnWorld.getHeight(new BlockPos(dX, 0, dZ)).getY();
+
+                EntityLightningBolt lightning = new EntityLightningBolt(reaperSpawnWorld, dX, y, dZ, false);
+                reaperSpawnWorld.spawnEntity(lightning);
+
+                // On the first lightning bolt (or at 80 ticks), send the summon sound.
+                if (reaperSummonTicks == 80) {
+                    reaperSpawnWorld.playSound(null, reaperSpawnPos, SoundsMCA.reaper_summon, SoundCategory.HOSTILE, 1.0F, 1.0F);
+                }
+            }
+
+            if (reaperSummonTicks == 0) {
+                EntityGrimReaper reaper = new EntityGrimReaper(reaperSpawnWorld);
+                reaper.setPosition(reaperSpawnPos.getX() + 0.5D, reaperSpawnPos.getY(), reaperSpawnPos.getZ() + 0.5D);
+                reaperSpawnWorld.spawnEntity(reaper);
+
+                reaperSpawnWorld = null;
+                reaperSpawnPos = BlockPos.ORIGIN;
+            }
+        }
     }
 
     @SubscribeEvent
@@ -169,8 +213,10 @@ public class EventHooks {
             }
 
             if (totemsFound >= 3 && !event.getWorld().isDaytime()) {
-                MCAServer.get().setReaperSpawnPos(event.getWorld(), new BlockPos(x + 1, y + 10, z + 1));
-                MCAServer.get().startSpawnReaper();
+                reaperSpawnWorld = event.getWorld();
+                reaperSpawnPos = new BlockPos(x + 1, y + 10, z + 1);
+                reaperSummonTicks = 120; // 6 seconds
+
                 for (int i = 0; i < 2; i++) event.getWorld().setBlockToAir(new BlockPos(x, y - i, z));
             }
         }

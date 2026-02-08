@@ -23,9 +23,6 @@ public class MCAServer {
     // List of UUIDs that initiated procreation mapped to the time the request expires.
     private static Map<UUID, Long> procreateMap;
     private int serverTicks = 0;
-    private int reaperSummonTicks = 0;
-    private BlockPos reaperSpawnPos = BlockPos.ORIGIN;
-    private World reaperSpawnWorld = null;
 
     private MCAServer() {
         proposals = new HashMap<>();
@@ -46,20 +43,6 @@ public class MCAServer {
             World overworld = FMLCommonHandler.instance().getMinecraftServerInstance().getWorld(0);
             VillageHelper.tick(overworld);
             serverTicks = 0;
-        }
-
-        if (reaperSummonTicks > 0) {
-            reaperSummonTicks--;
-            if (reaperSummonTicks % 20 == 0) { // every second
-                EntityLightningBolt lightningBolt = new EntityLightningBolt(reaperSpawnWorld, reaperSpawnPos.getX(), reaperSpawnPos.getY(), reaperSpawnPos.getZ(), false);
-                reaperSpawnWorld.addWeatherEffect(lightningBolt);
-            }
-
-            if (reaperSummonTicks == 0) { // when counter reaches 0
-                EntityGrimReaper reaper = new EntityGrimReaper(reaperSpawnWorld);
-                reaper.setPosition(reaperSpawnPos.getX(), reaperSpawnPos.getY(), reaperSpawnPos.getZ());
-                reaperSpawnWorld.spawnEntity(reaper);
-            }
         }
 
         // Collect all expired procreate requests and remove them.
@@ -292,14 +275,5 @@ public class MCAServer {
 
     private void infoMessage(EntityPlayer player, String message) {
         player.sendMessage(new TextComponentString(Constants.Color.YELLOW + message));
-    }
-
-    public void setReaperSpawnPos(World world, BlockPos pos) {
-        this.reaperSpawnWorld = world;
-        this.reaperSpawnPos = pos;
-    }
-
-    public void startSpawnReaper() {
-        this.reaperSummonTicks = 20 * 4; // 3 seconds
     }
 }
