@@ -17,6 +17,7 @@ out
 build
 .gradle
 old
+logs
 # other
 eclipse
 run

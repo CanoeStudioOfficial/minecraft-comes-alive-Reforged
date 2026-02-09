@@ -1,8 +1,6 @@
 package mca.core;
 
 import com.google.common.base.Charsets;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.LanguageManager;
 import net.minecraft.util.StringUtils;
 import org.apache.commons.io.IOUtils;
 
@@ -19,8 +17,7 @@ public class Localizer {
         InputStream inStream = null;
         try {
 
-            LanguageManager languageManager = Minecraft.getMinecraft().getLanguageManager();
-            String currentLangCode = languageManager.getCurrentLanguage().getLanguageCode();
+            String currentLangCode = MCA.proxy.getLanguageCode();
 
             String langFilePath = String.format("/assets/mca/lang/%s.lang", currentLangCode);
             inStream = StringUtils.class.getResourceAsStream(langFilePath);
@@ -71,7 +68,9 @@ public class Localizer {
 
     private String parseVars(String str, ArrayList<String> vars) {
         int index = 1;
-        str = str.replaceAll("%Supporter%", MCA.getInstance().getRandomSupporter());
+        if (MCA.getInstance() != null) {
+            str = str.replaceAll("%Supporter%", MCA.getInstance().getRandomSupporter());
+        }
 
         // Handle %v1%, %v2%, etc.
         String varString = "%v" + index + "%";

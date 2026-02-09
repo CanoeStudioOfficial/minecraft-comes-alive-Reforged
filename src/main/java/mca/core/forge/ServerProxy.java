@@ -12,4 +12,8 @@ public class ServerProxy {
     public void registerModelMeshers() {
 
     }
+
+    public String getLanguageCode() {
+        return "en_us";
+    }
 }
