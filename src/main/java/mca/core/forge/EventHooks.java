@@ -132,7 +132,6 @@ public class EventHooks {
                 return;
             }
             EntityVillager originalVillager = (EntityVillager) entity;
-            event.setCanceled(true);
             EntityVillagerMCA newVillager = new EntityVillagerMCA(world,
                     com.google.common.base.Optional.of(originalVillager.getProfessionForge()),
                     com.google.common.base.Optional.absent());
