@@ -128,6 +128,9 @@ public class EventHooks {
         if (!MCA.getConfig().overwriteOriginalVillagers) return;
 
         if (entity.getClass().equals(EntityVillager.class)) {
+            if (!shouldGetConverted((EntityVillager) entity)) {
+                return;
+            }
             EntityVillager originalVillager = (EntityVillager) entity;
             event.setCanceled(true);
             EntityVillagerMCA newVillager = new EntityVillagerMCA(world,
@@ -137,6 +140,15 @@ public class EventHooks {
             newVillager.finalizeMobSpawn(world.getDifficultyForLocation(newVillager.getPos()), null, false);
             newVillager.forcePositionAsHome();
             world.spawnEntity(newVillager);
+        }
+    }
+
+    private boolean shouldGetConverted(EntityVillager villager) {
+        if (MCA.getConfig().fractionOfVanillaVillages <= 0.0f) {
+            return true;
+        } else {
+            int hash = (villager.getPosition().getX() / 64) * 73856093 ^ (villager.getPosition().getY() / 64) * 19349663 ^ (villager.getPosition().getZ() / 64) * 83492791;
+            return (Math.abs(hash) % 100) >= MCA.getConfig().fractionOfVanillaVillages * 100.0;
         }
     }
 
