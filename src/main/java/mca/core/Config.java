@@ -23,6 +23,11 @@ public final class Config implements Serializable {
     public double guardPatrolSpeed;
     public int guardPatrolRadius;
     public int guardPatrolWaitTime;
+    public boolean guardsTargetMonsters;
+    public int guardAttackInterval;
+    public int guardBowAttackInterval;
+    public int guardBowAttackRange;
+    public double guardRetreatHealthThreshold;
     public int chanceToHaveTwins;
     public int marriageHeartsRequirement;
     public int babyGrowUpTime;
@@ -55,6 +60,11 @@ public final class Config implements Serializable {
         guardPatrolSpeed = config.get("General", "Guard Patrol Speed", 0.5, "Movement speed of guards while patrolling.").getDouble();
         guardPatrolRadius = config.get("General", "Guard Patrol Radius", 64, "Radius within which guards will search for their village.").getInt();
         guardPatrolWaitTime = config.get("General", "Guard Patrol Wait Time", 120, "Time in ticks a guard will wait at each patrol point before moving to the next.").getInt();
+        guardsTargetMonsters = config.get("General", "Guards Target Monsters", false, "If true, guards will attack all monsters including modded ones. May cause guards to attack neutral mobs.").getBoolean();
+        guardAttackInterval = config.get("General", "Guard Attack Interval", 20, "Ticks between guard melee attacks.").getInt();
+        guardBowAttackInterval = config.get("General", "Guard Bow Attack Interval", 20, "Ticks between guard bow shots.").getInt();
+        guardBowAttackRange = config.get("General", "Guard Bow Attack Range", 15, "Maximum range for guard bow attacks.").getInt();
+        guardRetreatHealthThreshold = config.get("General", "Guard Retreat Health Threshold", 0.25, "Health fraction below which guards will retreat (0.0-1.0). Default 0.25 (25%).").getDouble();
         chanceToHaveTwins = config.get("General", "Chance to Have Twins", 2, "Chance that you will have twins. Default is 2 for 2%.").getInt();
         marriageHeartsRequirement = config.get("General", "Marriage Hearts Requirement", 100, "Number of hearts required to get married.").getInt();
         babyGrowUpTime = config.get("General", "Baby Grow Up Time (Minutes)", 30, "Minutes it takes for a baby to be ready to grow up.").getInt();
