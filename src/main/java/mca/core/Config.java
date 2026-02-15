@@ -13,7 +13,6 @@ public final class Config implements Serializable {
     private transient final Configuration config;
 
     public boolean overwriteOriginalVillagers;
-    public float fractionOfVanillaVillages;
     public boolean enableDiminishingReturns;
     public boolean enableInfection;
     public int infectionChance;
@@ -45,7 +44,6 @@ public final class Config implements Serializable {
 
     private void addConfigValues() {
         overwriteOriginalVillagers = config.get("General", "Overwrite Original Villagers?", true, "Should original villagers be overwritten by MCA villagers?").getBoolean();
-        fractionOfVanillaVillages = (float) config.get("General", "Fraction Of Vanilla Villages", 0.0, "Fraction (0-1) of villages left as vanilla villages. If 0, all villages will be MCA villagers. If 1, no villages will be converted.", 0.0, 1.0).getDouble();
         enableDiminishingReturns = config.get("General", "Enable Interaction Fatigue?", true, "Should interactions yield diminishing returns over time?").getBoolean();
         enableInfection = config.get("General", "Enable Zombie Infection?", true, "Should zombies be able to infect villagers?").getBoolean();
         infectionChance = config.get("General", "Chance of Infection", 5, "Chance that a villager will be infected on hit from a zombie. Default is 5 for 5%.").getInt();
