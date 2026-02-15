@@ -128,8 +128,9 @@ public class EventHooks {
 
         if (entity.getClass().equals(EntityVillager.class)) {
             EntityVillager originalVillager = (EntityVillager) entity;
+            String mode = MCA.getConfig().villagerSpawnMode;
 
-            if (MCA.getConfig().overwriteOriginalVillagers) {
+            if ("replace".equalsIgnoreCase(mode)) {
                 EntityVillagerMCA newVillager = new EntityVillagerMCA(world,
                         com.google.common.base.Optional.of(originalVillager.getProfessionForge()),
                         com.google.common.base.Optional.absent());
@@ -138,7 +139,7 @@ public class EventHooks {
                 newVillager.forcePositionAsHome();
                 world.spawnEntity(newVillager);
                 event.setCanceled(true);
-            } else if (MCA.getConfig().villagerCoexistence) {
+            } else if ("coexist".equalsIgnoreCase(mode)) {
                 if (world.rand.nextDouble() < MCA.getConfig().mcaVillagerSpawnRatio) {
                     EntityVillagerMCA newVillager = new EntityVillagerMCA(world,
                             com.google.common.base.Optional.of(originalVillager.getProfessionForge()),
