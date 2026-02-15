@@ -6,6 +6,7 @@ import mca.core.minecraft.ProfessionsMCA;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.monster.IMob;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 
 import javax.annotation.Nullable;
