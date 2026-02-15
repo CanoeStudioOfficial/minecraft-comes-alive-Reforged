@@ -119,7 +119,11 @@ public class GuardEnemiesSensor {
     
     @Nullable
     private String getEntityId(EntityLivingBase entity) {
-        ResourceLocation rl = net.minecraftforge.fml.common.registry.EntityRegistry.getEntry(entity.getClass()).getRegistryName();
+        net.minecraftforge.fml.common.registry.EntityEntry entry = net.minecraftforge.fml.common.registry.EntityRegistry.getEntry(entity.getClass());
+        if (entry == null) {
+            return null;
+        }
+        ResourceLocation rl = entry.getRegistryName();
         return rl != null ? rl.toString() : null;
     }
     
