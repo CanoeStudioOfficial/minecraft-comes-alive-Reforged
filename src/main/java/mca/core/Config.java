@@ -7,7 +7,9 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public final class Config implements Serializable {
     private transient final Configuration config;
@@ -28,6 +30,12 @@ public final class Config implements Serializable {
     public int guardBowAttackInterval;
     public int guardBowAttackRange;
     public double guardRetreatHealthThreshold;
+    public String[] guardTargetPriorities;
+    public int guardSensorUpdateInterval;
+    public int guardBanditPriority;
+    public int guardAttackerPriority;
+    public int guardUnknownMonsterPriority;
+    private Map<String, Integer> parsedTargetPriorities;
     public int chanceToHaveTwins;
     public int marriageHeartsRequirement;
     public int babyGrowUpTime;
@@ -65,6 +73,26 @@ public final class Config implements Serializable {
         guardBowAttackInterval = config.get("General", "Guard Bow Attack Interval", 20, "Ticks between guard bow shots.").getInt();
         guardBowAttackRange = config.get("General", "Guard Bow Attack Range", 15, "Maximum range for guard bow attacks.").getInt();
         guardRetreatHealthThreshold = config.get("General", "Guard Retreat Health Threshold", 0.25, "Health fraction below which guards will retreat (0.0-1.0). Default 0.25 (25%).").getDouble();
+        guardTargetPriorities = config.get("Guard Targets", "Target Priorities", new String[]{
+                "minecraft:zombie=2",
+                "minecraft:drowned=2",
+                "minecraft:husk=2",
+                "minecraft:evoker=3",
+                "minecraft:vindicator=3",
+                "minecraft:vex=2",
+                "minecraft:spider=1",
+                "minecraft:cave_spider=1",
+                "minecraft:skeleton=2",
+                "minecraft:stray=2",
+                "minecraft:witch=2",
+                "minecraft:enderman=1",
+                "minecraft:creeper=-1"
+        }, "Target priorities for guards. Format: modid:entity=priority. Higher priority = more important. Negative = ignore.").getStringList();
+        guardSensorUpdateInterval = config.get("Guard Targets", "Sensor Update Interval", 20, "Ticks between guard sensor updates. Lower = faster response but more CPU.").getInt();
+        guardBanditPriority = config.get("Guard Targets", "Bandit Priority", 10, "Priority for targeting bandits (MCA bandit villagers).").getInt();
+        guardAttackerPriority = config.get("Guard Targets", "Attacker Priority", 9, "Priority for targeting entities attacking the guard.").getInt();
+        guardUnknownMonsterPriority = config.get("Guard Targets", "Unknown Monster Priority", 3, "Priority for unknown monsters when guardsTargetMonsters is true.").getInt();
+        parsedTargetPriorities = parseTargetPriorities(guardTargetPriorities);
         chanceToHaveTwins = config.get("General", "Chance to Have Twins", 2, "Chance that you will have twins. Default is 2 for 2%.").getInt();
         marriageHeartsRequirement = config.get("General", "Marriage Hearts Requirement", 100, "Number of hearts required to get married.").getInt();
         babyGrowUpTime = config.get("General", "Baby Grow Up Time (Minutes)", 30, "Minutes it takes for a baby to be ready to grow up.").getInt();
@@ -97,5 +125,35 @@ public final class Config implements Serializable {
         }
 
         return elements;
+    }
+
+    private Map<String, Integer> parseTargetPriorities(String[] priorities) {
+        Map<String, Integer> result = new HashMap<>();
+        for (String entry : priorities) {
+            String[] parts = entry.split("=");
+            if (parts.length == 2) {
+                try {
+                    String entityId = parts[0].trim();
+                    int priority = Integer.parseInt(parts[1].trim());
+                    result.put(entityId, priority);
+                } catch (NumberFormatException e) {
+                }
+            }
+        }
+        return result;
+    }
+
+    public int getTargetPriority(String entityId) {
+        if (parsedTargetPriorities == null) {
+            parsedTargetPriorities = parseTargetPriorities(guardTargetPriorities);
+        }
+        return parsedTargetPriorities.getOrDefault(entityId, Integer.MIN_VALUE);
+    }
+
+    public boolean hasTargetPriority(String entityId) {
+        if (parsedTargetPriorities == null) {
+            parsedTargetPriorities = parseTargetPriorities(guardTargetPriorities);
+        }
+        return parsedTargetPriorities.containsKey(entityId);
     }
 }

@@ -6,37 +6,15 @@ import mca.core.minecraft.ProfessionsMCA;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.monster.IMob;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 
 import javax.annotation.Nullable;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class GuardEnemiesSensor {
-    private static final Map<ResourceLocation, Integer> DEFAULT_TARGET_PRIORITIES = new HashMap<>();
-    
-    static {
-        DEFAULT_TARGET_PRIORITIES.put(new ResourceLocation("minecraft:zombie"), 2);
-        DEFAULT_TARGET_PRIORITIES.put(new ResourceLocation("minecraft:drowned"), 2);
-        DEFAULT_TARGET_PRIORITIES.put(new ResourceLocation("minecraft:husk"), 2);
-        DEFAULT_TARGET_PRIORITIES.put(new ResourceLocation("minecraft:evoker"), 3);
-        DEFAULT_TARGET_PRIORITIES.put(new ResourceLocation("minecraft:vindicator"), 3);
-        DEFAULT_TARGET_PRIORITIES.put(new ResourceLocation("minecraft:vex"), 2);
-        DEFAULT_TARGET_PRIORITIES.put(new ResourceLocation("minecraft:spider"), 1);
-        DEFAULT_TARGET_PRIORITIES.put(new ResourceLocation("minecraft:cave_spider"), 1);
-        DEFAULT_TARGET_PRIORITIES.put(new ResourceLocation("minecraft:skeleton"), 2);
-        DEFAULT_TARGET_PRIORITIES.put(new ResourceLocation("minecraft:stray"), 2);
-        DEFAULT_TARGET_PRIORITIES.put(new ResourceLocation("minecraft:witch"), 2);
-        DEFAULT_TARGET_PRIORITIES.put(new ResourceLocation("minecraft:enderman"), 1);
-        DEFAULT_TARGET_PRIORITIES.put(new ResourceLocation("minecraft:creeper"), -1);
-    }
-    
     private final EntityVillagerMCA villager;
     private EntityLivingBase nearestEnemy;
     private int updateCooldown;
-    private static final int UPDATE_INTERVAL = 20;
     
     public GuardEnemiesSensor(EntityVillagerMCA villager) {
         this.villager = villager;
@@ -48,7 +26,7 @@ public class GuardEnemiesSensor {
             return;
         }
         
-        updateCooldown = UPDATE_INTERVAL;
+        updateCooldown = MCA.getConfig().guardSensorUpdateInterval;
         nearestEnemy = findNearestHostile();
     }
     
@@ -114,7 +92,7 @@ public class GuardEnemiesSensor {
         if (entity instanceof EntityVillagerMCA) {
             EntityVillagerMCA otherVillager = (EntityVillagerMCA) entity;
             if (otherVillager.getProfessionForge() == ProfessionsMCA.bandit) {
-                return 10;
+                return MCA.getConfig().guardBanditPriority;
             }
             return -1;
         }
@@ -122,27 +100,26 @@ public class GuardEnemiesSensor {
         if (guard != null && entity instanceof EntityMob) {
             EntityMob mob = (EntityMob) entity;
             if (mob.getAttackTarget() == guard) {
-                return 9;
+                return MCA.getConfig().guardAttackerPriority;
             }
         }
         
-        ResourceLocation entityId = getEntityId(entity);
-        if (entityId != null) {
-            if (DEFAULT_TARGET_PRIORITIES.containsKey(entityId)) {
-                return DEFAULT_TARGET_PRIORITIES.get(entityId);
-            }
+        String entityId = getEntityId(entity);
+        if (entityId != null && MCA.getConfig().hasTargetPriority(entityId)) {
+            return MCA.getConfig().getTargetPriority(entityId);
         }
         
         if (MCA.getConfig().guardsTargetMonsters && entity instanceof IMob) {
-            return 3;
+            return MCA.getConfig().guardUnknownMonsterPriority;
         }
         
         return -1;
     }
     
     @Nullable
-    private ResourceLocation getEntityId(EntityLivingBase entity) {
-        return new ResourceLocation(entity.getClass().getSimpleName().toLowerCase());
+    private String getEntityId(EntityLivingBase entity) {
+        ResourceLocation rl = net.minecraftforge.fml.common.registry.EntityRegistry.getEntry(entity.getClass()).getRegistryName();
+        return rl != null ? rl.toString() : null;
     }
     
     public static boolean isPreferredTarget(EntityVillagerMCA guard, EntityLivingBase target) {
