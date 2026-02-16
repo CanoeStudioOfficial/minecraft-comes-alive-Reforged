@@ -5,204 +5,120 @@ import mca.core.minecraft.ProfessionsMCA;
 import mca.entity.EntityVillagerMCA;
 import net.minecraft.entity.EntityCreature;
 import net.minecraft.entity.ai.EntityAIBase;
-import net.minecraft.pathfinding.Path;
-import net.minecraft.pathfinding.PathNavigate;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.village.Village;
 import net.minecraft.world.World;
 
-import javax.annotation.Nullable;
-import java.util.Random;
-
 public class EntityAIPatrolVillage extends EntityAIBase {
     private final EntityCreature entity;
-    private final EntityVillagerMCA villager;
-    
+
     private Vec3d targetPosition;
-    private BlockPos targetBlockPos;
     private int waitTimer;
-    private int failedPathAttempts;
-    private static final int MAX_FAILED_ATTEMPTS = 3;
-    
-    private long lastPatrolTime;
-    private static final long PATROL_COOLDOWN = 200;
-    
+
     public EntityAIPatrolVillage(EntityCreature creature) {
         this.entity = creature;
-        this.villager = creature instanceof EntityVillagerMCA ? (EntityVillagerMCA) creature : null;
         this.setMutexBits(1);
     }
-    
+
     @Override
     public boolean shouldExecute() {
         if (!MCA.getConfig().guardPatrolEnabled) {
             return false;
         }
-        
-        if (villager == null || villager.getProfessionForge() != ProfessionsMCA.guard) {
+
+        if (this.entity instanceof EntityVillagerMCA) {
+            EntityVillagerMCA villager = (EntityVillagerMCA) this.entity;
+            if (villager.getProfessionForge() != ProfessionsMCA.guard) {
+                return false;
+            }
+        }
+
+        if (this.entity.getAttackTarget() != null) {
             return false;
         }
-        
-        if (entity.getAttackTarget() != null) {
-            return false;
-        }
-        
-        if (isInteracting()) {
-            return false;
-        }
-        
-        if (villager.getGuardSensor() != null && villager.getGuardSensor().hasEnemy()) {
-            return false;
-        }
-        
-        if (!entity.getNavigator().noPath()) {
-            return false;
-        }
-        
-        if (entity.ticksExisted - lastPatrolTime < PATROL_COOLDOWN) {
-            return false;
-        }
-        
+
         int executionChance = MCA.getConfig().guardPatrolWaitTime;
-        return entity.getRNG().nextInt(executionChance) == 0;
+
+        if (this.entity.getNavigator().noPath()) {
+            if (this.entity.getRNG().nextInt(executionChance) != 0) {
+                return this.targetPosition != null;
+            }
+        } else {
+            return false;
+        }
+
+        return true;
     }
-    
-    private boolean isInteracting() {
-        if (villager == null) return false;
-        return villager.getMoveState() != mca.enums.EnumMoveState.MOVE;
-    }
-    
+
     @Override
     public boolean shouldContinueExecuting() {
-        if (entity.getAttackTarget() != null) {
-            return false;
-        }
-        
-        if (villager != null && villager.getGuardSensor() != null && villager.getGuardSensor().hasEnemy()) {
-            return false;
-        }
-        
-        return entity.getNavigator().noPath() && waitTimer > 0;
+        return this.entity.getNavigator().noPath() && this.waitTimer > 0;
     }
-    
+
     @Override
     public void startExecuting() {
-        failedPathAttempts = 0;
-        findNewPosition();
-        lastPatrolTime = entity.ticksExisted;
+        if (this.targetPosition == null) {
+            this.findNewPosition();
+        }
+
+        if (this.targetPosition != null) {
+            this.entity.getNavigator().tryMoveToXYZ(this.targetPosition.x, this.targetPosition.y, this.targetPosition.z, MCA.getConfig().guardPatrolSpeed);
+        }
     }
-    
-    @Override
-    public void resetTask() {
-        targetPosition = null;
-        targetBlockPos = null;
-        waitTimer = 0;
-        failedPathAttempts = 0;
-    }
-    
+
     @Override
     public void updateTask() {
-        if (entity.getNavigator().noPath()) {
-            waitTimer--;
-            
-            if (waitTimer <= 0) {
-                findNewPosition();
+        if (this.entity.getNavigator().noPath()) {
+            this.waitTimer--;
+
+            if (this.waitTimer <= 0) {
+                this.findNewPosition();
             }
         }
     }
-    
+
     private void findNewPosition() {
-        Village village = getNearestVillage();
-        
-        if (village == null) {
-            targetPosition = null;
-            return;
-        }
-        
-        BlockPos center = village.getCenter();
-        int villageRadius = Math.max(village.getVillageRadius(), 32);
-        
-        for (int attempt = 0; attempt < 5; attempt++) {
-            Vec3d randomPos = getRandomPositionInVillage(center, villageRadius);
-            
-            if (randomPos != null && isPositionValid(randomPos)) {
-                if (tryMoveToPosition(randomPos)) {
-                    targetPosition = randomPos;
-                    targetBlockPos = new BlockPos(randomPos);
-                    waitTimer = 100 + entity.getRNG().nextInt(100);
-                    return;
-                }
+        World world = this.entity.world;
+        Village village = this.getNearestVillage();
+
+        if (village != null) {
+            BlockPos center = village.getCenter();
+            int villageRadius = village.getVillageRadius();
+
+            Vec3d randomPos = this.getRandomPositionInVillage(center, villageRadius);
+            if (randomPos != null && this.isPositionValid(randomPos)) {
+                this.targetPosition = randomPos;
+                this.waitTimer = 100 + this.entity.getRNG().nextInt(100);
+                this.entity.getNavigator().tryMoveToXYZ(this.targetPosition.x, this.targetPosition.y, this.targetPosition.z, MCA.getConfig().guardPatrolSpeed);
             }
-        }
-        
-        failedPathAttempts++;
-        if (failedPathAttempts >= MAX_FAILED_ATTEMPTS) {
-            targetPosition = null;
-            waitTimer = 200;
+        } else {
+            this.targetPosition = null;
         }
     }
-    
-    private boolean tryMoveToPosition(Vec3d pos) {
-        PathNavigate navigator = entity.getNavigator();
-        double speed = MCA.getConfig().guardPatrolSpeed;
-        
-        Path path = navigator.getPathToXYZ(pos.x, pos.y, pos.z);
-        if (path != null) {
-            navigator.setPath(path, speed);
-            return true;
-        }
-        return false;
-    }
-    
-    @Nullable
+
     private Village getNearestVillage() {
-        World world = entity.world;
+        World world = this.entity.world;
         if (world == null || world.getVillageCollection() == null) {
             return null;
         }
-        return world.getVillageCollection().getNearestVillage(entity.getPosition(), MCA.getConfig().guardPatrolRadius);
+        return world.getVillageCollection().getNearestVillage(this.entity.getPosition(), MCA.getConfig().guardPatrolRadius);
     }
-    
-    @Nullable
+
     private Vec3d getRandomPositionInVillage(BlockPos center, int villageRadius) {
-        Random rand = entity.getRNG();
-        
-        double angle = rand.nextDouble() * 2 * Math.PI;
-        double distance = rand.nextDouble() * villageRadius;
-        
-        int x = center.getX() + (int) (Math.cos(angle) * distance);
-        int z = center.getZ() + (int) (Math.sin(angle) * distance);
-        int y = entity.world.getHeight(new BlockPos(x, 0, z)).getY();
-        
-        if (y <= 0) {
-            return null;
-        }
-        
-        return new Vec3d(x + 0.5, y, z + 0.5);
+        int x = center.getX() + this.entity.getRNG().nextInt(villageRadius * 2) - villageRadius;
+        int z = center.getZ() + this.entity.getRNG().nextInt(villageRadius * 2) - villageRadius;
+        int y = this.entity.world.getHeight(new BlockPos(x, 0, z)).getY();
+
+        return new Vec3d(x, y, z);
     }
-    
+
     private boolean isPositionValid(Vec3d pos) {
         if (pos.y < 0 || pos.y > 256) {
             return false;
         }
-        
-        BlockPos blockPos = new BlockPos(pos.x, pos.y, pos.z);
-        
-        if (entity.world.getBlockState(blockPos).isFullBlock()) {
-            return false;
-        }
-        
-        BlockPos groundPos = blockPos.down();
-        if (!entity.world.getBlockState(groundPos).isFullBlock()) {
-            return false;
-        }
-        
-        double distanceSq = entity.getDistanceSq(pos.x, pos.y, pos.z);
-        if (distanceSq < 4.0) {
-            return false;
-        }
-        
-        return true;
+
+        BlockPos blockPos = new BlockPos(pos);
+        return !this.entity.world.getBlockState(blockPos).isFullBlock();
     }
 }

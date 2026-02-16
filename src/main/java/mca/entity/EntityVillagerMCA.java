@@ -102,8 +102,6 @@ public class EntityVillagerMCA extends EntityVillager {
     private BlockPos home = BlockPos.ORIGIN;
     private int startingAge = 0;
     private float swingProgressTicks;
-    
-    private GuardEnemiesSensor guardSensor;
 
     public float renderOffsetX;
     public float renderOffsetY;
@@ -173,14 +171,6 @@ public class EntityVillagerMCA extends EntityVillager {
         if (this.getHealth() <= MCA.getConfig().villagerMaxHealth) {
             this.setHealth(MCA.getConfig().villagerMaxHealth);
         }
-    }
-    
-    public GuardEnemiesSensor getGuardSensor() {
-        return guardSensor;
-    }
-    
-    public EnumMoveState getMoveState() {
-        return EnumMoveState.byId(get(MOVE_STATE));
     }
 
     public <T> T get(DataParameter<T> key) {
@@ -293,10 +283,6 @@ public class EntityVillagerMCA extends EntityVillager {
         super.onUpdate();
         updateSwinging();
         updateSleeping();
-        
-        if (guardSensor != null && getProfessionForge() == ProfessionsMCA.guard) {
-            guardSensor.tick();
-        }
 
         if (!world.isRemote && this.ticksExisted == 1 && home.equals(BlockPos.ORIGIN)) {
             forcePositionAsHome();
@@ -866,22 +852,17 @@ public class EntityVillagerMCA extends EntityVillager {
             this.targetTasks.addTask(1, new EntityAINearestAttackableTarget<>(this, EntityPlayer.class, true));
         } else if (getProfessionForge() == ProfessionsMCA.guard) {
             removeCertainTasks(EntityAIAvoidEntity.class);
-            
-            if (guardSensor == null) {
-                guardSensor = new GuardEnemiesSensor(this);
-            }
 
-            this.tasks.addTask(0, new EntityAIGuardEquipment(this));
-            this.tasks.addTask(1, new EntityAIGuardAttack(this, 0.8D));
-            this.tasks.addTask(2, new EntityAIGuardBowAttack(this, 0.6D));
-            this.tasks.addTask(3, new EntityAIMoveThroughVillage(this, 0.6D, false));
-            this.tasks.addTask(4, new EntityAIPatrolVillage(this));
+            this.tasks.addTask(1, new EntityAIAttackMelee(this, 0.8D, false));
+            this.tasks.addTask(2, new EntityAIMoveThroughVillage(this, 0.6D, false));
+            this.tasks.addTask(3, new EntityAIPatrolVillage(this));
 
             this.targetTasks.addTask(0, new EntityAINearestAttackableTarget<>(this, EntityVillagerMCA.class, 100, false, false, GUARD_TARGET_SELECTOR));
             this.targetTasks.addTask(0, new EntityAINearestAttackableTarget<>(this, EntityZombie.class, 100, false, false, null));
             this.targetTasks.addTask(0, new EntityAINearestAttackableTarget<>(this, EntityVex.class, 100, false, false, null));
             this.targetTasks.addTask(0, new EntityAINearestAttackableTarget<>(this, EntityVindicator.class, 100, false, false, null));
         } else {
+            //every other villager is allowed to defend itself from zombies while fleeing
             this.tasks.addTask(0, new EntityAIDefendFromTarget(this));
 
             this.targetTasks.taskEntries.clear();
