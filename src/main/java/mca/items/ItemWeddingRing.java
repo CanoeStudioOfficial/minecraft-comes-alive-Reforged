@@ -38,6 +38,7 @@ public class ItemWeddingRing extends ItemSpecialCaseGift {
             villager.getPlayerHistoryFor(player.getUniqueID()).setDialogueType(EnumDialogueType.SPOUSE);
             villager.spawnParticles(EnumParticleTypes.HEART);
             villager.marry(player);
+            playerData.updateFamilyTreeNode(player);
         }
 
         villager.say(Optional.of(player), response);

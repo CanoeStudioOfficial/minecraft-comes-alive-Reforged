@@ -131,6 +131,23 @@ public class PlayerSaveData extends WorldSavedData {
         markDirty();
     }
 
+    public FamilyTreeNode updateFamilyTreeNode(EntityPlayer player) {
+        if (player.world.isRemote) return null;
+
+        FamilyTree tree = FamilyTree.get(player.world);
+        FamilyTreeNode node = tree.getOrCreateNode(player.getUniqueID(), player.getName(), true, gender);
+
+        node.setName(player.getName());
+        node.setGender(gender);
+        node.setProfession("player");
+        node.setMarriageState(marriageState);
+        node.setSpouse(spouseUUID);
+        node.setDeceased(!player.isEntityAlive());
+
+        tree.markDirty();
+        return node;
+    }
+
     public List<Field> getDataFields() {
         return Arrays.stream(this.getClass().getDeclaredFields()).filter(f -> !Modifier.isFinal(f.getModifiers())).collect(Collectors.toList());
     }

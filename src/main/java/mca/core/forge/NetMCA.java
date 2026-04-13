@@ -1,12 +1,14 @@
 package mca.core.forge;
 
 import io.netty.buffer.ByteBuf;
+import mca.client.gui.GuiFamilyTree;
 import mca.client.gui.GuiStaffOfLife;
 import mca.client.gui.GuiWhistle;
 import mca.client.network.ClientMessageQueue;
 import mca.core.MCA;
 import mca.core.minecraft.ProfessionsMCA;
 import mca.entity.EntityVillagerMCA;
+import mca.entity.data.FamilyTree;
 import mca.entity.data.PlayerSaveData;
 import mca.entity.data.SavedVillagers;
 import mca.entity.inventory.InventoryMCA;
@@ -60,6 +62,8 @@ public class NetMCA {
         INSTANCE.registerMessage(SpawnParticlesHandler.class, SpawnParticles.class, 11, Side.CLIENT);
         INSTANCE.registerMessage(GetFamilyHandler.class, GetFamily.class, 12, Side.SERVER);
         INSTANCE.registerMessage(GetFamilyResponseHandler.class, GetFamilyResponse.class, 13, Side.CLIENT);
+        INSTANCE.registerMessage(GetFamilyTreeRequestHandler.class, GetFamilyTreeRequest.class, 19, Side.SERVER);
+        INSTANCE.registerMessage(GetFamilyTreeResponseHandler.class, GetFamilyTreeResponse.class, 20, Side.CLIENT);
         INSTANCE.registerMessage(CallToPlayerHandler.class, CallToPlayer.class, 14, Side.SERVER);
         INSTANCE.registerMessage(SetTextureHandler.class, SetTexture.class, 15, Side.SERVER);
         INSTANCE.registerMessage(SetProfessionHandler.class, SetProfession.class, 16, Side.SERVER);
@@ -623,6 +627,76 @@ public class NetMCA {
                 GuiWhistle whistleScreen = (GuiWhistle)screen;
                 whistleScreen.setVillagerDataList(message.familyData);
             }
+            return null;
+        }
+    }
+
+    public static class GetFamilyTreeRequest implements IMessage {
+        private UUID rootId;
+
+        public GetFamilyTreeRequest() {
+        }
+
+        public GetFamilyTreeRequest(UUID rootId) {
+            this.rootId = rootId;
+        }
+
+        @Override
+        public void toBytes(ByteBuf buf) {
+            ByteBufUtils.writeUTF8String(buf, rootId.toString());
+        }
+
+        @Override
+        public void fromBytes(ByteBuf buf) {
+            rootId = UUID.fromString(ByteBufUtils.readUTF8String(buf));
+        }
+    }
+
+    public static class GetFamilyTreeRequestHandler implements IMessageHandler<GetFamilyTreeRequest, IMessage> {
+        @Override
+        public IMessage onMessage(GetFamilyTreeRequest message, MessageContext ctx) {
+            EntityPlayer player = ctx.getServerHandler().player;
+            FamilyTree tree = FamilyTree.get(player.world);
+            
+            // Collect related nodes (up to a certain depth or just all for now)
+            // For simplicity, we'll send the entire tree data as NBT
+            NBTTagCompound nbt = new NBTTagCompound();
+            tree.writeToNBT(nbt);
+            
+            return new GetFamilyTreeResponse(nbt);
+        }
+    }
+
+    public static class GetFamilyTreeResponse implements IMessage {
+        private NBTTagCompound treeData;
+
+        public GetFamilyTreeResponse() {
+        }
+
+        public GetFamilyTreeResponse(NBTTagCompound treeData) {
+            this.treeData = treeData;
+        }
+
+        @Override
+        public void toBytes(ByteBuf buf) {
+            ByteBufUtils.writeTag(buf, treeData);
+        }
+
+        @Override
+        public void fromBytes(ByteBuf buf) {
+            treeData = ByteBufUtils.readTag(buf);
+        }
+    }
+
+    public static class GetFamilyTreeResponseHandler implements IMessageHandler<GetFamilyTreeResponse, IMessage> {
+        @Override
+        public IMessage onMessage(GetFamilyTreeResponse message, MessageContext ctx) {
+            Minecraft.getMinecraft().addScheduledTask(() -> {
+                GuiScreen screen = Minecraft.getMinecraft().currentScreen;
+                if (screen instanceof GuiFamilyTree) {
+                    ((GuiFamilyTree) screen).setTreeData(message.treeData);
+                }
+            });
             return null;
         }
     }

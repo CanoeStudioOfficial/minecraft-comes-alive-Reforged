@@ -11,6 +11,7 @@ import mca.core.minecraft.WorldEventListenerMCA;
 import mca.core.minecraft.SoundsMCA;
 import mca.entity.EntityGrimReaper;
 import mca.entity.EntityVillagerMCA;
+import mca.entity.data.*;
 import mca.items.ItemBaby;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
@@ -115,6 +116,29 @@ public class EventHooks {
 
                 reaperSpawnWorld = null;
                 reaperSpawnPos = BlockPos.ORIGIN;
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
+        if (!event.player.world.isRemote) {
+            PlayerSaveData.get(event.player).updateFamilyTreeNode(event.player);
+        }
+    }
+
+    @SubscribeEvent
+    public void onLivingDeath(LivingDeathEvent event) {
+        if (!event.getEntity().world.isRemote) {
+            if (event.getEntity() instanceof EntityVillagerMCA) {
+                ((EntityVillagerMCA) event.getEntity()).updateFamilyTreeNode();
+            } else if (event.getEntity() instanceof EntityPlayer) {
+                EntityPlayer player = (EntityPlayer) event.getEntity();
+                PlayerSaveData.get(player).updateFamilyTreeNode(player);
+
+                // If a player dies while holding a baby, remember it until they respawn.
+                Optional<ItemStack> babyStack = player.inventory.mainInventory.stream().filter(s -> s.getItem() instanceof ItemBaby).findFirst();
+                babyStack.ifPresent(s -> limbo.put(player.getUniqueID(), s));
             }
         }
     }
@@ -241,16 +265,6 @@ public class EventHooks {
         if (limbo.containsKey(event.player.getUniqueID())) {
             event.player.inventory.addItemStackToInventory(limbo.get(event.player.getUniqueID()));
             limbo.remove(event.player.getUniqueID());
-        }
-    }
-
-    @SubscribeEvent
-    public void onLivingDeath(LivingDeathEvent event) {
-        // If a player dies while holding a baby, remember it until they respawn.
-        if (event.getEntityLiving() instanceof EntityPlayer) {
-            EntityPlayer player = (EntityPlayer)event.getEntityLiving();
-            Optional<ItemStack> babyStack = player.inventory.mainInventory.stream().filter(s -> s.getItem() instanceof ItemBaby).findFirst();
-            babyStack.ifPresent(s -> limbo.put(player.getUniqueID(), babyStack.get()));
         }
     }
 

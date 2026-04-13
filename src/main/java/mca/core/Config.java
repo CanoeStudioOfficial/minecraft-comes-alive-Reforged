@@ -17,6 +17,9 @@ public final class Config implements Serializable {
     public boolean enableDiminishingReturns;
     public boolean enableInfection;
     public int infectionChance;
+    public int infectionTime;
+    public float infectionChanceDecreasePerLevel;
+    public float infirmaryInfectionChanceReduction;
     public boolean allowGrimReaper;
     public int guardSpawnRate;
     public boolean guardPatrolEnabled;
@@ -38,6 +41,13 @@ public final class Config implements Serializable {
     public boolean enableAdminCommands;
     public boolean allowRoseGoldGeneration;
 
+    public float interactionChanceFatigue;
+    public int interactionFatigueCooldown;
+    public int giftDesaturationQueueLength;
+    public float giftDesaturationFactor;
+    public double giftDesaturationExponent;
+    public double giftSatisfactionFactor;
+
     public Config(FMLPreInitializationEvent event) {
         config = new Configuration(event.getSuggestedConfigurationFile());
         addConfigValues();
@@ -49,6 +59,9 @@ public final class Config implements Serializable {
         enableDiminishingReturns = config.get("General", "Enable Interaction Fatigue?", true, "Should interactions yield diminishing returns over time?").getBoolean();
         enableInfection = config.get("General", "Enable Zombie Infection?", true, "Should zombies be able to infect villagers?").getBoolean();
         infectionChance = config.get("General", "Chance of Infection", 5, "Chance that a villager will be infected on hit from a zombie. Default is 5 for 5%.").getInt();
+        infectionTime = config.get("General", "Infection Time", 72000, "Time in ticks until a villager turns into a zombie after infection. 20 ticks = 1 second; 72000 ticks = 1 hour.").getInt();
+        infectionChanceDecreasePerLevel = (float) config.get("General", "Infection Chance Decrease Per Level", 0.25, "Reduction in infection chance per villager trading level.").getDouble();
+        infirmaryInfectionChanceReduction = (float) config.get("General", "Infirmary Infection Chance Reduction", 0.5, "Reduction in infection chance if an infirmary is nearby (50% reduction by default).").getDouble();
         allowGrimReaper = config.get("General", "Allow Grim Reaper?", true, "Should the Grim Reaper boss be enabled?").getBoolean();
         guardSpawnRate = config.get("General", "Guard Spawn Rate", 6, "How many villagers that should be in a village before a guard spawns.").getInt();
         guardPatrolEnabled = config.get("General", "Guard Patrol Enabled", true, "Enable guards to patrol around the village.").getBoolean();

@@ -7,6 +7,8 @@ import mca.core.Localizer;
 import mca.core.MCA;
 import mca.core.minecraft.ProfessionsMCA;
 import mca.entity.EntityVillagerMCA;
+import mca.entity.data.FamilyTree;
+import mca.entity.data.FamilyTreeNode;
 import mca.entity.data.ParentData;
 import mca.entity.data.PlayerSaveData;
 import mca.enums.EnumAgeState;
@@ -89,6 +91,14 @@ public class ItemBaby extends Item {
 
                 // set proper dialogue type
                 child.getPlayerHistoryFor(player.getUniqueID()).setDialogueType(EnumDialogueType.CHILDP);
+                
+                // Update family tree
+                FamilyTreeNode childNode = child.updateFamilyTreeNode();
+                FamilyTreeNode playerNode = playerData.updateFamilyTreeNode(player);
+                FamilyTreeNode spouseNode = FamilyTree.get(world).getNode(playerData.getSpouseUUID());
+                
+                if (playerNode != null) playerNode.addChild(child.getUniqueID());
+                if (spouseNode != null) spouseNode.addChild(child.getUniqueID());
             }
         }
 

@@ -11,6 +11,7 @@ public class Constants {
     public static final int GUI_ID_GUIDEBOOK = 6;
     public static final int GUI_ID_WHISTLE = 7;
     public static final int GUI_ID_SETUP = 8;
+    public static final int GUI_ID_FAMILYTREE = 9;
     public static final UUID ZERO_UUID = new UUID(0, 0);
     private static final String SECTION_SIGN = "\u00a7";
 

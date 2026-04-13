@@ -42,6 +42,8 @@ item.crystal_ball.name=Crystal Ball
 item.villager_editor.name=Villager Editor
 item.egg_grim_reaper.name=Spawn Grim Reaper
 item.staff_of_life.name=Staff of Life
+item.family_tree.name=Family Tree
+item.family_tree.tooltip=This extremely thick book contains the family tree of every villager ever alive.
 tile.rose_gold_block.name=Rose Gold Block
 tile.mca:villager_spawner.name=Villager Spawner
 tile.mca:rose_gold_block.name=Rose Gold Block
@@ -175,6 +177,9 @@ gui.button.profession.randomize=Randomize
 gui.button.stopworking=Stop Work
 gui.button.copyuuid=Copy UUID
 gui.button.call=Call
+gui.button.library=Library
+gui.button.familyTree=Family Tree
+gui.button.close=Close
 gui.title.namebaby.male=It's a boy\!
 gui.title.namebaby.female=It's a girl\!
 gui.title.namebaby=Name your baby\:
@@ -182,6 +187,13 @@ gui.title.tombstone=Enter tombstone text\:
 gui.title.editor=Villager Editor
 gui.title.whistle=Call Family Member
 gui.title.staffoflife=Select a Villager to Revive
+gui.title.family_tree=Search the Family Tree
+gui.family_tree.title=Family Tree
+gui.family_tree.label.deceased=Deceased
+gui.family_tree.label.orphan=Orphan
+gui.family_tree.child_of_2=Child of %1$s and %2$s
+gui.family_tree.child_of_1=Child of %1$s
+gui.family_tree.child_of_0=Orphan
 gui.title.setup=Setup
 
 gui.label.you=You
@@ -213,8 +225,8 @@ gui.label.fishing=Fishing
 gui.label.staying=Staying
 gui.label.following=Following
 
-gui.info.gift.line1=Gift Available
-gui.info.gift.line2=(Click to take)
+gui.info.gift.line.1=Gift Available
+gui.info.gift.line.2=(Click to take)
 gui.marriage.failed=Players are prohibited from marrying villagers
 
 

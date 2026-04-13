@@ -10,13 +10,11 @@ import mca.core.forge.NetMCA;
 import mca.core.minecraft.ItemsMCA;
 import mca.core.minecraft.ProfessionsMCA;
 import mca.entity.ai.*;
-import mca.entity.data.ParentData;
-import mca.entity.data.PlayerHistory;
-import mca.entity.data.PlayerSaveData;
-import mca.entity.data.SavedVillagers;
+import mca.entity.data.*;
 import mca.entity.inventory.InventoryMCA;
 import mca.enums.*;
 import mca.items.ItemSpecialCaseGift;
+import mca.util.Analysis;
 import mca.util.ItemStackCache;
 import mca.util.ResourceLocationCache;
 import mca.util.Util;
@@ -29,6 +27,7 @@ import net.minecraft.entity.ai.*;
 import net.minecraft.entity.monster.EntityVex;
 import net.minecraft.entity.monster.EntityVindicator;
 import net.minecraft.entity.monster.EntityZombie;
+import net.minecraft.entity.monster.EntityZombieVillager;
 import net.minecraft.entity.passive.EntityHorse;
 import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.entity.player.EntityPlayer;
@@ -80,6 +79,7 @@ public class EntityVillagerMCA extends EntityVillager {
     public static final DataParameter<Boolean> IS_PROCREATING = EntityDataManager.createKey(EntityVillagerMCA.class, DataSerializers.BOOLEAN);
     public static final DataParameter<NBTTagCompound> PARENTS = EntityDataManager.createKey(EntityVillagerMCA.class, DataSerializers.COMPOUND_TAG);
     public static final DataParameter<Boolean> IS_INFECTED = EntityDataManager.createKey(EntityVillagerMCA.class, DataSerializers.BOOLEAN);
+    public static final DataParameter<Float> INFECTION_PROGRESS = EntityDataManager.createKey(EntityVillagerMCA.class, DataSerializers.FLOAT);
     public static final DataParameter<Integer> AGE_STATE = EntityDataManager.createKey(EntityVillagerMCA.class, DataSerializers.VARINT);
     public static final DataParameter<Integer> ACTIVE_CHORE = EntityDataManager.createKey(EntityVillagerMCA.class, DataSerializers.VARINT);
     public static final DataParameter<Boolean> IS_SWINGING = EntityDataManager.createKey(EntityVillagerMCA.class, DataSerializers.BOOLEAN);
@@ -148,6 +148,7 @@ public class EntityVillagerMCA extends EntityVillager {
         this.dataManager.register(IS_PROCREATING, false);
         this.dataManager.register(PARENTS, new NBTTagCompound());
         this.dataManager.register(IS_INFECTED, false);
+        this.dataManager.register(INFECTION_PROGRESS, 0.0F);
         this.dataManager.register(AGE_STATE, EnumAgeState.ADULT.getId());
         this.dataManager.register(ACTIVE_CHORE, EnumChore.NONE.getId());
         this.dataManager.register(IS_SWINGING, false);
@@ -202,6 +203,7 @@ public class EntityVillagerMCA extends EntityVillager {
         set(SPOUSE_NAME, nbt.getString("spouseName"));
         set(IS_PROCREATING, nbt.getBoolean("isProcreating"));
         set(IS_INFECTED, nbt.getBoolean("infected"));
+        set(INFECTION_PROGRESS, nbt.getFloat("infectionProgress"));
         set(AGE_STATE, nbt.getInteger("ageState"));
         set(ACTIVE_CHORE, nbt.getInteger("activeChore"));
         set(CHORE_ASSIGNING_PLAYER, Optional.of(nbt.getUniqueId("choreAssigningPlayer")));
@@ -245,6 +247,7 @@ public class EntityVillagerMCA extends EntityVillager {
         nbt.setString("spouseName", get(SPOUSE_NAME));
         nbt.setBoolean("isProcreating", get(IS_PROCREATING));
         nbt.setBoolean("infected", get(IS_INFECTED));
+        nbt.setFloat("infectionProgress", get(INFECTION_PROGRESS));
         nbt.setInteger("ageState", get(AGE_STATE));
         nbt.setInteger("startingAge", startingAge);
         nbt.setInteger("activeChore", get(ACTIVE_CHORE));
@@ -273,8 +276,20 @@ public class EntityVillagerMCA extends EntityVillager {
         super.damageEntity(damageSource, damageAmount);
 
         // Check for infection to apply. Does not affect guards.
-        if (MCA.getConfig().enableInfection && getProfessionForge() != ProfessionsMCA.guard && damageSource.getImmediateSource() instanceof EntityZombie && getRNG().nextFloat() < MCA.getConfig().infectionChance / 100) {
-            set(IS_INFECTED, true);
+        if (MCA.getConfig().enableInfection && getProfessionForge() != ProfessionsMCA.guard && damageSource.getImmediateSource() instanceof EntityZombie) {
+            float chance = MCA.getConfig().infectionChance / 100.0F;
+            
+            // Reduction per level
+            chance -= (getCareerLevel() - 1) * MCA.getConfig().infectionChanceDecreasePerLevel;
+            
+            // Infirmary reduction
+            if (hasInfirmary()) {
+                chance *= MCA.getConfig().infirmaryInfectionChanceReduction;
+            }
+            
+            if (getRNG().nextFloat() < chance) {
+                setInfectionProgress(0.001F);
+            }
         }
     }
 
@@ -352,6 +367,7 @@ public class EntityVillagerMCA extends EntityVillager {
                     });
 
             SavedVillagers.get(world).save(this);
+            updateFamilyTreeNode();
         }
     }
 
@@ -444,6 +460,43 @@ public class EntityVillagerMCA extends EntityVillager {
         setGrowingAge(value);
     }
 
+    public float getInfectionProgress() {
+        return get(INFECTION_PROGRESS);
+    }
+
+    public void setInfectionProgress(float progress) {
+        set(INFECTION_PROGRESS, progress);
+        set(IS_INFECTED, progress > 0.0F);
+    }
+
+    public boolean hasInfirmary() {
+        // Search for alchemist within 32 blocks
+        List<EntityVillagerMCA> nearbyAlchemists = world.getEntitiesWithinAABB(EntityVillagerMCA.class, getEntityBoundingBox().grow(32),
+                v -> v != null && v.getProfessionForge() == ProfessionsMCA.alchemist);
+        return !nearbyAlchemists.isEmpty();
+    }
+
+    public FamilyTreeNode updateFamilyTreeNode() {
+        if (world.isRemote) return null;
+        
+        FamilyTree tree = FamilyTree.get(world);
+        FamilyTreeNode node = tree.getOrCreateNode(getUniqueID(), get(VILLAGER_NAME), false, EnumGender.byId(get(GENDER)));
+        
+        node.setName(get(VILLAGER_NAME));
+        node.setGender(EnumGender.byId(get(GENDER)));
+        node.setProfession(getProfessionForge().getRegistryName().toString());
+        node.setMarriageState(EnumMarriageState.byId(get(MARRIAGE_STATE)));
+        node.setSpouse(get(SPOUSE_UUID).or(Constants.ZERO_UUID));
+        node.setDeceased(!isEntityAlive());
+        
+        ParentData parents = ParentData.fromNBT(get(PARENTS));
+        node.setFather(parents.getParent1UUID());
+        node.setMother(parents.getParent2UUID());
+        
+        tree.markDirty();
+        return node;
+    }
+
     public PlayerHistory getPlayerHistoryFor(UUID uuid) {
         if (!get(PLAYER_HISTORY_MAP).hasKey(uuid.toString())) {
             updatePlayerHistoryMap(PlayerHistory.getNew(this, uuid));
@@ -472,6 +525,10 @@ public class EntityVillagerMCA extends EntityVillager {
 
     public VillagerRegistry.VillagerCareer getVanillaCareer() {
         return this.getProfessionForge().getCareer(ObfuscationReflectionHelper.getPrivateValue(EntityVillager.class, this, VANILLA_CAREER_ID_FIELD_INDEX));
+    }
+
+    public int getCareerLevel() {
+        return ObfuscationReflectionHelper.getPrivateValue(EntityVillager.class, this, VANILLA_CAREER_LEVEL_FIELD_INDEX);
     }
 
     public void setVanillaCareer(int careerId) {
@@ -585,33 +642,53 @@ public class EntityVillagerMCA extends EntityVillager {
         set(SPOUSE_UUID, Optional.of(player.getUniqueID()));
         set(SPOUSE_NAME, player.getName());
         set(MARRIAGE_STATE, EnumMarriageState.MARRIED.getId());
+        updateFamilyTreeNode();
     }
 
     private void endMarriage() {
         set(SPOUSE_UUID, Optional.of(Constants.ZERO_UUID));
         set(SPOUSE_NAME, "");
         set(MARRIAGE_STATE, EnumMarriageState.NOT_MARRIED.getId());
+        updateFamilyTreeNode();
     }
 
     private void handleInteraction(EntityPlayerMP player, PlayerHistory history, APIButton button) {
+        Analysis analysis = new Analysis();
         float successChance = 0.85F;
         int heartsBoost = button.getConstraints().contains(EnumConstraint.ADULTS) ? 15 : 5;
 
         String interactionName = button.getIdentifier().replace("gui.button.", "");
 
         successChance -= button.getConstraints().contains(EnumConstraint.ADULTS) ? 0.25F : 0.0F;
-        successChance += (history.getHearts() / 10.0D) * 0.025F;
+        
+        analysis.add("base", (int)(successChance * 100));
 
-        if (MCA.getConfig().enableDiminishingReturns) successChance -= history.getInteractionFatigue() * 0.05F;
+        double heartBonus = (history.getHearts() / 10.0D) * 0.025F;
+        successChance += heartBonus;
+        analysis.add("heartsBonus", (int)(heartBonus * 100));
+
+        if (MCA.getConfig().enableDiminishingReturns) {
+            float fatiguePenalty = history.getInteractionFatigue() * MCA.getConfig().interactionChanceFatigue * 0.05F;
+            successChance -= fatiguePenalty;
+            analysis.add("fatigue", -(int)(fatiguePenalty * 100));
+        }
+        
+        float luckBonus = (float) player.getEntityAttribute(SharedMonsterAttributes.LUCK).getAttributeValue() * 0.05F;
+        successChance += luckBonus;
+        analysis.add("luck", (int)(luckBonus * 100));
 
         boolean succeeded = rand.nextFloat() < successChance;
-        if (MCA.getConfig().enableDiminishingReturns && succeeded)
-            heartsBoost -= history.getInteractionFatigue() * 0.05F;
+        if (MCA.getConfig().enableDiminishingReturns && succeeded) {
+            heartsBoost -= history.getInteractionFatigue() * MCA.getConfig().interactionChanceFatigue;
+        }
 
         history.changeInteractionFatigue(1);
         history.changeHearts(succeeded ? heartsBoost : (heartsBoost * -1));
         String responseId = String.format("%s.%s", interactionName, succeeded ? "success" : "fail");
         say(Optional.of(player), responseId);
+        
+        // Log final analysis for debugging or future GUI porting
+        MCA.getLog().debug("Interaction Analysis: Total Chance=" + (successChance * 100) + "%");
     }
 
     public void handleButtonClick(EntityPlayerMP player, String guiKey, String buttonId) {
@@ -663,11 +740,25 @@ public class EntityVillagerMCA extends EntityVillager {
             case "gui.button.gift":
                 ItemStack stack = player.inventory.getStackInSlot(player.inventory.currentItem);
                 int giftValue = API.getGiftValueFromStack(stack);
+                
+                Analysis giftAnalysis = new Analysis();
+                giftAnalysis.add("base", giftValue);
+
+                // Interest (Desaturation) logic
+                int occurrences = history.getGiftSaturationCount(stack);
+                int penalty = (int) (occurrences * MCA.getConfig().giftDesaturationFactor * Math.pow(Math.max(giftValue, 0.0), MCA.getConfig().giftDesaturationExponent));
+                if (penalty != 0) {
+                    giftAnalysis.add("desaturation", -penalty);
+                }
+                
+                int finalGiftValue = (int) (giftAnalysis.getTotal() * MCA.getConfig().giftSatisfactionFactor);
+
                 if (!handleSpecialCaseGift(player, stack)) {
-                    if (stack.getItem() == Items.GOLDEN_APPLE) set(IS_INFECTED, false);
+                    if (stack.getItem() == Items.GOLDEN_APPLE) setInfectionProgress(0.0F);
                     else {
-                        history.changeHearts(giftValue);
+                        history.changeHearts(finalGiftValue);
                         say(Optional.of(player), API.getResponseForGift(stack));
+                        history.addGiftToSaturation(stack);
                     }
                 }
                 if (giftValue > 0) {
@@ -687,7 +778,7 @@ public class EntityVillagerMCA extends EntityVillager {
                 }
                 break;
             case "gui.button.infected":
-                set(IS_INFECTED, !get(IS_INFECTED));
+                setInfectionProgress(getInfectionProgress() > 0.0F ? 0.0F : 0.001F);
                 break;
             case "gui.button.texture.randomize":
                 set(TEXTURE, API.getRandomSkin(this));
@@ -798,6 +889,36 @@ public class EntityVillagerMCA extends EntityVillager {
         NBTTagCompound memories = get(PLAYER_HISTORY_MAP);
         memories.getKeySet().forEach((key) -> PlayerHistory.fromNBT(this, UUID.fromString(key), memories.getCompoundTag(key)).update());
 
+        // Infection logic
+        float progress = getInfectionProgress();
+        if (progress > 0.0F) {
+            progress += 20.0F / MCA.getConfig().infectionTime;
+            
+            // Symptoms
+            if (progress > 0.2F && rand.nextInt(25) == 0) {
+                this.playSound(SoundEvents.ENTITY_ZOMBIE_AMBIENT, 0.5F, rand.nextFloat() + 0.5F);
+            }
+            
+            if (progress >= 1.0F) {
+                // Transformation
+                EntityZombieVillager zombie = new EntityZombieVillager(world);
+                zombie.copyLocationAndAnglesFrom(this);
+                zombie.onInitialSpawn(world.getDifficultyForLocation(new BlockPos(zombie)), null);
+                
+                // Try to keep the profession if possible
+                // 1.12.2 ZombieVillager uses the same profession IDs as Villager
+                try {
+                    zombie.setForgeProfession(getProfessionForge());
+                } catch (Exception ignored) {}
+
+                world.removeEntity(this);
+                world.spawnEntity(zombie);
+                return;
+            }
+            
+            setInfectionProgress(progress);
+        }
+
         if (get(HAS_BABY)) {
             set(BABY_AGE, get(BABY_AGE) + 1);
 
@@ -809,6 +930,15 @@ public class EntityVillagerMCA extends EntityVillager {
                 child.setPosition(this.posX, this.posY, this.posZ);
                 child.set(EntityVillagerMCA.PARENTS, ParentData.create(this.getUniqueID(), this.get(SPOUSE_UUID).get(), this.get(VILLAGER_NAME), this.get(SPOUSE_NAME)).toNBT());
                 world.spawnEntity(child);
+                
+                // Update family tree
+                FamilyTreeNode childNode = child.updateFamilyTreeNode();
+                FamilyTreeNode motherNode = this.updateFamilyTreeNode();
+                UUID spouseUUID = this.get(SPOUSE_UUID).or(Constants.ZERO_UUID);
+                FamilyTreeNode fatherNode = FamilyTree.get(world).getNode(spouseUUID);
+                
+                if (motherNode != null) motherNode.addChild(child.getUniqueID());
+                if (fatherNode != null) fatherNode.addChild(child.getUniqueID());
 
                 set(HAS_BABY, false);
                 set(BABY_AGE, 0);

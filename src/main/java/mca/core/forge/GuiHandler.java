@@ -46,6 +46,13 @@ public class GuiHandler implements IGuiHandler {
                 return new GuiWhistle();
             case Constants.GUI_ID_SETUP:
                 return new GuiSetup();
+            case Constants.GUI_ID_FAMILYTREE:
+                Entity targetedEntity = world.getEntityByID(entityId);
+                if (targetedEntity != null) {
+                    return new GuiFamilyTree(targetedEntity.getUniqueID());
+                } else {
+                    return new GuiFamilyTree(player.getUniqueID());
+                }
             default:
                 MCA.getLog().fatal("Failed to handle provided GUI ID on client: " + guiId);
                 return null;
