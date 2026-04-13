@@ -8,6 +8,8 @@ import mca.enums.EnumMarriageState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.text.TextComponentTranslation;
 
+import static mca.entity.EntityVillagerMCA.MARRIAGE_STATE;
+
 public abstract class ItemRelationshipBase extends ItemSpecialCaseGift {
     public abstract int getHeartsRequired();
 
@@ -25,12 +27,14 @@ public abstract class ItemRelationshipBase extends ItemSpecialCaseGift {
             response = "interaction.relationship.fail.marriedtogiver";
         } else if (villager.isMarried()) {
             response = "interaction.relationship.fail.married";
-        } else if (villager.getMarriageState() == EnumMarriageState.ENGAGED && !villager.isEngagedTo(player.getUniqueID())) {
+        } else if (villager.get(MARRIAGE_STATE) == EnumMarriageState.ENGAGED.getId() && !villager.isEngagedTo(player.getUniqueID())) {
             response = "interaction.relationship.fail.engaged";
         } else if (playerData.getMarriageState() == EnumMarriageState.MARRIED) {
             response = "interaction.relationship.fail.playermarried";
         } else if (history.getHearts() < getHeartsRequired()) {
             response = "interaction.relationship.fail.lowhearts";
+        } else if (!villager.canBeAttractedTo(playerData)) {
+            response = "interaction.relationship.fail.incompatible";
         } else {
             return false;
         }

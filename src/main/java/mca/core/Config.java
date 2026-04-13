@@ -42,6 +42,8 @@ public final class Config implements Serializable {
     public boolean allowPlayerMarriage;
     public boolean enableAdminCommands;
     public boolean allowRoseGoldGeneration;
+    public boolean allowSameGenderMarriage;
+    public float geneticCompatibilityThreshold;
 
     public float traitInheritChance;
     public float geneticImmigrantChance;
@@ -90,6 +92,8 @@ public final class Config implements Serializable {
         enableAdminCommands = config.get("General", "Enable Admin Commands?", true, "Enables or disables MCA admin commands for ops.").getBoolean();
         allowRoseGoldGeneration = config.get("General", "Allow Rose Gold World Generation", true, "If enabled, generates rose gold in your world. If disabled, generates stone instead.").getBoolean();
         villagerMaxHealth = config.get("General", "Villager Max Health", 20, "Each villager's maximum health. 1 point equals 1 heart.").getInt();
+        allowSameGenderMarriage = config.get("General", "Allow Same Gender Marriage", true, "Allow villagers to marry players of the same gender.").getBoolean();
+        geneticCompatibilityThreshold = (float) config.get("General", "Genetic Compatibility Threshold", 0.3, "Minimum genetic similarity required for relationship compatibility. (0.0-1.0)").getDouble();
 
         traitInheritChance = (float) config.get("Genetics", "Trait Inherit Chance", 0.5, "Chance for a trait to be inherited. (0.0-1.0)").getDouble();
         geneticImmigrantChance = (float) config.get("Genetics", "Genetic Immigrant Chance", 0.1, "Chance for a villager to be an 'immigrant' with random genes. (0.0-1.0)").getDouble();

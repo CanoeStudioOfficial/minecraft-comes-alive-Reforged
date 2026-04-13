@@ -1,16 +1,5 @@
 package mca.items;
 
-import mca.entity.EntityVillagerMCA;
-import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
-
-import javax.annotation.Nullable;
-import java.util.List;
-
 import mca.core.MCA;
 import mca.entity.EntityVillagerMCA;
 import mca.entity.data.PlayerSaveData;
@@ -26,7 +15,9 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Optional;
+import com.google.common.base.Optional;
+
+import static mca.entity.EntityVillagerMCA.MARRIAGE_STATE;
 
 public class ItemEngagementRing extends ItemRelationshipBase {
     @Override
@@ -43,7 +34,7 @@ public class ItemEngagementRing extends ItemRelationshipBase {
         PlayerSaveData playerData = PlayerSaveData.get(player);
         String response;
 
-        if (villager.getMarriageState() == EnumMarriageState.ENGAGED) {
+        if (villager.get(MARRIAGE_STATE) == EnumMarriageState.ENGAGED.getId()) {
             response = "interaction.engage.fail.engaged";
         } else {
             response = "interaction.engage.success";
@@ -51,6 +42,7 @@ public class ItemEngagementRing extends ItemRelationshipBase {
             villager.engage(player);
             villager.getPlayerHistoryFor(player.getUniqueID()).setDialogueType(EnumDialogueType.SPOUSE);
             villager.spawnParticles(EnumParticleTypes.HEART);
+            villager.modifyMood(10); // Positive mood boost for engagement
             playerData.updateFamilyTreeNode(player);
         }
 

@@ -15,7 +15,9 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Optional;
+import com.google.common.base.Optional;
+
+import static mca.entity.EntityVillagerMCA.MARRIAGE_STATE;
 
 public class ItemBouquet extends ItemRelationshipBase {
     @Override
@@ -32,7 +34,7 @@ public class ItemBouquet extends ItemRelationshipBase {
         PlayerSaveData playerData = PlayerSaveData.get(player);
         String response;
 
-        if (villager.getMarriageState() == EnumMarriageState.PROMISED) {
+        if (villager.get(MARRIAGE_STATE) == EnumMarriageState.PROMISED.getId()) {
             response = "interaction.promise.fail.promised";
         } else {
             response = "interaction.promise.success";
@@ -40,6 +42,7 @@ public class ItemBouquet extends ItemRelationshipBase {
             villager.promise(player);
             villager.getPlayerHistoryFor(player.getUniqueID()).setDialogueType(EnumDialogueType.SPOUSE);
             villager.spawnParticles(EnumParticleTypes.HEART);
+            villager.modifyMood(5); // Positive mood boost for promise
             playerData.updateFamilyTreeNode(player);
         }
 

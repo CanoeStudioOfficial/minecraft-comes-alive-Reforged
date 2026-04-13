@@ -93,6 +93,7 @@ public class EntityVillagerMCA extends EntityVillager {
     public static final DataParameter<Boolean> SLEEPING = EntityDataManager.createKey(EntityVillagerMCA.class, DataSerializers.BOOLEAN);
     public static final DataParameter<NBTTagCompound> GENETICS = EntityDataManager.createKey(EntityVillagerMCA.class, DataSerializers.COMPOUND_TAG);
     public static final DataParameter<NBTTagCompound> TRAITS = EntityDataManager.createKey(EntityVillagerMCA.class, DataSerializers.COMPOUND_TAG);
+    public static final DataParameter<Integer> MOOD = EntityDataManager.createKey(EntityVillagerMCA.class, DataSerializers.VARINT);
 
     private static final Predicate<EntityVillagerMCA> BANDIT_TARGET_SELECTOR = (v) -> v.getProfessionForge() != ProfessionsMCA.bandit && v.getProfessionForge() != ProfessionsMCA.child;
     private static final Predicate<EntityVillagerMCA> GUARD_TARGET_SELECTOR = (v) -> v.getProfessionForge() == ProfessionsMCA.bandit;
@@ -167,6 +168,7 @@ public class EntityVillagerMCA extends EntityVillager {
         this.dataManager.register(SLEEPING, false);
         this.dataManager.register(GENETICS, new NBTTagCompound());
         this.dataManager.register(TRAITS, new NBTTagCompound());
+        this.dataManager.register(MOOD, 0); // Neutral mood by default
         this.setSilent(false);
     }
 
@@ -866,7 +868,12 @@ public class EntityVillagerMCA extends EntityVillager {
 
         if (item instanceof ItemSpecialCaseGift && !this.isChild()) { // special case gifts are rings so far so prevent giving them to children
             boolean decStackSize = ((ItemSpecialCaseGift) item).handle(player, this);
-            if (decStackSize) player.inventory.decrStackSize(player.inventory.currentItem, -1);
+            if (decStackSize) {
+                player.inventory.decrStackSize(player.inventory.currentItem, -1);
+                // Add relationship gifts to saturation queue to prevent spam
+                PlayerHistory history = getPlayerHistoryFor(player.getUniqueID());
+                history.addGiftToSaturation(stack);
+            }
             return true;
         } else if (item == Items.CAKE) {
             Optional<Entity> spouse = Util.getEntityByUUID(world, get(SPOUSE_UUID).or(Constants.ZERO_UUID));
@@ -1075,6 +1082,54 @@ public class EntityVillagerMCA extends EntityVillager {
     public boolean playerIsParent(EntityPlayer player) {
         ParentData data = ParentData.fromNBT(get(PARENTS));
         return data.getParent1UUID().equals(player.getUniqueID()) || data.getParent2UUID().equals(player.getUniqueID());
+    }
+
+    public boolean canBeAttractedTo(PlayerSaveData playerData) {
+        // Basic compatibility check - can be enhanced with more sophisticated logic
+        // For now, we'll use a simple check based on gender preferences
+        EnumGender villagerGender = EnumGender.byId(get(GENDER));
+        EnumGender playerGender = playerData.getGender();
+        
+        // Check if genders are compatible (can be configured)
+        if (!MCA.getConfig().allowSameGenderMarriage && villagerGender == playerGender) {
+            return false;
+        }
+        
+        // For now, return true as basic compatibility is satisfied
+        // Genetic compatibility can be added later when more sophisticated genetics system is available
+        return true;
+    }
+    
+    private float calculateGeneticSimilarity(Genetics villagerGenetics, Genetics playerGenetics) {
+        // Simple genetic similarity calculation based on key genetic traits
+        // This can be enhanced with more sophisticated algorithms
+        float similarity = 0.0f;
+        int traitCount = 0;
+        
+        // Compare key genetic traits
+        String[] keyTraits = {"SIZE", "WIDTH", "MELANIN", "HEMOGLOBIN"};
+        for (String trait : keyTraits) {
+            float villagerTrait = villagerGenetics.getGene(trait);
+            float playerTrait = playerGenetics.getGene(trait);
+            similarity += 1.0f - Math.abs(villagerTrait - playerTrait);
+            traitCount++;
+        }
+        
+        return traitCount > 0 ? similarity / traitCount : 0.5f; // Default to neutral compatibility
+    }
+
+    public int getMood() {
+        return get(MOOD);
+    }
+
+    public void setMood(int mood) {
+        // Clamp mood value between -100 and 100
+        int clampedMood = Math.max(-100, Math.min(100, mood));
+        set(MOOD, clampedMood);
+    }
+
+    public void modifyMood(int amount) {
+        setMood(getMood() + amount);
     }
 
     @Override
