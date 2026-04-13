@@ -862,6 +862,10 @@ public class NetMCA {
             player.getServerWorld().addScheduledTask(() -> {
                 PlayerSaveData data = PlayerSaveData.get(player);
                 data.setGender(message.gender);
+                
+                // Randomize genetics and traits for player
+                new mca.entity.data.Genetics(data, player).randomize();
+                new mca.entity.data.Traits(data).randomize();
             });
             return null;
         }

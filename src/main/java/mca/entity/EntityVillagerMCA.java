@@ -91,6 +91,8 @@ public class EntityVillagerMCA extends EntityVillager {
     public static final DataParameter<BlockPos> WORKPLACE_POS = EntityDataManager.createKey(EntityVillagerMCA.class, DataSerializers.BLOCK_POS);
     public static final DataParameter<BlockPos> HANGOUT_POS = EntityDataManager.createKey(EntityVillagerMCA.class, DataSerializers.BLOCK_POS);
     public static final DataParameter<Boolean> SLEEPING = EntityDataManager.createKey(EntityVillagerMCA.class, DataSerializers.BOOLEAN);
+    public static final DataParameter<NBTTagCompound> GENETICS = EntityDataManager.createKey(EntityVillagerMCA.class, DataSerializers.COMPOUND_TAG);
+    public static final DataParameter<NBTTagCompound> TRAITS = EntityDataManager.createKey(EntityVillagerMCA.class, DataSerializers.COMPOUND_TAG);
 
     private static final Predicate<EntityVillagerMCA> BANDIT_TARGET_SELECTOR = (v) -> v.getProfessionForge() != ProfessionsMCA.bandit && v.getProfessionForge() != ProfessionsMCA.child;
     private static final Predicate<EntityVillagerMCA> GUARD_TARGET_SELECTOR = (v) -> v.getProfessionForge() == ProfessionsMCA.bandit;
@@ -128,6 +130,9 @@ public class EntityVillagerMCA extends EntityVillager {
             setVanillaCareer(getProfessionForge().getRandomCareer(worldIn.rand));
             set(TEXTURE, API.getRandomSkin(this));
 
+            new Genetics(this).randomize();
+            new Traits(this).randomize();
+
             applySpecialAI();
         }
     }
@@ -160,6 +165,8 @@ public class EntityVillagerMCA extends EntityVillager {
         this.dataManager.register(WORKPLACE_POS, BlockPos.ORIGIN);
         this.dataManager.register(HANGOUT_POS, BlockPos.ORIGIN);
         this.dataManager.register(SLEEPING, false);
+        this.dataManager.register(GENETICS, new NBTTagCompound());
+        this.dataManager.register(TRAITS, new NBTTagCompound());
         this.setSilent(false);
     }
 
@@ -214,6 +221,8 @@ public class EntityVillagerMCA extends EntityVillager {
         set(HANGOUT_POS, new BlockPos(nbt.getInteger("hangoutX"), nbt.getInteger("hangoutY"), nbt.getInteger("hangoutZ")));
         set(WORKPLACE_POS, new BlockPos(nbt.getInteger("workplaceX"), nbt.getInteger("workplaceY"), nbt.getInteger("workplaceZ")));
         set(SLEEPING, nbt.getBoolean("sleeping"));
+        set(GENETICS, nbt.getCompoundTag("genetics"));
+        set(TRAITS, nbt.getCompoundTag("traits"));
         inventory.readInventoryFromNBT(nbt.getTagList("inventory", 10));
 
         // Vanilla Age doesn't apply from the superclass call. Causes children to revert to the starting age on world reload.
@@ -265,6 +274,8 @@ public class EntityVillagerMCA extends EntityVillager {
         nbt.setInteger("hangoutY", get(HANGOUT_POS).getY());
         nbt.setInteger("hangoutZ", get(HANGOUT_POS).getZ());
         nbt.setBoolean("sleeping", get(SLEEPING));
+        nbt.setTag("genetics", get(GENETICS));
+        nbt.setTag("traits", get(TRAITS));
     }
 
     @Override
@@ -635,13 +646,35 @@ public class EntityVillagerMCA extends EntityVillager {
     }
 
     public boolean isMarriedTo(UUID uuid) {
-        return get(SPOUSE_UUID).or(Constants.ZERO_UUID).equals(uuid);
+        return get(MARRIAGE_STATE) == EnumMarriageState.MARRIED.getId() && get(SPOUSE_UUID).or(Constants.ZERO_UUID).equals(uuid);
+    }
+
+    public boolean isEngagedTo(UUID uuid) {
+        return get(MARRIAGE_STATE) == EnumMarriageState.ENGAGED.getId() && get(SPOUSE_UUID).or(Constants.ZERO_UUID).equals(uuid);
+    }
+
+    public boolean isPromisedTo(UUID uuid) {
+        return get(MARRIAGE_STATE) == EnumMarriageState.PROMISED.getId() && get(SPOUSE_UUID).or(Constants.ZERO_UUID).equals(uuid);
     }
 
     public void marry(EntityPlayer player) {
         set(SPOUSE_UUID, Optional.of(player.getUniqueID()));
         set(SPOUSE_NAME, player.getName());
         set(MARRIAGE_STATE, EnumMarriageState.MARRIED.getId());
+        updateFamilyTreeNode();
+    }
+
+    public void engage(EntityPlayer player) {
+        set(SPOUSE_UUID, Optional.of(player.getUniqueID()));
+        set(SPOUSE_NAME, player.getName());
+        set(MARRIAGE_STATE, EnumMarriageState.ENGAGED.getId());
+        updateFamilyTreeNode();
+    }
+
+    public void promise(EntityPlayer player) {
+        set(SPOUSE_UUID, Optional.of(player.getUniqueID()));
+        set(SPOUSE_NAME, player.getName());
+        set(MARRIAGE_STATE, EnumMarriageState.PROMISED.getId());
         updateFamilyTreeNode();
     }
 

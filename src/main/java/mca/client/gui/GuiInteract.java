@@ -36,6 +36,8 @@ public class GuiInteract extends GuiScreen {
 
     private int marriedIconU = 0;
     private int engagedIconU = 64;
+    private int promisedIconU = 128; // Assuming 128 for promised
+    private int widowedIconU = 144; // Assuming 144 for widow
     private int notMarriedIconU = 16;
     private int parentsIconU = 32;
     private int giftIconU = 48;
@@ -137,7 +139,9 @@ public class GuiInteract extends GuiScreen {
         int marriageIconU =
                 marriageState == EnumMarriageState.MARRIED ? marriedIconU :
                         marriageState == EnumMarriageState.ENGAGED ? engagedIconU :
-                                notMarriedIconU;
+                                marriageState == EnumMarriageState.PROMISED ? promisedIconU :
+                                        marriageState == EnumMarriageState.WIDOWED ? widowedIconU :
+                                                notMarriedIconU;
         int heartIconU =
                 history.getHearts() < 0 ? blackHeartIconU :
                         history.getHearts() >= 100 ? goldHeartIconU :
@@ -172,6 +176,8 @@ public class GuiInteract extends GuiScreen {
             String spouseName = villager.get(EntityVillagerMCA.SPOUSE_NAME);
             if (marriageState == EnumMarriageState.MARRIED) marriageInfo = MCA.getLocalizer().localize("gui.interact.label.married", spouseName);
             else if (marriageState == EnumMarriageState.ENGAGED) marriageInfo = MCA.getLocalizer().localize("gui.interact.label.engaged", spouseName);
+            else if (marriageState == EnumMarriageState.PROMISED) marriageInfo = MCA.getLocalizer().localize("gui.interact.label.promised", spouseName);
+            else if (marriageState == EnumMarriageState.WIDOWED) marriageInfo = MCA.getLocalizer().localize("gui.interact.label.widowed", spouseName);
             else marriageInfo = MCA.getLocalizer().localize("gui.interact.label.notmarried");
 
             this.drawHoveringText(marriageInfo, 35, 85);

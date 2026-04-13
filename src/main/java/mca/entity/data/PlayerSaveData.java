@@ -26,6 +26,8 @@ public class PlayerSaveData extends WorldSavedData {
     private boolean babyPresent = false;
     private EnumGender gender = EnumGender.MALE;
     private boolean hasChosenDestiny = false;
+    private NBTTagCompound genetics = new NBTTagCompound();
+    private NBTTagCompound traits = new NBTTagCompound();
 
     public UUID getSpouseUUID() {
         return spouseUUID;
@@ -49,6 +51,24 @@ public class PlayerSaveData extends WorldSavedData {
 
     public boolean isHasChosenDestiny() {
         return hasChosenDestiny;
+    }
+
+    public NBTTagCompound getGenetics() {
+        return genetics;
+    }
+
+    public void setGenetics(NBTTagCompound genetics) {
+        this.genetics = genetics;
+        markDirty();
+    }
+
+    public NBTTagCompound getTraits() {
+        return traits;
+    }
+
+    public void setTraits(NBTTagCompound traits) {
+        this.traits = traits;
+        markDirty();
     }
 
     public PlayerSaveData(String id) {
@@ -79,6 +99,8 @@ public class PlayerSaveData extends WorldSavedData {
         nbt.setBoolean("babyPresent", babyPresent);
         nbt.setInteger("gender", gender.getId());
         nbt.setBoolean("hasChosenDestiny", hasChosenDestiny);
+        nbt.setTag("genetics", genetics);
+        nbt.setTag("traits", traits);
         return nbt;
     }
 
@@ -90,6 +112,8 @@ public class PlayerSaveData extends WorldSavedData {
         babyPresent = nbt.getBoolean("babyPresent");
         gender = EnumGender.byId(nbt.getInteger("gender"));
         hasChosenDestiny = nbt.getBoolean("hasChosenDestiny");
+        genetics = nbt.getCompoundTag("genetics");
+        traits = nbt.getCompoundTag("traits");
     }
 
     public void setGender(EnumGender gender) {
@@ -109,6 +133,20 @@ public class PlayerSaveData extends WorldSavedData {
     public void marry(UUID uuid, String name) {
         spouseUUID = uuid;
         marriageState = EnumMarriageState.MARRIED;
+        spouseName = name;
+        markDirty();
+    }
+
+    public void engage(UUID uuid, String name) {
+        spouseUUID = uuid;
+        marriageState = EnumMarriageState.ENGAGED;
+        spouseName = name;
+        markDirty();
+    }
+
+    public void promise(UUID uuid, String name) {
+        spouseUUID = uuid;
+        marriageState = EnumMarriageState.PROMISED;
         spouseName = name;
         markDirty();
     }

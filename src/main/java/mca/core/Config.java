@@ -28,6 +28,8 @@ public final class Config implements Serializable {
     public int guardPatrolWaitTime;
     public int chanceToHaveTwins;
     public int marriageHeartsRequirement;
+    public int engagementHeartsRequirement;
+    public int bouquetHeartsRequirement;
     public int babyGrowUpTime;
     public int childGrowUpTime;
     public int villagerSpawnerCap;
@@ -40,6 +42,10 @@ public final class Config implements Serializable {
     public boolean allowPlayerMarriage;
     public boolean enableAdminCommands;
     public boolean allowRoseGoldGeneration;
+
+    public float traitInheritChance;
+    public float geneticImmigrantChance;
+    public float traitChance;
 
     public float interactionChanceFatigue;
     public int interactionFatigueCooldown;
@@ -70,6 +76,8 @@ public final class Config implements Serializable {
         guardPatrolWaitTime = config.get("General", "Guard Patrol Wait Time", 120, "Time in ticks a guard will wait at each patrol point before moving to the next.").getInt();
         chanceToHaveTwins = config.get("General", "Chance to Have Twins", 2, "Chance that you will have twins. Default is 2 for 2%.").getInt();
         marriageHeartsRequirement = config.get("General", "Marriage Hearts Requirement", 100, "Number of hearts required to get married.").getInt();
+        engagementHeartsRequirement = config.get("General", "Engagement Hearts Requirement", 50, "Number of hearts required to get engaged.").getInt();
+        bouquetHeartsRequirement = config.get("General", "Bouquet Hearts Requirement", 25, "Number of hearts required to give a bouquet (promise).").getInt();
         babyGrowUpTime = config.get("General", "Baby Grow Up Time (Minutes)", 30, "Minutes it takes for a baby to be ready to grow up.").getInt();
         childGrowUpTime = config.get("General", "Child Grow Up Time (Minutes)", 60, "Minutes it takes for a child to grow into an adult.").getInt();
         villagerSpawnerCap = config.get("General", "Villager Spawner Cap", 5, "Maximum number of villagers that a spawner will create in the area before it stops.").getInt();
@@ -82,6 +90,11 @@ public final class Config implements Serializable {
         enableAdminCommands = config.get("General", "Enable Admin Commands?", true, "Enables or disables MCA admin commands for ops.").getBoolean();
         allowRoseGoldGeneration = config.get("General", "Allow Rose Gold World Generation", true, "If enabled, generates rose gold in your world. If disabled, generates stone instead.").getBoolean();
         villagerMaxHealth = config.get("General", "Villager Max Health", 20, "Each villager's maximum health. 1 point equals 1 heart.").getInt();
+
+        traitInheritChance = (float) config.get("Genetics", "Trait Inherit Chance", 0.5, "Chance for a trait to be inherited. (0.0-1.0)").getDouble();
+        geneticImmigrantChance = (float) config.get("Genetics", "Genetic Immigrant Chance", 0.1, "Chance for a villager to be an 'immigrant' with random genes. (0.0-1.0)").getDouble();
+        traitChance = (float) config.get("Genetics", "Trait Chance", 0.1, "Base chance for a villager to have a trait. (0.0-1.0)").getDouble();
+
         config.save();
     }
 

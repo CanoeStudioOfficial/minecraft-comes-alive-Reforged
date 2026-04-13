@@ -18,6 +18,13 @@ entity.Villager.child=孩子
 entity.Villager.red_engineer=红衣技工
 entity.Villager.sinister_merchant=阴险商人
 entity.Villager.alchemist=炼金术士
+entity.Villager.farmer=农民
+entity.Villager.librarian=图书管理员
+entity.Villager.priest=牧师
+entity.Villager.smith=铁匠
+entity.Villager.butcher=屠夫
+entity.Villager.none=村民
+entity.Villager.player=玩家
 
 ##############################
 # Items & Blocks
@@ -26,6 +33,7 @@ item.wedding_ring.name=结婚戒指
 item.wedding_ring_rg.name=玫瑰金结婚戒指
 item.engagement_ring.name=订婚戒指
 item.engagement_ring_rg.name=玫瑰金订婚戒指
+item.bouquet.name=花束
 item.matchmakers_ring.name=媒人的戒指
 item.baby_boy.name=男宝宝
 item.baby_girl.name=女宝宝
@@ -43,6 +51,9 @@ item.egg_grim_reaper.name=生成 死神
 item.staff_of_life.name=生命权杖
 item.family_tree.name=族谱
 item.family_tree.tooltip=这本沉甸甸的书记载了每个村民的族谱。
+item.wedding_ring.tooltip=用于向某人求婚并结婚。
+item.engagement_ring.tooltip=用于向某人订婚。
+item.bouquet.tooltip=用于向某人表白（承诺）。
 tile.rose_gold_block.name=玫瑰金块
 tile.mca:villager_spawner.name=村民生成器
 tile.mca:rose_gold_block.name=玫瑰金块
@@ -189,8 +200,8 @@ gui.title.family_tree=搜索族谱
 gui.family_tree.title=族谱
 gui.family_tree.label.deceased=已死亡
 gui.family_tree.label.orphan=孤儿
-gui.family_tree.child_of_2=%1$s和%2$s的孩子
-gui.family_tree.child_of_1=%1$s的孩子
+gui.family_tree.child_of_2=%s和%s的孩子
+gui.family_tree.child_of_1=%s的孩子
 gui.family_tree.child_of_0=孤儿
 gui.title.setup=初始化
 gui.label.you=你
@@ -256,6 +267,8 @@ adult.chore.harvesting.nohoe=我没有锄可以收割。
 
 gui.interact.label.married=与%v1%结婚
 gui.interact.label.engaged=与%v1%订婚
+gui.interact.label.promised=与%v1%互许终身
+gui.interact.label.widowed=丧偶 (%v1%)
 gui.interact.label.notmarried=没有结婚
 gui.interact.label.parents=父母：%v1%和%v2%
 gui.interact.label.gift=礼物可用，点击以赠送。
@@ -277,10 +290,19 @@ adult.interaction.marry.fail.lowhearts2=哦？漂亮的戒指！哦，等等�
 adult.interaction.marry.fail.lowhearts3=这是给我的吗？抱歉，我只是不太了解你。
 adult.interaction.marry.fail.lowhearts4=我受宠若惊，但我不太了解你。
 
-spouse.interaction.engage.success1=好！我要和你结婚！我爱你！
-spouse.interaction.engage.success2=我当然会与你结婚！
-spouse.interaction.engage.success3=是时候了开玩笑的！爱你！
-spouse.interaction.engage.success4=这这是真的吗？我是说，这一刻，不是戒指。但戒指是真的对吧？
+interaction.relationship.fail.isbaby=我还太小，不能考虑这个！
+interaction.relationship.fail.isparent=这太奇怪了……我是你的孩子！
+interaction.relationship.fail.marriedtogiver=我们已经结婚了，傻瓜！
+interaction.relationship.fail.married=我已经和别人结婚了。
+interaction.relationship.fail.engaged=我已经和别人订婚了。
+interaction.relationship.fail.playermarried=你已经和别人结婚了！
+interaction.relationship.fail.lowhearts=我觉得我们的关系还没到那一步。
+
+interaction.promise.fail.promised=我们已经有过这个承诺了！
+interaction.promise.success=哦，太贴心了！我承诺总有一天会嫁给你！
+
+interaction.engage.fail.engaged=我们已经订婚了！
+interaction.engage.success=是的！我愿意嫁给你！我爱你！
 
 spouse.interaction.marry.success1=美梦成真，我永远爱你！
 spouse.interaction.marry.success2=我们终于结婚了！这次又是什么？

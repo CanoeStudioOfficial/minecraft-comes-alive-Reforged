@@ -22,6 +22,7 @@ public final class ItemsMCA {
     public static final Item WEDDING_RING_RG = new ItemWeddingRing().setMaxStackSize(1);
     public static final Item ENGAGEMENT_RING = new ItemEngagementRing().setMaxStackSize(1);
     public static final Item ENGAGEMENT_RING_RG = new ItemEngagementRing().setMaxStackSize(1);
+    public static final Item BOUQUET = new ItemBouquet().setMaxStackSize(1);
     public static final Item MATCHMAKERS_RING = new ItemMatchmakersRing().setMaxStackSize(2);
     public static final Item BABY_BOY = new ItemBaby(true);
     public static final Item BABY_GIRL = new ItemBaby(false);

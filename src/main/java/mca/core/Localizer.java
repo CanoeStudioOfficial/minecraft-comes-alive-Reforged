@@ -20,11 +20,11 @@ public class Localizer {
             String currentLangCode = MCA.proxy.getLanguageCode();
 
             String langFilePath = String.format("/assets/mca/lang/%s.lang", currentLangCode);
-            inStream = StringUtils.class.getResourceAsStream(langFilePath);
+            inStream = Localizer.class.getResourceAsStream(langFilePath);
 
             if (inStream == null) {
                 MCA.getLog().warn("Language file not found : " + langFilePath + "，Fall back to default language en_us.lang");
-                inStream = StringUtils.class.getResourceAsStream("/assets/mca/lang/en_us.lang");
+                inStream = Localizer.class.getResourceAsStream("/assets/mca/lang/en_us.lang");
             }
 
             if (inStream == null) {
@@ -38,7 +38,7 @@ public class Localizer {
                 if (line.startsWith("#") || line.isEmpty()) continue;
                 String[] split = line.split("=", 2); // 避免值中出现 "=" 导致 split 数组越界
                 if (split.length < 2) continue;
-                localizerMap.put(split[0], split[1]);
+                localizerMap.put(split[0].trim(), split[1].trim());
             }
 
         } catch (IOException e) {

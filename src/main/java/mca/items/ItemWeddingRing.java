@@ -10,38 +10,50 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.text.TextComponentTranslation;
 
-public class ItemWeddingRing extends ItemSpecialCaseGift {
-    public boolean handle(EntityPlayer player, EntityVillagerMCA villager) {
+import net.minecraft.client.util.ITooltipFlag;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.world.World;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
+import javax.annotation.Nullable;
+import java.util.List;
+
+public class ItemWeddingRing extends ItemRelationshipBase {
+    @Override
+    public int getHeartsRequired() {
+        return MCA.getConfig().marriageHeartsRequirement;
+    }
+
+    @Override
+    public boolean handle(EntityPlayer player, EntityVillagerMCA villager) {
         if (!MCA.getConfig().allowPlayerMarriage) {
             player.sendMessage(new TextComponentTranslation("gui.marriage.failed"));
-            return false;
+            return true;
+        }
+
+        if (super.handle(player, villager)) {
+            return true;
         }
 
         PlayerSaveData playerData = PlayerSaveData.get(player);
-        PlayerHistory history = villager.getPlayerHistoryFor(player.getUniqueID());
         String response;
 
-        if (villager.isMarriedTo(player.getUniqueID()))
-            response = "interaction.marry.fail.marriedtogiver";
-        else if (villager.isMarried())
-            response = "interaction.marry.fail.marriedtoother";
-        else if (playerData.isMarriedOrEngaged())
-            response = "interaction.marry.fail.marriedtoother";
-        else if (this instanceof ItemEngagementRing && history.getHearts() < MCA.getConfig().marriageHeartsRequirement / 2)
-            response = "interaction.marry.fail.lowhearts";
-        else if (!(this instanceof ItemEngagementRing) && history.getHearts() < MCA.getConfig().marriageHeartsRequirement)
-            response = "interaction.marry.fail.lowhearts";
-        else {
-            response = "interaction.marry.success";
-            playerData.marry(villager.getUniqueID(), villager.get(EntityVillagerMCA.VILLAGER_NAME));
-            villager.getPlayerHistoryFor(player.getUniqueID()).setDialogueType(EnumDialogueType.SPOUSE);
-            villager.spawnParticles(EnumParticleTypes.HEART);
-            villager.marry(player);
-            playerData.updateFamilyTreeNode(player);
-        }
+        response = "interaction.marry.success";
+        playerData.marry(villager.getUniqueID(), villager.get(EntityVillagerMCA.VILLAGER_NAME));
+        villager.getPlayerHistoryFor(player.getUniqueID()).setDialogueType(EnumDialogueType.SPOUSE);
+        villager.spawnParticles(EnumParticleTypes.HEART);
+        villager.marry(player);
+        playerData.updateFamilyTreeNode(player);
 
         villager.say(Optional.of(player), response);
-        return false;
+        return true;
+    }
+
+    @SideOnly(Side.CLIENT)
+    public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
+        tooltip.add(MCA.getLocalizer().localize("item.wedding_ring.tooltip"));
     }
 }

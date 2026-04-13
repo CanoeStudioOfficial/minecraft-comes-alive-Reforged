@@ -82,6 +82,23 @@ public class ItemBaby extends Item {
                 child.setStartingAge(MCA.getConfig().childGrowUpTime * 60 * 20 * -1);
                 child.setScaleForAge(true);
                 child.setPosition(posX, posY, posZ);
+
+                // Apply inherited genetics and traits
+                NBTTagCompound stackNbt = stack.getTagCompound();
+                if (stackNbt.hasKey("parent1Genetics") && stackNbt.hasKey("parent2Genetics")) {
+                    EntityVillagerMCA dummyMother = new EntityVillagerMCA(world);
+                    dummyMother.set(EntityVillagerMCA.GENETICS, stackNbt.getCompoundTag("parent1Genetics"));
+                    dummyMother.set(EntityVillagerMCA.TRAITS, stackNbt.getCompoundTag("parent1Traits"));
+                    
+                    EntityVillagerMCA dummyFather = new EntityVillagerMCA(world);
+                    dummyFather.set(EntityVillagerMCA.GENETICS, stackNbt.getCompoundTag("parent2Genetics"));
+                    dummyFather.set(EntityVillagerMCA.TRAITS, stackNbt.getCompoundTag("parent2Traits"));
+
+                    new mca.entity.data.Genetics(child).combine(new mca.entity.data.Genetics(dummyMother), new mca.entity.data.Genetics(dummyFather));
+                    new mca.entity.data.Traits(child).inherit(new mca.entity.data.Traits(dummyMother));
+                    new mca.entity.data.Traits(child).inherit(new mca.entity.data.Traits(dummyFather));
+                }
+
                 world.spawnEntity(child);
 
                 PlayerSaveData playerData = PlayerSaveData.get(player);

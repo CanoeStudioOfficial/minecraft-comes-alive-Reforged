@@ -27,10 +27,18 @@ public class RenderVillagerMCA<T extends EntityVillagerMCA> extends RenderBiped<
 
     @Override
     protected void preRenderCallback(EntityVillagerMCA villager, float partialTickTime) {
+        float scaleForAge = 1.0F;
         if (villager.isChild()) {
-            float scaleForAge = EnumAgeState.byId(villager.get(EntityVillagerMCA.AGE_STATE)).getScaleForAge();
-            GlStateManager.scale(scaleForAge, scaleForAge, scaleForAge);
+            scaleForAge = EnumAgeState.byId(villager.get(EntityVillagerMCA.AGE_STATE)).getScaleForAge();
         }
+
+        mca.entity.data.Genetics genetics = new mca.entity.data.Genetics(villager);
+        mca.entity.data.Traits traits = new mca.entity.data.Traits(villager);
+
+        float verticalScale = genetics.getVerticalScaleFactor() * traits.getVerticalScaleFactor();
+        float horizontalScale = genetics.getHorizontalScaleFactor() * traits.getHorizontalScaleFactor();
+
+        GlStateManager.scale(scaleForAge * horizontalScale, scaleForAge * verticalScale, scaleForAge * horizontalScale);
 
         if (villager.isRiding()) {
             GlStateManager.translate(0, 0.5, 0);

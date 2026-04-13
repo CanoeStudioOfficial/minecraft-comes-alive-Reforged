@@ -18,6 +18,13 @@ entity.Villager.child=Child
 entity.Villager.red_engineer=Red Engineer
 entity.Villager.sinister_merchant=Sinister Merchant
 entity.Villager.alchemist=Alchemist
+entity.Villager.farmer=Farmer
+entity.Villager.librarian=Librarian
+entity.Villager.priest=Priest
+entity.Villager.smith=Blacksmith
+entity.Villager.butcher=Butcher
+entity.Villager.none=Villager
+entity.Villager.player=Player
 
 ##############################
 # Items & Blocks
@@ -26,6 +33,7 @@ item.wedding_ring.name=Wedding Ring
 item.wedding_ring_rg.name=Rose Gold Wedding Ring
 item.engagement_ring.name=Engagement Ring
 item.engagement_ring_rg.name=Rose Gold Engagement Ring
+item.bouquet.name=Bouquet
 item.matchmakers_ring.name=Matchmaker's Ring
 item.baby_boy.name=Baby Boy
 item.baby_girl.name=Baby Girl
@@ -44,6 +52,9 @@ item.egg_grim_reaper.name=Spawn Grim Reaper
 item.staff_of_life.name=Staff of Life
 item.family_tree.name=Family Tree
 item.family_tree.tooltip=This extremely thick book contains the family tree of every villager ever alive.
+item.wedding_ring.tooltip=Use to marry someone.
+item.engagement_ring.tooltip=Use to get engaged to someone.
+item.bouquet.tooltip=Use to promise to marry someone.
 tile.rose_gold_block.name=Rose Gold Block
 tile.mca:villager_spawner.name=Villager Spawner
 tile.mca:rose_gold_block.name=Rose Gold Block
@@ -191,8 +202,8 @@ gui.title.family_tree=Search the Family Tree
 gui.family_tree.title=Family Tree
 gui.family_tree.label.deceased=Deceased
 gui.family_tree.label.orphan=Orphan
-gui.family_tree.child_of_2=Child of %1$s and %2$s
-gui.family_tree.child_of_1=Child of %1$s
+gui.family_tree.child_of_2=Child of %s and %s
+gui.family_tree.child_of_1=Child of %s
 gui.family_tree.child_of_0=Orphan
 gui.title.setup=Setup
 
@@ -260,6 +271,8 @@ adult.chore.harvesting.nohoe=I don't have a hoe to harvest with.
 
 gui.interact.label.married=Married to %v1%
 gui.interact.label.engaged=Engaged to %v1%
+gui.interact.label.promised=Promised to %v1%
+gui.interact.label.widowed=Widowed (%v1%)
 gui.interact.label.notmarried=Not married
 gui.interact.label.parents=Parents: %v1% and %v2%
 gui.interact.label.gift=Gift available. Click to claim.
@@ -281,12 +294,21 @@ adult.interaction.marry.fail.lowhearts2=Oh, pretty ring\! Oh wait...it's for me?
 adult.interaction.marry.fail.lowhearts3=Is that for me? Sorry, I just don't know you enough.
 adult.interaction.marry.fail.lowhearts4=I'm flattered, but I don't really know you.
 
-spouse.interaction.engage.success1=Yes\! I will marry you\! I love you\!
-spouse.interaction.engage.success2=Of course I'll marry you\!
-spouse.interaction.engage.success3=About time...just kidding\! Love you\!
-spouse.interaction.engage.success4=Is...is this real? I mean, this moment, not the ring. But the ring is real, right?
+interaction.relationship.fail.isbaby=I'm too young for that!
+interaction.relationship.fail.isparent=That would be weird... I'm your child!
+interaction.relationship.fail.marriedtogiver=We're already married, silly!
+interaction.relationship.fail.married=I'm already married to someone else.
+interaction.relationship.fail.engaged=I'm already engaged to someone else.
+interaction.relationship.fail.playermarried=You're already married to someone else!
+interaction.relationship.fail.lowhearts=I don't think we're close enough for that yet.
 
-spouse.interaction.marry.success1=It's a dream come true\! I'll love you forever\!
+interaction.promise.fail.promised=We've already made that promise!
+interaction.promise.success=Oh, how sweet! I promise to marry you one day!
+
+interaction.engage.fail.engaged=We're already engaged!
+interaction.engage.success=Yes! I will marry you! I love you!
+
+spouse.interaction.marry.success1=It's a dream come true! I'll love you forever!
 spouse.interaction.marry.success2=We're finally married\! Now what?
 spouse.interaction.marry.success3=I'm happy to be married to you, %v1%.
 spouse.interaction.marry.success4=I can't wait to start our life together\!

@@ -1,16 +1,5 @@
 package mca.items;
 
-import mca.entity.EntityVillagerMCA;
-import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
-
-import javax.annotation.Nullable;
-import java.util.List;
-
 import mca.core.MCA;
 import mca.entity.EntityVillagerMCA;
 import mca.entity.data.PlayerSaveData;
@@ -28,10 +17,10 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 
-public class ItemEngagementRing extends ItemRelationshipBase {
+public class ItemBouquet extends ItemRelationshipBase {
     @Override
     public int getHeartsRequired() {
-        return MCA.getConfig().engagementHeartsRequirement;
+        return MCA.getConfig().bouquetHeartsRequirement;
     }
 
     @Override
@@ -43,12 +32,12 @@ public class ItemEngagementRing extends ItemRelationshipBase {
         PlayerSaveData playerData = PlayerSaveData.get(player);
         String response;
 
-        if (villager.getMarriageState() == EnumMarriageState.ENGAGED) {
-            response = "interaction.engage.fail.engaged";
+        if (villager.getMarriageState() == EnumMarriageState.PROMISED) {
+            response = "interaction.promise.fail.promised";
         } else {
-            response = "interaction.engage.success";
-            playerData.engage(villager.getUniqueID(), villager.get(EntityVillagerMCA.VILLAGER_NAME));
-            villager.engage(player);
+            response = "interaction.promise.success";
+            playerData.promise(villager.getUniqueID(), villager.get(EntityVillagerMCA.VILLAGER_NAME));
+            villager.promise(player);
             villager.getPlayerHistoryFor(player.getUniqueID()).setDialogueType(EnumDialogueType.SPOUSE);
             villager.spawnParticles(EnumParticleTypes.HEART);
             playerData.updateFamilyTreeNode(player);
@@ -60,6 +49,6 @@ public class ItemEngagementRing extends ItemRelationshipBase {
 
     @SideOnly(Side.CLIENT)
     public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
-        tooltip.add(MCA.getLocalizer().localize("item.engagement_ring.tooltip"));
+        tooltip.add(MCA.getLocalizer().localize("item.bouquet.tooltip"));
     }
 }
