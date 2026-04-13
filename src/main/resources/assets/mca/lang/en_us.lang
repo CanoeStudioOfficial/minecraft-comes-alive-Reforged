@@ -59,6 +59,27 @@ tile.rose_gold_block.name=Rose Gold Block
 tile.mca:villager_spawner.name=Villager Spawner
 tile.mca:rose_gold_block.name=Rose Gold Block
 
+# Tombstones
+tile.mca:gravelling_headstone.name=Gravelling Headstone
+tile.mca:upright_headstone.name=Upright Headstone
+tile.mca:slanted_headstone.name=Slanted Headstone
+tile.mca:cross_headstone.name=Cross Headstone
+tile.mca:wall_headstone.name=Wall Headstone
+tile.mca:cobblestone_upright_headstone.name=Cobblestone Upright Headstone
+tile.mca:cobblestone_slanted_headstone.name=Cobblestone Slanted Headstone
+tile.mca:wooden_upright_headstone.name=Wooden Upright Headstone
+tile.mca:wooden_slanted_headstone.name=Wooden Slanted Headstone
+tile.mca:golden_upright_headstone.name=Golden Upright Headstone
+tile.mca:golden_slanted_headstone.name=Golden Slanted Headstone
+tile.mca:deepslate_upright_headstone.name=Deepslate Upright Headstone
+tile.mca:deepslate_slanted_headstone.name=Deepslate Slanted Headstone
+
+block.mca.tombstone.header=Here Lies
+block.mca.tombstone.footer.male=Beloved Father
+block.mca.tombstone.footer.female=Beloved Mother
+block.mca.tombstone.empty=This tombstone is empty
+block.mca.tombstone.contains=This tombstone contains: %s
+
 ################################
 # Relations
 ################################

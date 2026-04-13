@@ -1,0 +1,12 @@
+{
+	"forge_marker": 1,
+	"defaults": {
+		"model": "mca:golden_upright_headstone"
+	},
+	"variants": {
+		"facing=north": {"model": "mca:golden_upright_headstone"},
+		"facing=south": {"model": "mca:golden_upright_headstone", "y": 180},
+		"facing=west": {"model": "mca:golden_upright_headstone", "y": 270},
+		"facing=east": {"model": "mca:golden_upright_headstone", "y": 90}
+	}
+}

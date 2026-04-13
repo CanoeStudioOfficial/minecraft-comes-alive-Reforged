@@ -1,0 +1,12 @@
+{
+	"forge_marker": 1,
+	"defaults": {
+		"model": "mca:cross_headstone"
+	},
+	"variants": {
+		"facing=north": {"model": "mca:cross_headstone"},
+		"facing=south": {"model": "mca:cross_headstone", "y": 180},
+		"facing=west": {"model": "mca:cross_headstone", "y": 270},
+		"facing=east": {"model": "mca:cross_headstone", "y": 90}
+	}
+}

@@ -58,6 +58,27 @@ tile.rose_gold_block.name=玫瑰金块
 tile.mca:villager_spawner.name=村民生成器
 tile.mca:rose_gold_block.name=玫瑰金块
 
+# 墓碑
+tile.mca:gravelling_headstone.name=碎石墓碑
+tile.mca:upright_headstone.name=直立墓碑
+tile.mca:slanted_headstone.name=倾斜墓碑
+tile.mca:cross_headstone.name=十字墓碑
+tile.mca:wall_headstone.name=墙壁墓碑
+tile.mca:cobblestone_upright_headstone.name=圆石直立墓碑
+tile.mca:cobblestone_slanted_headstone.name=圆石倾斜墓碑
+tile.mca:wooden_upright_headstone.name=木质直立墓碑
+tile.mca:wooden_slanted_headstone.name=木质倾斜墓碑
+tile.mca:golden_upright_headstone.name=金色直立墓碑
+tile.mca:golden_slanted_headstone.name=金色倾斜墓碑
+tile.mca:deepslate_upright_headstone.name=深板岩直立墓碑
+tile.mca:deepslate_slanted_headstone.name=深板岩倾斜墓碑
+
+block.mca.tombstone.header=在此长眠
+block.mca.tombstone.footer.male=敬爱的父亲
+block.mca.tombstone.footer.female=敬爱的母亲
+block.mca.tombstone.empty=这个墓碑是空的
+block.mca.tombstone.contains=这个墓碑包含: %s
+
 ################################
 # Relations
 ################################
