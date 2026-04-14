@@ -1,0 +1,9 @@
+{
+  "color": "ff00ff00",
+  "visible": false,
+  "priority": 1,
+  "blocks": {
+    "minecraft:bookshelf": 8,
+    "minecraft:crafting_table": 1
+  }
+}

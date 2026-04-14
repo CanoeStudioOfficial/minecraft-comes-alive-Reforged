@@ -1,0 +1,9 @@
+{
+  "color": "ffffffff",
+  "visible": false,
+  "priority": 1,
+  "blocks": {
+    "minecraft:crafting_table": 1,
+    "minecraft:chest": 2
+  }
+}

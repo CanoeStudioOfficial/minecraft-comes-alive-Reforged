@@ -3,6 +3,6 @@
   "visible": false,
   "priority": 1,
   "blocks": {
-    "minecraft:loom": 1
+    "minecraft:furnace": 1
   }
 }

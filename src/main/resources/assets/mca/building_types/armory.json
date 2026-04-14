@@ -1,0 +1,12 @@
+{
+  "color": "ff555555",
+  "visible": true,
+  "priority": 3,
+  "blocks": {
+    "minecraft:furnace": 2,
+    "minecraft:anvil": 2,
+    "#minecraft:chests": 4
+  },
+  "iconU": 1,
+  "iconV": 1
+}
