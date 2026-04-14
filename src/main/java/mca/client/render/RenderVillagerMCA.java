@@ -2,6 +2,7 @@ package mca.client.render;
 
 import mca.client.model.ModelVillagerMCA;
 import mca.client.render.layer.ClothingLayer;
+import mca.client.render.layer.FaceLayer;
 import mca.client.render.layer.HairLayer;
 import mca.client.render.layer.SkinLayer;
 import mca.entity.EntityVillagerMCA;
@@ -28,6 +29,7 @@ public class RenderVillagerMCA<T extends EntityVillagerMCA> extends RenderBiped<
         // Add layered skin system
         ModelVillagerMCA model = (ModelVillagerMCA) this.getMainModel();
         this.addLayer(new SkinLayer(this, model));
+        this.addLayer(new FaceLayer(this, model, "normal"));
         this.addLayer(new HairLayer(this, model));
         this.addLayer(new ClothingLayer(this, model, "normal"));
 

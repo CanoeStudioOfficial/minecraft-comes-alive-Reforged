@@ -1314,10 +1314,10 @@ public class EntityVillagerMCA extends EntityVillager {
      * Returns the skin texture path for layered skin rendering.
      * @return ResourceLocation string for skin texture
      */
-    public String getSkin() {
+    public String getSkinTexture() {
         Genetics genetics = new Genetics(this);
         int skin = (int) Math.min(4, Math.max(0, genetics.getGene(Genetics.SKIN) * 5));
-        String gender = genetics.getGender().getDataName();
+        String gender = genetics.getGender().getStrName();
         return "mca:skins/skin/" + gender + "/" + skin + ".png";
     }
 
@@ -1328,17 +1328,5 @@ public class EntityVillagerMCA extends EntityVillager {
     public boolean isBurned() {
         // Check if villager is on fire or recently burned
         return isBurning();
-    }
-
-    /**
-     * Returns the infection progress for zombie villagers.
-     * @return float between 0.0 and 1.0 representing infection progress
-     */
-    public float getInfectionProgress() {
-        if (get(IS_INFECTED)) {
-            return 1.0f;
-        }
-        // Check if being infected
-        return 0.0f;
     }
 }

@@ -29,7 +29,7 @@ public class SkinLayer extends VillagerLayer {
     protected ResourceLocation getTexture(EntityVillagerMCA villager) {
         Genetics genetics = new Genetics(villager);
         int skin = (int) Math.min(4, Math.max(0, genetics.getGene(Genetics.SKIN) * 5));
-        String gender = genetics.getGender().getDataName();
+        String gender = genetics.getGender().getStrName();
         return cached("mca:skins/skin/" + gender + "/" + skin + ".png");
     }
 

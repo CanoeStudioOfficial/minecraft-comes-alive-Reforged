@@ -48,7 +48,7 @@ public class HairLayer extends VillagerLayer {
             // Default hair based on genetics
             Genetics genetics = new Genetics(villager);
             int hair = (int) Math.min(39, Math.max(0, genetics.getGene(Genetics.SKIN) * 40));
-            String gender = genetics.getGender().getDataName();
+            String gender = genetics.getGender().getStrName();
             return cached("mca:skins/hair/" + gender + "/" + hair + ".png");
         }
         return cached(hairId);

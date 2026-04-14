@@ -46,7 +46,7 @@ public class ClothingLayer extends VillagerLayer {
 
     private ResourceLocation getDefaultClothing(EntityVillagerMCA villager, String variant) {
         String profession = villager.getProfessionForge().getRegistryName().toString().replace(":", "/");
-        String gender = villager.getGender() == 0 ? "male" : "female";
+        String gender = mca.enums.EnumGender.byId(villager.get(EntityVillagerMCA.GENDER)).getStrName();
 
         // Try to find clothing based on profession and gender
         ResourceLocation clothing = cached("mca:skins/clothing/" + variant + "/" + gender + "/" + profession + "/0.png");

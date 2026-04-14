@@ -25,7 +25,7 @@ public abstract class VillagerLayer implements LayerRenderer<EntityVillagerMCA> 
     public void doRenderLayer(EntityVillagerMCA villager, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch, float scale) {
         Minecraft mc = Minecraft.getMinecraft();
         boolean visible = !villager.isInvisible();
-        boolean glowing = mc.getRenderManager().isEntityOutlined(villager);
+        boolean glowing = villager.isGlowing();
 
         // Copy animation from parent model
         renderer.getMainModel().setModelAttributes(model);
