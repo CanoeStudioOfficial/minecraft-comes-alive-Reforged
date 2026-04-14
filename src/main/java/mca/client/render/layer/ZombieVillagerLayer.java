@@ -3,6 +3,7 @@ package mca.client.render.layer;
 import mca.client.render.RenderZombieVillagerMCA;
 import mca.entity.EntityZombieVillagerMCA;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelBiped;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.entity.layers.LayerRenderer;
@@ -16,9 +17,9 @@ public abstract class ZombieVillagerLayer implements LayerRenderer<EntityZombieV
     protected final RenderZombieVillagerMCA renderer;
     protected final ModelBiped model;
 
-    public ZombieVillagerLayer(RenderZombieVillagerMCA renderer, ModelBiped model) {
+    public ZombieVillagerLayer(RenderZombieVillagerMCA renderer, ModelBase model) {
         this.renderer = renderer;
-        this.model = model;
+        this.model = (ModelBiped) model;
     }
 
     @Override

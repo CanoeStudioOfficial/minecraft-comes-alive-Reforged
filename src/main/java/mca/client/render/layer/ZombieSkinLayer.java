@@ -3,12 +3,12 @@ package mca.client.render.layer;
 import mca.client.render.RenderZombieVillagerMCA;
 import mca.entity.EntityZombieVillagerMCA;
 import mca.enums.EnumGender;
-import net.minecraft.client.model.ModelBiped;
+import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.ResourceLocation;
 
 public class ZombieSkinLayer extends ZombieVillagerLayer {
-    public ZombieSkinLayer(RenderZombieVillagerMCA renderer, ModelBiped model) {
+    public ZombieSkinLayer(RenderZombieVillagerMCA renderer, ModelBase model) {
         super(renderer, model);
     }
 
