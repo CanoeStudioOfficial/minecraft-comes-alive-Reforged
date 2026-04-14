@@ -33,8 +33,6 @@ public final class ItemsMCA {
     public static final Item WHISTLE = new ItemWhistle();
     public static final Item CRYSTAL_BALL = new ItemCrystalBall();
     public static final Item FAMILY_TREE = new ItemFamilyTree();
-    public static final Item LETTER = new ItemLetter();
-    public static final Item BLUEPRINT = new ItemBlueprint();
 
     private static final List<Item> ITEMS = new ArrayList<>();
 

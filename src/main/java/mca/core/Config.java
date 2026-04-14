@@ -56,18 +56,6 @@ public final class Config implements Serializable {
     public double giftDesaturationExponent;
     public double giftSatisfactionFactor;
 
-    // 信件/邮件系统配置
-    public boolean enableVillagerMailingPlayers;
-
-    // 税收和村庄系统配置
-    public int taxSeason;
-    public float taxesFactor;
-    public int minBuildingSize;
-    public int maxBuildingSize;
-    public int maxBuildingRadius;
-    public int minimumBuildingsToBeConsideredAVillage;
-    public boolean enableAutoScanByDefault;
-
     public Config(FMLPreInitializationEvent event) {
         config = new Configuration(event.getSuggestedConfigurationFile());
         addConfigValues();
@@ -110,18 +98,6 @@ public final class Config implements Serializable {
         traitInheritChance = (float) config.get("Genetics", "Trait Inherit Chance", 0.5, "Chance for a trait to be inherited. (0.0-1.0)").getDouble();
         geneticImmigrantChance = (float) config.get("Genetics", "Genetic Immigrant Chance", 0.1, "Chance for a villager to be an 'immigrant' with random genes. (0.0-1.0)").getDouble();
         traitChance = (float) config.get("Genetics", "Trait Chance", 0.1, "Base chance for a villager to have a trait. (0.0-1.0)").getDouble();
-
-        // 信件/邮件系统配置
-        enableVillagerMailingPlayers = config.get("General", "Enable Villager Mailing Players", true, "Enables MCA villagers to send letters or mail to players.").getBoolean();
-
-        // 税收和村庄系统配置
-        taxSeason = config.get("General", "Tax Season", 24000, "Ticks between tax collections. 24000 = 1 Minecraft day.").getInt();
-        taxesFactor = (float) config.get("General", "Taxes Factor", 1.0, "Multiplier for tax calculations.").getDouble();
-        minBuildingSize = config.get("General", "Min Building Size", 32, "Minimum blocks for a valid building.").getInt();
-        maxBuildingSize = config.get("General", "Max Building Size", 1024, "Maximum blocks for a valid building.").getInt();
-        maxBuildingRadius = config.get("General", "Max Building Radius", 32, "Maximum radius for building detection.").getInt();
-        minimumBuildingsToBeConsideredAVillage = config.get("General", "Minimum Buildings For Village", 3, "Minimum buildings required to form a village.").getInt();
-        enableAutoScanByDefault = config.get("General", "Enable Auto Scan By Default", true, "Enable automatic building scanning by default.").getBoolean();
 
         config.save();
     }

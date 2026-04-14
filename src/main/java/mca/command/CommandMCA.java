@@ -3,14 +3,11 @@ package mca.command;
 import mca.core.Constants;
 import mca.core.MCA;
 import mca.core.MCAServer;
-import mca.entity.data.PlayerSaveData;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.TextComponentString;
 
@@ -81,9 +78,6 @@ public class CommandMCA extends CommandBase {
                         player.sendMessage(new TextComponentString("Player not found on the server."));
                     }
                     break;
-                case "mail":
-                    handleMailCommand(player);
-                    break;
                 default:
                     throw new WrongUsageException("");
             }
@@ -124,28 +118,7 @@ public class CommandMCA extends CommandBase {
         sendMessage(commandSender, Constants.Color.WHITE + " /mca reject <PlayerName>" + Constants.Color.GOLD + " - Rejects the player's marriage request.", true);
         sendMessage(commandSender, Constants.Color.WHITE + " /mca procreate " + Constants.Color.GOLD + " - Starts procreation.", true);
         sendMessage(commandSender, Constants.Color.WHITE + " /mca separate " + Constants.Color.GOLD + " - Ends your marriage.", true);
-        sendMessage(commandSender, Constants.Color.WHITE + " /mca mail " + Constants.Color.GOLD + " - Collects your mail from villagers.", true);
         sendMessage(commandSender, Constants.Color.DARKRED + "--- " + Constants.Color.GOLD + "GLOBAL COMMANDS" + Constants.Color.DARKRED + " ---", true);
         sendMessage(commandSender, Constants.Color.WHITE + " /mca help " + Constants.Color.GOLD + " - Shows this list of commands.", true);
-    }
-
-    private void handleMailCommand(EntityPlayer player) {
-        PlayerSaveData data = PlayerSaveData.get(player);
-        if (data.hasMail()) {
-            int count = 0;
-            while (data.hasMail()) {
-                ItemStack mail = data.getMail();
-                if (mail != null) {
-                    if (!player.inventory.addItemStackToInventory(mail)) {
-                        // 如果背包满了，掉落物品
-                        player.dropItem(mail, false);
-                    }
-                    count++;
-                }
-            }
-            player.sendMessage(new TextComponentString(Constants.Color.GREEN + "You received " + count + " letter(s) from villagers!"));
-        } else {
-            player.sendMessage(new TextComponentString(Constants.Color.YELLOW + "You have no mail."));
-        }
     }
 }
