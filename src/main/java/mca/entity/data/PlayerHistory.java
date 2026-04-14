@@ -155,7 +155,8 @@ public class PlayerHistory {
     }
 
     public void update() {
-        if (villager.ticksExisted % MCA.getConfig().interactionFatigueCooldown == 0) {
+        int cooldown = MCA.getConfig().interactionFatigueCooldown;
+        if (cooldown > 0 && villager.ticksExisted % cooldown == 0) {
             if (interactionFatigue > 0) {
                 changeInteractionFatigue(-1);
             }
