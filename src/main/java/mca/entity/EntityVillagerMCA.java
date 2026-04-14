@@ -940,16 +940,24 @@ public class EntityVillagerMCA extends EntityVillager {
             }
             
             if (progress >= 1.0F) {
-                // Transformation
-                EntityZombieVillager zombie = new EntityZombieVillager(world);
+                // Transformation to MCA Zombie Villager
+                EntityZombieVillagerMCA zombie = new EntityZombieVillagerMCA(world);
                 zombie.copyLocationAndAnglesFrom(this);
-                zombie.onInitialSpawn(world.getDifficultyForLocation(new BlockPos(zombie)), null);
                 
-                // Try to keep the profession if possible
-                // 1.12.2 ZombieVillager uses the same profession IDs as Villager
-                try {
-                    zombie.setForgeProfession(getProfessionForge());
-                } catch (Exception ignored) {}
+                // Copy gender
+                zombie.setGender(EnumGender.byId(get(GENDER)));
+                
+                // Copy genetics
+                zombie.setGeneticsTag(get(GENETICS));
+                
+                // Copy traits
+                zombie.setTraitsTag(get(TRAITS));
+                
+                // Copy age state
+                zombie.setAgeState(EnumAgeState.byId(get(AGE_STATE)));
+                if (isChild()) {
+                    zombie.setChild(true);
+                }
 
                 world.removeEntity(this);
                 world.spawnEntity(zombie);

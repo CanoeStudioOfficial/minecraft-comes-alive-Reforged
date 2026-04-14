@@ -12,6 +12,7 @@ import mca.core.minecraft.ItemsMCA;
 import mca.core.minecraft.ProfessionsMCA;
 import mca.entity.EntityGrimReaper;
 import mca.entity.EntityVillagerMCA;
+import mca.entity.EntityZombieVillagerMCA;
 import mca.enums.EnumGender;
 import mca.mca.Tags;
 import net.minecraft.creativetab.CreativeTabs;
@@ -89,6 +90,7 @@ public class MCA {
     public void init(FMLInitializationEvent event) {
         EntityRegistry.registerModEntity(new ResourceLocation(MODID, "EntityVillagerMCA"), EntityVillagerMCA.class, EntityVillagerMCA.class.getSimpleName(), 1120, this, 50, 2, true);
         EntityRegistry.registerModEntity(new ResourceLocation(MODID, "GrimReaperMCA"), EntityGrimReaper.class, EntityGrimReaper.class.getSimpleName(), 1121, this, 50, 2, true);
+        EntityRegistry.registerModEntity(new ResourceLocation(MODID, "ZombieVillagerMCA"), EntityZombieVillagerMCA.class, EntityZombieVillagerMCA.class.getSimpleName(), 1122, this, 50, 2, true);
 
         // Register TileEntities
         GameRegistry.registerTileEntity(TileEntityTombstone.class, new ResourceLocation(MODID, "tombstone"));
