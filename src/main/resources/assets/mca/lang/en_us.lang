@@ -322,6 +322,13 @@ interaction.relationship.fail.married=I'm already married to someone else.
 interaction.relationship.fail.engaged=I'm already engaged to someone else.
 interaction.relationship.fail.playermarried=You're already married to someone else!
 interaction.relationship.fail.lowhearts=I don't think we're close enough for that yet.
+adult.interaction.relationship.fail.isbaby=I'm too young for that!
+adult.interaction.relationship.fail.isparent=That would be weird... I'm your child!
+adult.interaction.relationship.fail.marriedtogiver=We're already married, silly!
+adult.interaction.relationship.fail.married=I'm already married to someone else.
+adult.interaction.relationship.fail.engaged=I'm already engaged to someone else.
+adult.interaction.relationship.fail.playermarried=You're already married to someone else!
+adult.interaction.relationship.fail.lowhearts=I don't think we're close enough for that yet.
 
 interaction.promise.fail.promised=We've already made that promise!
 interaction.promise.success=Oh, how sweet! I promise to marry you one day!

@@ -318,6 +318,13 @@ interaction.relationship.fail.married=我已经和别人结婚了。
 interaction.relationship.fail.engaged=我已经和别人订婚了。
 interaction.relationship.fail.playermarried=你已经和别人结婚了！
 interaction.relationship.fail.lowhearts=我觉得我们的关系还没到那一步。
+adult.interaction.relationship.fail.isbaby=我还太小，不能考虑这个！
+adult.interaction.relationship.fail.isparent=这太奇怪了……我是你的孩子！
+adult.interaction.relationship.fail.marriedtogiver=我们已经结婚了，傻瓜！
+adult.interaction.relationship.fail.married=我已经和别人结婚了。
+adult.interaction.relationship.fail.engaged=我已经和别人订婚了。
+adult.interaction.relationship.fail.playermarried=你已经和别人结婚了！
+adult.interaction.relationship.fail.lowhearts=我觉得我们的关系还没到那一步。
 
 interaction.promise.fail.promised=我们已经有过这个承诺了！
 interaction.promise.success=哦，太贴心了！我承诺总有一天会嫁给你！
