@@ -15,7 +15,7 @@ public class ZombieSkinLayer extends ZombieVillagerLayer {
     @Override
     protected void renderLayer(EntityZombieVillagerMCA villager, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch, float scale, boolean visible, boolean glowing) {
         ResourceLocation skin = getTexture(villager);
-        if (skin != null && canUse(skin)) {
+        if (skin != null) {
             int color = getColor(villager, partialTicks);
             renderer.bindTexture(skin);
 

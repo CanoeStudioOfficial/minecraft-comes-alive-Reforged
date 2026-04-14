@@ -24,7 +24,7 @@ public class ZombieHairLayer extends ZombieVillagerLayer {
         model.bipedHeadwear.showModel = true;
 
         ResourceLocation hair = getTexture(villager);
-        if (hair != null && canUse(hair)) {
+        if (hair != null) {
             int color = getColor(villager, partialTicks);
             renderer.bindTexture(hair);
 

@@ -1,12 +1,13 @@
 package mca.client.render;
 
-import mca.client.model.ModelVillagerMCA;
+import mca.client.model.ModelZombieVillagerMCA;
 import mca.client.render.layer.ZombieClothingLayer;
 import mca.client.render.layer.ZombieFaceLayer;
 import mca.client.render.layer.ZombieHairLayer;
 import mca.client.render.layer.ZombieSkinLayer;
 import mca.entity.EntityZombieVillagerMCA;
 import mca.enums.EnumGender;
+import net.minecraft.client.model.ModelBiped;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.entity.RenderBiped;
 import net.minecraft.client.renderer.entity.RenderManager;
@@ -20,14 +21,13 @@ public class RenderZombieVillagerMCA extends RenderBiped<EntityZombieVillagerMCA
     private Random rand = new Random();
 
     public RenderZombieVillagerMCA(RenderManager manager) {
-        super(manager, new ModelVillagerMCA(), 0.5F);
+        super(manager, new ModelZombieVillagerMCA(), 0.5F);
 
         // Add layered skin system for zombie villagers
-        ModelVillagerMCA model = (ModelVillagerMCA) this.getMainModel();
-        this.addLayer(new ZombieSkinLayer(this, model));
-        this.addLayer(new ZombieFaceLayer(this, model));
-        this.addLayer(new ZombieHairLayer(this, model));
-        this.addLayer(new ZombieClothingLayer(this, model));
+        this.addLayer(new ZombieSkinLayer(this, this.getMainModel()));
+        this.addLayer(new ZombieFaceLayer(this, this.getMainModel()));
+        this.addLayer(new ZombieHairLayer(this, this.getMainModel()));
+        this.addLayer(new ZombieClothingLayer(this, this.getMainModel()));
 
         this.addLayer(new LayerBipedArmor(this));
         this.addLayer(new LayerHeldItem(this));
@@ -66,6 +66,6 @@ public class RenderZombieVillagerMCA extends RenderBiped<EntityZombieVillagerMCA
     protected ResourceLocation getEntityTexture(EntityZombieVillagerMCA entity) {
         // Return zombie skin texture based on gender
         String gender = entity.getGender() == EnumGender.MALE ? "male" : "female";
-        return new ResourceLocation("mca", "textures/entity/zombievillager_" + gender + ".png");
+        return new ResourceLocation("mca", "skins/skin/" + gender + "/0.png");
     }
 }

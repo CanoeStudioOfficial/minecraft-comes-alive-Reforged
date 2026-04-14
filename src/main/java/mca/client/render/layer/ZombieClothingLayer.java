@@ -15,7 +15,7 @@ public class ZombieClothingLayer extends ZombieVillagerLayer {
     @Override
     protected void renderLayer(EntityZombieVillagerMCA villager, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch, float scale, boolean visible, boolean glowing) {
         ResourceLocation clothes = getTexture(villager);
-        if (clothes != null && canUse(clothes)) {
+        if (clothes != null) {
             renderer.bindTexture(clothes);
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
             model.render(villager, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scale);

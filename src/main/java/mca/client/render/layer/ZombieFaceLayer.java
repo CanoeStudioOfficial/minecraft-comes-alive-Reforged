@@ -26,7 +26,7 @@ public class ZombieFaceLayer extends ZombieVillagerLayer {
         model.bipedHeadwear.showModel = true;
 
         ResourceLocation face = getTexture(villager);
-        if (face != null && canUse(face)) {
+        if (face != null) {
             renderer.bindTexture(face);
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
             GlStateManager.enableBlend();
