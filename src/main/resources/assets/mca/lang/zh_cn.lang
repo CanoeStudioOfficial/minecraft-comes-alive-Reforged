@@ -419,6 +419,14 @@ tooltip.common.shiftforinfo=按住 %v1%SHIFT%v2% 查看详细信息。
 gift.cake.fail=我只会吃蛋糕，如果我的配偶在附近请找到他们！
 
 ##################################
+# Letter/Mail System
+##################################
+item.letter.name=信件
+mca.notification.mail.title=你有新邮件！
+mca.notification.mail.description=使用 /mca mail 来收取你的信件。
+mca.letter.condolence=亲爱的%1$s：\\n\\n我很遗憾地通知你，你的配偶%2$s在%3$s去世了。\\n\\n愿他们安息。\\n\\n此致\\n村庄议会
+
+##################################
 # Responses to interactions
 ##################################
 adult.gift.fail1=这不是个好礼物

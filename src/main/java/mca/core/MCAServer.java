@@ -8,6 +8,7 @@ import mca.entity.data.PlayerSaveData;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.effect.EntityLightningBolt;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
@@ -51,6 +52,15 @@ public class MCAServer {
                 .filter((k) -> procreateMap.get(k) < System.currentTimeMillis())
                 .forEach(removals::add);
         removals.forEach(procreateMap::remove);
+    }
+
+    /**
+     * 玩家登录时调用，检查是否有邮件
+     * @param player 玩家
+     */
+    public void onPlayerLogin(EntityPlayerMP player) {
+        PlayerSaveData data = PlayerSaveData.get(player);
+        data.checkAndShowMailNotification(player);
     }
 
     /**

@@ -13,6 +13,7 @@ import mca.entity.EntityGrimReaper;
 import mca.entity.EntityVillagerMCA;
 import mca.entity.data.*;
 import mca.items.ItemBaby;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -124,6 +125,11 @@ public class EventHooks {
     public void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
         if (!event.player.world.isRemote) {
             PlayerSaveData.get(event.player).updateFamilyTreeNode(event.player);
+
+            // 检查玩家是否有邮件
+            if (event.player instanceof EntityPlayerMP) {
+                MCAServer.get().onPlayerLogin((EntityPlayerMP) event.player);
+            }
         }
     }
 

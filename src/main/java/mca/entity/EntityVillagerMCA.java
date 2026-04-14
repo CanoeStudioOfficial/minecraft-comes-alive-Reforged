@@ -379,6 +379,16 @@ public class EntityVillagerMCA extends EntityVillager {
                         player.sendMessage(new TextComponentString(Constants.Color.RED + MCA.getLocalizer().localize("notify.childdied", get(VILLAGER_NAME), causeName)));
                     });
 
+            // 发送慰问信给配偶（如果是玩家）
+            if (isMarried()) {
+                UUID spouseUUID = get(SPOUSE_UUID).or(Constants.ZERO_UUID);
+                PlayerSaveData spouseData = PlayerSaveData.getExisting(world, spouseUUID);
+                if (spouseData != null) {
+                    String villageName = "Unknown Village"; // 1.12.2版本没有村庄管理系统，使用默认值
+                    spouseData.sendLetterOfCondolence(get(VILLAGER_NAME), villageName);
+                }
+            }
+
             SavedVillagers.get(world).save(this);
             updateFamilyTreeNode();
         }

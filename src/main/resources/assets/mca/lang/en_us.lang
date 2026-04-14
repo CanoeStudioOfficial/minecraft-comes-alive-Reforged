@@ -423,6 +423,14 @@ tooltip.common.shiftforinfo=Hold %v1%SHIFT%v2% for info.
 gift.cake.fail=I will only eat cake if my spouse is nearby...please find them!
 
 ##################################
+# Letter/Mail System
+##################################
+item.letter.name=Letter
+mca.notification.mail.title=You have new mail!
+mca.notification.mail.description=Use /mca mail to collect your letters.
+mca.letter.condolence=Dear %1$s,\\n\\nI am deeply sorry to inform you that your spouse, %2$s, has passed away in %3$s.\\n\\nMay they rest in peace.\\n\\nSincerely,\\nVillage Council
+
+##################################
 # Responses to interactions
 ##################################
 adult.gift.fail1=This isn't a good gift...
