@@ -431,6 +431,82 @@ mca.notification.mail.description=Use /mca mail to collect your letters.
 mca.letter.condolence=Dear %1$s,\\n\\nI am deeply sorry to inform you that your spouse, %2$s, has passed away in %3$s.\\n\\nMay they rest in peace.\\n\\nSincerely,\\nVillage Council
 
 ##################################
+# Blueprint and Building System
+##################################
+item.blueprint.name=Blueprint
+gui.blueprint.title=Blueprint
+gui.blueprint.map=Map
+gui.blueprint.rank=Rank
+gui.blueprint.catalog=Catalog
+gui.blueprint.catalogFull=Building Catalog
+gui.blueprint.catalogHint=Select a building type to see requirements
+gui.blueprint.villagers=Villagers
+gui.blueprint.rules=Rules
+gui.blueprint.refresh=Refresh
+gui.blueprint.empty=No village detected nearby
+gui.blueprint.waiting=Loading village data...
+gui.blueprint.addRoom=Add Room
+gui.blueprint.addBuilding=Add Building
+gui.blueprint.removeBuilding=Remove
+gui.blueprint.advanced=Advanced
+gui.blueprint.autoScan=Auto Scan
+gui.blueprint.autoScan.tooltip=Automatically scan for new buildings
+gui.blueprint.restrictAccess=Restrict Access
+gui.blueprint.renameVillage=Rename Village
+gui.blueprint.rename=Rename
+gui.blueprint.cancel=Cancel
+gui.blueprint.settlement=Settlement
+gui.blueprint.currentRank=Current Rank: %s
+gui.blueprint.reputation=Reputation: %s
+gui.blueprint.buildings=Buildings: %s
+gui.blueprint.population=Population: %s/%s
+gui.blueprint.taxes=Taxes
+gui.blueprint.birth=Birth Threshold
+gui.blueprint.marriage=Marriage Threshold
+gui.blueprint.rankTooLow=Rank too low
+gui.blueprint.tooltip.taxes=Adjust tax rate (affects villager mood)
+gui.blueprint.tooltip.births=Adjust population growth threshold
+gui.blueprint.tooltip.marriage=Adjust marriage threshold
+blueprint.refreshed=Village data refreshed
+
+# Building Types
+buildingType.building=Building
+buildingType.house=House
+buildingType.storage=Storage
+buildingType.library=Library
+buildingType.inn=Inn
+buildingType.graveyard=Graveyard
+buildingType.town_center=Town Center
+buildingType.blacksmith=Blacksmith
+buildingType.bakery=Bakery
+buildingType.armorer=Armorer
+buildingType.armory=Armory
+buildingType.big_house=Big House
+buildingType.blocked=Blocked
+buildingType.bookkeeper=Bookkeeper
+buildingType.butcher=Butcher
+buildingType.cartographer=Cartographer
+buildingType.fishermans_hut=Fisherman's Hut
+buildingType.fletcher=Fletcher
+buildingType.infirmary=Infirmary
+buildingType.leatherworker=Leatherworker
+buildingType.mason=Mason
+buildingType.music_store=Music Store
+buildingType.prison=Prison
+buildingType.toolsmith=Toolsmith
+buildingType.weaponsmith=Weaponsmith
+buildingType.weaving_mill=Weaving Mill
+
+# Village Messages
+gui.village.taxes=Taxes collected from %s
+gui.village.taxes.no=No taxes collected from %s
+gui.village.taxes.more=Extra taxes collected from %s
+gui.village.taxes.happy=Villagers in %s are happy with the tax rate
+gui.village.taxes.sad=Villagers in %s are unhappy with the tax rate
+gui.village.taxes.angry=Villagers in %s are angry about the taxes
+gui.village.taxes.riot=Tax riot in %s! No taxes collected.
+
+##################################
 # Responses to interactions
 ##################################
 adult.gift.fail1=This isn't a good gift...
