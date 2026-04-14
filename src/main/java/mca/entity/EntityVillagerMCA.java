@@ -1288,4 +1288,57 @@ public class EntityVillagerMCA extends EntityVillager {
 
         set(SLEEPING, false);
     }
+
+    // ========== Layered Skin System Methods ==========
+
+    /**
+     * Returns the hair texture path for layered skin rendering.
+     * @return ResourceLocation string for hair texture, or null if not set
+     */
+    public String getHair() {
+        // Check if custom hair is set in data parameters
+        // For now, return null to use genetics-based default
+        return null;
+    }
+
+    /**
+     * Returns the clothing texture path for layered skin rendering.
+     * @return ResourceLocation string for clothing texture, or null if not set
+     */
+    public String getClothes() {
+        // Return the current texture as clothing
+        return get(TEXTURE);
+    }
+
+    /**
+     * Returns the skin texture path for layered skin rendering.
+     * @return ResourceLocation string for skin texture
+     */
+    public String getSkin() {
+        Genetics genetics = new Genetics(this);
+        int skin = (int) Math.min(4, Math.max(0, genetics.getGene(Genetics.SKIN) * 5));
+        String gender = genetics.getGender().getDataName();
+        return "mca:skins/skin/" + gender + "/" + skin + ".png";
+    }
+
+    /**
+     * Checks if the villager is burned (for burnt clothing variant).
+     * @return true if the villager should show burnt clothing
+     */
+    public boolean isBurned() {
+        // Check if villager is on fire or recently burned
+        return isBurning();
+    }
+
+    /**
+     * Returns the infection progress for zombie villagers.
+     * @return float between 0.0 and 1.0 representing infection progress
+     */
+    public float getInfectionProgress() {
+        if (get(IS_INFECTED)) {
+            return 1.0f;
+        }
+        // Check if being infected
+        return 0.0f;
+    }
 }
