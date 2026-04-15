@@ -56,6 +56,9 @@ public class EntityGrimReaper extends EntityMob {
         this.tasks.addTask(6, new EntityAILookIdle(this));
         this.targetTasks.addTask(1, new EntityAIHurtByTarget(this, false, new Class[0]));
         this.targetTasks.addTask(2, aiNearestAttackableTarget);
+
+        // 设置死神手持镰刀
+        this.setItemStackToSlot(EntityEquipmentSlot.MAINHAND, new ItemStack(ItemsMCA.SCYTHE));
     }
 
     @Override

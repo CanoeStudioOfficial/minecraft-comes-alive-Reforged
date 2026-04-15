@@ -49,6 +49,13 @@ public abstract class VillagerLayer implements LayerRenderer<EntityVillagerMCA> 
 
     protected boolean canUse(ResourceLocation texture) {
         if (texture == null) return false;
+
+        // 对于mca:skins/路径的虚拟贴图，直接返回true
+        // 这些贴图由皮肤系统动态管理
+        if (texture.getNamespace().equals("mca") && texture.getPath().startsWith("skins/")) {
+            return true;
+        }
+
         try {
             return Minecraft.getMinecraft().getResourceManager().getResource(texture) != null;
         } catch (Exception e) {
