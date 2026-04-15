@@ -550,8 +550,10 @@ public class EntityVillagerMCA extends EntityVillager {
 
     private void setSizeForAge() {
         EnumAgeState age = EnumAgeState.byId(get(AGE_STATE));
-        this.setSize(age.getWidth(), age.getHeight());
-        this.setScale(1.0F); // trigger rebuild of the bounding box
+        // setSize的参数是半宽度和高度，Minecraft会自动计算碰撞箱
+        // 对于BABY: width=0.45, height=0.4 -> 碰撞箱为0.45宽 x 0.4高
+        // 对于ADULT: width=1.0, height=1.0 -> 碰撞箱为1.0宽 x 1.0高（相对于基础大小）
+        this.setSize(age.getWidth() * 0.6F, age.getHeight() * 1.8F);
     }
 
     private void toggleMount(EntityPlayerMP player) {
@@ -908,6 +910,7 @@ public class EntityVillagerMCA extends EntityVillager {
     private void onEachServerUpdate() {
         if (this.ticksExisted % 20 == 0) { // Every second
             onEachServerSecond();
+            this.setSizeForAge(); // 同步服务器端碰撞箱
         }
 
         if (this.ticksExisted % 200 == 0 && this.getHealth() > 0.0F) { // Every 10 seconds and when we're not already dead
@@ -921,6 +924,7 @@ public class EntityVillagerMCA extends EntityVillager {
             EnumAgeState target = EnumAgeState.byCurrentAge(startingAge, getGrowingAge());
             if (current != target) {
                 set(AGE_STATE, target.getId());
+                this.setSizeForAge(); // 年龄阶段变化时立即更新碰撞箱
             }
         }
     }
