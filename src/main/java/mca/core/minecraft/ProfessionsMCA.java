@@ -244,4 +244,86 @@ public class ProfessionsMCA {
         }
         return false;
     }
+
+    // ==================== 动态职业操作方法 ====================
+
+    /**
+     * 根据职业ID获取职业
+     * @param id 职业ID（如 "minecraft:farmer" 或 "farmer"）
+     * @return 职业对象，如果不存在则返回null
+     */
+    public static VillagerProfession getProfessionById(String id) {
+        if (registry == null) return null;
+        
+        // 尝试直接获取
+        ResourceLocation rl = new ResourceLocation(id);
+        VillagerProfession profession = registry.getValue(rl);
+        if (profession != null) {
+            return profession;
+        }
+        
+        // 尝试只匹配路径名
+        for (ResourceLocation key : registry.getKeys()) {
+            if (key.getPath().equalsIgnoreCase(id)) {
+                return registry.getValue(key);
+            }
+        }
+        
+        return null;
+    }
+
+    /**
+     * 检查职业ID是否有效
+     */
+    public static boolean isValidProfession(String id) {
+        return getProfessionById(id) != null;
+    }
+
+    /**
+     * 获取所有注册的职业列表
+     */
+    public static List<VillagerProfession> getAllProfessions() {
+        List<VillagerProfession> list = new ArrayList<>();
+        if (registry != null) {
+            for (ResourceLocation key : registry.getKeys()) {
+                VillagerProfession profession = registry.getValue(key);
+                if (profession != null) {
+                    list.add(profession);
+                }
+            }
+        }
+        return list;
+    }
+
+    /**
+     * 获取所有职业ID列表
+     */
+    public static List<String> getAllProfessionIds() {
+        List<String> list = new ArrayList<>();
+        if (registry != null) {
+            for (ResourceLocation key : registry.getKeys()) {
+                list.add(key.toString());
+            }
+        }
+        return list;
+    }
+
+    /**
+     * 检查村民是否是指定职业
+     * @param villagerProfession 村民的职业
+     * @param professionId 要检查的职业ID（支持完整ID或路径名）
+     */
+    public static boolean isProfession(VillagerProfession villagerProfession, String professionId) {
+        if (villagerProfession == null) return false;
+        ResourceLocation registryName = villagerProfession.getRegistryName();
+        if (registryName == null) return false;
+        
+        // 完整ID匹配
+        if (registryName.toString().equalsIgnoreCase(professionId)) {
+            return true;
+        }
+        
+        // 路径名匹配
+        return registryName.getPath().equalsIgnoreCase(professionId);
+    }
 }
