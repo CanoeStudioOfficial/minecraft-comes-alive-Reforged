@@ -6,6 +6,7 @@ import mca.core.Constants;
 import mca.core.MCA;
 import mca.core.forge.NetMCA;
 import mca.entity.EntityVillagerMCA;
+import mca.entity.data.Genetics;
 import mca.entity.data.ParentData;
 import mca.entity.data.PlayerHistory;
 import mca.enums.EnumMarriageState;
@@ -44,6 +45,7 @@ public class GuiInteract extends GuiScreen {
     private int redHeartIconU = 80;
     private int blackHeartIconU = 96;
     private int goldHeartIconU = 112;
+    private int genesIconU = 160; // 基因图标在gui.png中的位置
 
     private int mouseX;
     private int mouseY;
@@ -155,10 +157,11 @@ public class GuiInteract extends GuiScreen {
             this.mc.getTextureManager().bindTexture(ICON_TEXTURES);
             this.drawTexturedModalRect(5, 15, heartIconU, 0, 16, 16);
             this.drawTexturedModalRect(5, 30, marriageIconU, 0, 16, 16);
+            this.drawTexturedModalRect(5, 45, genesIconU, 0, 16, 16); // 基因图标
 
-            if (canDrawParentsIcon()) this.drawTexturedModalRect(5, 45, parentsIconU, 0, 16, 16);
+            if (canDrawParentsIcon()) this.drawTexturedModalRect(5, 60, parentsIconU, 0, 16, 16);
 
-            if (canDrawGiftIcon()) this.drawTexturedModalRect(5, 60, giftIconU, 0, 16, 16);
+            if (canDrawGiftIcon()) this.drawTexturedModalRect(5, 75, giftIconU, 0, 16, 16);
         }
         GL11.glPopMatrix();
     }
@@ -182,12 +185,27 @@ public class GuiInteract extends GuiScreen {
 
             this.drawHoveringText(marriageInfo, 35, 85);
         }
-        if (canDrawParentsIcon() && hoveringOverParentsIcon()) {
-            ParentData data = ParentData.fromNBT(villager.get(EntityVillagerMCA.PARENTS));
-            this.drawHoveringText(MCA.getLocalizer().localize("gui.interact.label.parents", data.getParent1Name(), data.getParent2Name()), 35, 115);
+        if (hoveringOverGenesIcon()) {
+            java.util.List<String> lines = new java.util.ArrayList<>();
+            lines.add("§bGenes");
+            
+            Genetics genetics = new Genetics(villager);
+            lines.add("Size: " + (int)(genetics.getGene(Genetics.SIZE) * 100) + "%");
+            lines.add("Width: " + (int)(genetics.getGene(Genetics.WIDTH) * 100) + "%");
+            lines.add("Melanin: " + (int)(genetics.getGene(Genetics.MELANIN) * 100) + "%");
+            lines.add("Hemoglobin: " + (int)(genetics.getGene(Genetics.HEMOGLOBIN) * 100) + "%");
+            lines.add("Eumelanin: " + (int)(genetics.getGene(Genetics.EUMELANIN) * 100) + "%");
+            lines.add("Pheomelanin: " + (int)(genetics.getGene(Genetics.PHEOMELANIN) * 100) + "%");
+            
+            this.drawHoveringText(lines, 35, 100);
         }
 
-        if (canDrawGiftIcon() && hoveringOverGiftIcon()) this.drawHoveringText(MCA.getLocalizer().localize("gui.interact.label.gift"), 35, 145);
+        if (canDrawParentsIcon() && hoveringOverParentsIcon()) {
+            ParentData data = ParentData.fromNBT(villager.get(EntityVillagerMCA.PARENTS));
+            this.drawHoveringText(MCA.getLocalizer().localize("gui.interact.label.parents", data.getParent1Name(), data.getParent2Name()), 35, 130);
+        }
+
+        if (canDrawGiftIcon() && hoveringOverGiftIcon()) this.drawHoveringText(MCA.getLocalizer().localize("gui.interact.label.gift"), 35, 160);
     }
 
     private boolean hoveringOverHeartsIcon() {
@@ -203,7 +221,11 @@ public class GuiInteract extends GuiScreen {
     }
 
     private boolean hoveringOverGiftIcon() {
-        return mouseX <= 32 && mouseX >= 16 && mouseY >= 124 && mouseY <= 148;
+        return mouseX <= 32 && mouseX >= 16 && mouseY >= 150 && mouseY <= 166;
+    }
+
+    private boolean hoveringOverGenesIcon() {
+        return mouseX <= 32 && mouseX >= 16 && mouseY >= 90 && mouseY <= 106;
     }
 
     private boolean canDrawParentsIcon() {

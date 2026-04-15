@@ -200,6 +200,25 @@ public class BlockTombstone extends Block implements ITileEntityProvider {
         super.breakBlock(worldIn, pos, state);
     }
 
+    @Override
+    public boolean canProvidePower(IBlockState state) {
+        return true;
+    }
+
+    @Override
+    public int getWeakPower(IBlockState blockState, IBlockAccess blockAccess, BlockPos pos, EnumFacing side) {
+        return blockState.getValue(FACING) == side ? getStrongPower(blockState, blockAccess, pos, side) : 0;
+    }
+
+    @Override
+    public int getStrongPower(IBlockState blockState, IBlockAccess blockAccess, BlockPos pos, EnumFacing side) {
+        TileEntity tile = blockAccess.getTileEntity(pos);
+        if (tile instanceof TileEntityTombstone) {
+            return ((TileEntityTombstone) tile).hasEntity() ? 15 : 0;
+        }
+        return 0;
+    }
+
     public int getLineWidth() {
         return lineWidth;
     }
