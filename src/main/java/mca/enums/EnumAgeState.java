@@ -1,35 +1,38 @@
 package mca.enums;
 
 import mca.core.MCA;
+import net.minecraft.util.math.MathHelper;
 
 import java.util.Arrays;
 import java.util.Optional;
 
 public enum EnumAgeState {
-    UNASSIGNED(-1, 0.8f, 2.0f, 1.5f, 0.9f, 1.0f, 1.0f, 1.0f),
-    BABY(0, 0.3f, 0.5f, 0.4f, 0.45f, 0.4f, 1.5f, 0.0f),
-    TODDLER(1, 0.3f, 0.6f, 0.5f, 0.6f, 0.55f, 1.3f, 0.65f),
-    CHILD(2, 0.5f, 1.1f, 1f, 0.7f, 0.65f, 1.2f, 0.9f),
-    TEEN(3, 0.6f, 1.6f, 1.35f, 0.85f, 0.85f, 1.0f, 1.05f),
-    ADULT(4, 0.8f, 2f, 1.5f, 1.0f, 1.0f, 1.0f, 1.0f);
+    // 参数: id, width(模型宽度), height(模型高度), breasts(胸部发育), head(头部缩放), speed(移动速度), pitch(音调)
+    UNASSIGNED(-1, 1.0f, 0.9f, 1.0f, 1.0f, 1.0f, 1.0f),
+    BABY(0, 0.45f, 0.4f, 0.0f, 1.5f, 0.0f, 1.6f),
+    TODDLER(1, 0.6f, 0.55f, 0.0f, 1.3f, 0.65f, 1.4f),
+    CHILD(2, 0.7f, 0.65f, 0.0f, 1.2f, 0.9f, 1.2f),
+    TEEN(3, 0.85f, 0.85f, 0.5f, 1.0f, 1.05f, 1.0f),
+    ADULT(4, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
 
-    private int id;
-    private float width;
-    private float height;
-    private float scaleForAge;
-    private float modelWidth;
-    private float modelHeight;
-    private float headScale;
-    private float pitch;
+    private static final EnumAgeState[] VALUES = values();
+    private static final int MAX_AGE = 24000; // 默认最大年龄 (20分钟 = 24000 ticks)
 
-    EnumAgeState(int id, float width, float height, float scaleForAge, float modelWidth, float modelHeight, float headScale, float pitch) {
+    private final int id;
+    private final float width;      // 模型宽度
+    private final float height;     // 模型高度
+    private final float breasts;    // 胸部发育程度
+    private final float head;       // 头部缩放
+    private final float speed;      // 移动速度
+    private final float pitch;      // 音调
+
+    EnumAgeState(int id, float width, float height, float breasts, float head, float speed, float pitch) {
         this.id = id;
         this.width = width;
         this.height = height;
-        this.scaleForAge = scaleForAge;
-        this.modelWidth = modelWidth;
-        this.modelHeight = modelHeight;
-        this.headScale = headScale;
+        this.breasts = breasts;
+        this.head = head;
+        this.speed = speed;
         this.pitch = pitch;
     }
 
@@ -45,29 +48,54 @@ public enum EnumAgeState {
         return height;
     }
 
-    public float getScaleForAge() {
-        return scaleForAge;
+    public float getBreasts() {
+        return breasts;
     }
 
-    public float getModelWidth() {
-        return modelWidth;
+    public float getHead() {
+        return head;
     }
 
-    public float getModelHeight() {
-        return modelHeight;
-    }
-
-    public float getHeadScale() {
-        return headScale;
+    public float getSpeed() {
+        return speed;
     }
 
     public float getPitch() {
         return pitch;
     }
 
+    public static int getMaxAge() {
+        return MAX_AGE;
+    }
+
+    public static int getStageDuration() {
+        return getMaxAge() / 4;
+    }
+
     public static EnumAgeState byId(int id) {
-        Optional<EnumAgeState> state = Arrays.stream(values()).filter((e) -> e.id == id).findFirst();
-        return state.orElse(UNASSIGNED);
+        if (id < 0 || id >= VALUES.length) {
+            return UNASSIGNED;
+        }
+        return VALUES[id];
+    }
+
+    public static EnumAgeState random() {
+        return byCurrentAge((int) (-MCA.getRandom().nextFloat() * getMaxAge()));
+    }
+
+    /**
+     * Returns a float ranging from 0 to 1 representing the progress between stages.
+     */
+    public static float getDelta(float age) {
+        return 1 - (-age % getStageDuration()) / getStageDuration();
+    }
+
+    public static int getIdByAge(int age) {
+        return MathHelper.clamp(1 + (age + getMaxAge()) / getStageDuration(), 0, 5);
+    }
+
+    public static EnumAgeState byCurrentAge(int age) {
+        return byId(getIdByAge(age));
     }
 
     public static EnumAgeState byCurrentAge(int startingAge, int growingAge) {
@@ -91,10 +119,18 @@ public enum EnumAgeState {
         return MCA.getLocalizer().localize("enum.agestate." + name().toLowerCase());
     }
 
+    public String getName() {
+        return name().toLowerCase();
+    }
+
     public EnumAgeState getNext() {
         if (this == ADULT) {
             return this;
         }
-        return byId(id + 1);
+        return byId(ordinal());
+    }
+
+    public int toAge() {
+        return (ordinal() - 1) * getStageDuration() - getMaxAge();
     }
 }

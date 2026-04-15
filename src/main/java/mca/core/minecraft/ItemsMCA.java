@@ -35,6 +35,7 @@ public final class ItemsMCA {
     public static final Item WHISTLE = new ItemWhistle();
     public static final Item CRYSTAL_BALL = new ItemCrystalBall();
     public static final Item FAMILY_TREE = new ItemFamilyTree();
+    public static final Item SCYTHE = new ItemScythe();
 
     private static final List<Item> ITEMS = new ArrayList<>();
 
