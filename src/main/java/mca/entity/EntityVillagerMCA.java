@@ -110,6 +110,9 @@ public class EntityVillagerMCA extends EntityVillager {
     public float renderOffsetY;
     public float renderOffsetZ;
 
+    // 可变尺寸，用于平滑过渡
+    private final VillagerDimensions.Mutable dimensions = new VillagerDimensions.Mutable(EnumAgeState.UNASSIGNED);
+
     public EntityVillagerMCA() {
         super(null);
         inventory = null;
@@ -473,6 +476,26 @@ public class EntityVillagerMCA extends EntityVillager {
         setGrowingAge(value);
     }
 
+    @Override
+    public void setGrowingAge(int age) {
+        super.setGrowingAge(age);
+
+        // 同步更新年龄状态和尺寸
+        // 类似于1.21.1的setAge方法
+        EnumAgeState current = EnumAgeState.byCurrentAge(startingAge, age);
+        set(AGE_STATE, current.getId());
+
+        EnumAgeState next = current.getNext();
+        if (current != next) {
+            dimensions.interpolate(current, next, EnumAgeState.getDelta(age));
+        } else {
+            dimensions.set(current);
+        }
+
+        // 立即刷新碰撞箱
+        refreshDimensions();
+    }
+
     public float getInfectionProgress() {
         return get(INFECTION_PROGRESS);
     }
@@ -548,12 +571,37 @@ public class EntityVillagerMCA extends EntityVillager {
         ObfuscationReflectionHelper.setPrivateValue(EntityVillager.class, this, careerId, VANILLA_CAREER_ID_FIELD_INDEX);
     }
 
+    /**
+     * 刷新尺寸 - 根据当前年龄状态计算并应用碰撞箱尺寸
+     * 类似于1.21.1的refreshDimensions方法
+     */
+    public void refreshDimensions() {
+        EnumAgeState current = EnumAgeState.byId(get(AGE_STATE));
+        EnumAgeState next = current.getNext();
+
+        // 在两个年龄阶段之间插值，实现平滑过渡
+        if (next != current) {
+            dimensions.interpolate(current, next, EnumAgeState.getDelta(getGrowingAge()));
+        } else {
+            dimensions.set(current);
+        }
+
+        // 应用计算后的尺寸到碰撞箱
+        // 基础尺寸：成人村民 0.6宽 x 1.8高
+        float width = dimensions.getWidth() * 0.6F;
+        float height = dimensions.getHeight() * 1.8F;
+        this.setSize(width, height);
+    }
+
+    /**
+     * 获取当前计算的尺寸
+     */
+    public VillagerDimensions getVillagerDimensions() {
+        return dimensions;
+    }
+
     private void setSizeForAge() {
-        EnumAgeState age = EnumAgeState.byId(get(AGE_STATE));
-        // setSize的参数是半宽度和高度，Minecraft会自动计算碰撞箱
-        // 对于BABY: width=0.45, height=0.4 -> 碰撞箱为0.45宽 x 0.4高
-        // 对于ADULT: width=1.0, height=1.0 -> 碰撞箱为1.0宽 x 1.0高（相对于基础大小）
-        this.setSize(age.getWidth() * 0.6F, age.getHeight() * 1.8F);
+        refreshDimensions();
     }
 
     private void toggleMount(EntityPlayerMP player) {
@@ -904,13 +952,15 @@ public class EntityVillagerMCA extends EntityVillager {
     }
 
     private void onEachClientSecond() {
-        this.setSizeForAge();
+        // 使用refreshDimensions确保客户端和服务器同步
+        this.refreshDimensions();
     }
 
     private void onEachServerUpdate() {
         if (this.ticksExisted % 20 == 0) { // Every second
             onEachServerSecond();
-            this.setSizeForAge(); // 同步服务器端碰撞箱
+            // 尺寸更新现在由setGrowingAge处理，这里只需要确保同步
+            this.refreshDimensions();
         }
 
         if (this.ticksExisted % 200 == 0 && this.getHealth() > 0.0F) { // Every 10 seconds and when we're not already dead
@@ -919,14 +969,8 @@ public class EntityVillagerMCA extends EntityVillager {
             }
         }
 
-        if (isChild()) {
-            EnumAgeState current = EnumAgeState.byId(get(AGE_STATE));
-            EnumAgeState target = EnumAgeState.byCurrentAge(startingAge, getGrowingAge());
-            if (current != target) {
-                set(AGE_STATE, target.getId());
-                this.setSizeForAge(); // 年龄阶段变化时立即更新碰撞箱
-            }
-        }
+        // 年龄状态更新现在由setGrowingAge处理
+        // 不需要在这里重复更新
     }
 
     private void onEachServerSecond() {

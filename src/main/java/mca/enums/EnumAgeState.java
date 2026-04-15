@@ -1,12 +1,13 @@
 package mca.enums;
 
 import mca.core.MCA;
+import mca.entity.VillagerDimensions;
 import net.minecraft.util.math.MathHelper;
 
 import java.util.Arrays;
 import java.util.Optional;
 
-public enum EnumAgeState {
+public enum EnumAgeState implements VillagerDimensions {
     // 参数: id, width(模型宽度), height(模型高度), breasts(胸部发育), head(头部缩放), speed(移动速度), pitch(音调)
     UNASSIGNED(-1, 1.0f, 0.9f, 1.0f, 1.0f, 1.0f, 1.0f),
     BABY(0, 0.45f, 0.4f, 0.0f, 1.5f, 0.0f, 1.6f),
@@ -127,7 +128,7 @@ public enum EnumAgeState {
         if (this == ADULT) {
             return this;
         }
-        return byId(ordinal());
+        return byId(ordinal() + 1);
     }
 
     public int toAge() {
