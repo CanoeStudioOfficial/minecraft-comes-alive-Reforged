@@ -7,6 +7,7 @@ import mca.core.minecraft.ItemsMCA;
 import mca.entity.EntityGrimReaper;
 import mca.entity.EntityVillagerMCA;
 import mca.entity.data.PlayerSaveData;
+import mca.enums.EnumGender;
 import mca.items.ItemBaby;
 import mca.util.Util;
 import net.minecraft.command.CommandBase;
@@ -64,6 +65,8 @@ public class CommandAdminMCA extends CommandBase {
                 case "rvd": resetVillagerData(player, arguments); break;
                 case "rpd": resetPlayerData(player, arguments); break;
                 case "cve": clearVillagerEditors(player); break;
+                case "svm": spawnVillagerMale(player); break;
+                case "svf": spawnVillagerFemale(player); break;
                 default: throw new WrongUsageException("");
             }
         } catch (ClassCastException e) {
@@ -181,6 +184,20 @@ public class CommandAdminMCA extends CommandBase {
         sendMessage(sender, "All villager editors cleared from inventories.");
     }
 
+    private void spawnVillagerMale(EntityPlayer player) {
+        EntityVillagerMCA villager = new EntityVillagerMCA(player.world, Optional.absent(), Optional.of(EnumGender.MALE));
+        villager.setPosition(player.posX, player.posY, player.posZ);
+        player.world.spawnEntity(villager);
+        sendMessage(player, Constants.Color.GREEN + "Spawned male villager: " + villager.get(EntityVillagerMCA.VILLAGER_NAME));
+    }
+
+    private void spawnVillagerFemale(EntityPlayer player) {
+        EntityVillagerMCA villager = new EntityVillagerMCA(player.world, Optional.absent(), Optional.of(EnumGender.FEMALE));
+        villager.setPosition(player.posX, player.posY, player.posZ);
+        player.world.spawnEntity(villager);
+        sendMessage(player, Constants.Color.GREEN + "Spawned female villager: " + villager.get(EntityVillagerMCA.VILLAGER_NAME));
+    }
+
     @Override
     public int getRequiredPermissionLevel() {
         return 4;
@@ -211,6 +228,8 @@ public class CommandAdminMCA extends CommandBase {
         sendMessage(commandSender, Constants.Color.WHITE + " /mca-admin rvd <UUID>" + Constants.Color.GOLD + " - Resets the given villager.", true);
         sendMessage(commandSender, Constants.Color.WHITE + " /mca-admin rpd <PlayerName>" + Constants.Color.GOLD + " - Resets the given player's MCA data.", true);
         sendMessage(commandSender, Constants.Color.WHITE + " /mca-admin cve" + Constants.Color.GOLD + " - Remove all villager editors from the game.", true);
+        sendMessage(commandSender, Constants.Color.WHITE + " /mca-admin svm" + Constants.Color.GOLD + " - Spawn a male villager at your location.", true);
+        sendMessage(commandSender, Constants.Color.WHITE + " /mca-admin svf" + Constants.Color.GOLD + " - Spawn a female villager at your location.", true);
 
         sendMessage(commandSender, Constants.Color.DARKRED + "--- " + Constants.Color.GOLD + "GLOBAL COMMANDS" + Constants.Color.DARKRED + " ---", true);
         sendMessage(commandSender, Constants.Color.WHITE + " /mca-admin help " + Constants.Color.GOLD + " - Shows this list of commands.", true);
