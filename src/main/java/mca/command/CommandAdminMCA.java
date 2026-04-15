@@ -4,7 +4,6 @@ import com.google.common.base.Optional;
 import mca.core.Constants;
 import mca.core.MCA;
 import mca.core.minecraft.ItemsMCA;
-import mca.entity.EntityGrimReaper;
 import mca.entity.EntityVillagerMCA;
 import mca.entity.data.PlayerSaveData;
 import mca.items.ItemBaby;
@@ -58,8 +57,6 @@ public class CommandAdminMCA extends CommandBase {
                 case "clv": clearLoadedVillagers(player);break;
                 case "inh": incrementHearts(player); break;
                 case "deh": decrementHearts(player); break;
-                case "sgr": spawnGrimReaper(player); break;
-                case "kgr": killGrimReaper(player); break;
                 case "dpd": dumpPlayerData(player); break;
                 case "rvd": resetVillagerData(player, arguments); break;
                 case "rpd": resetPlayerData(player, arguments); break;
@@ -130,16 +127,6 @@ public class CommandAdminMCA extends CommandBase {
         sendMessage(player, Constants.Color.GREEN + "Decreased hearts for all villagers by 10.");
     }
 
-    private void spawnGrimReaper(EntityPlayer player) {
-        EntityGrimReaper reaper = new EntityGrimReaper(player.world);
-        reaper.setPosition(player.posX, player.posY, player.posZ);
-        player.world.spawnEntity(reaper);
-    }
-
-    private void killGrimReaper(EntityPlayer player) {
-        player.world.loadedEntityList.stream().filter((e) -> e instanceof EntityGrimReaper).forEach((e) -> e.setDead());
-    }
-
     private void dumpPlayerData(EntityPlayer player) {
         PlayerSaveData.get(player).dump(player);
     }
@@ -206,7 +193,6 @@ public class CommandAdminMCA extends CommandBase {
         sendMessage(commandSender, Constants.Color.WHITE + " /mca-admin clv " + Constants.Color.GOLD + " - Clear all loaded villagers. " + Constants.Color.RED + "(IRREVERSABLE)", true);
         sendMessage(commandSender, Constants.Color.WHITE + " /mca-admin inh " + Constants.Color.GOLD + " - Increase hearts by 10.", true);
         sendMessage(commandSender, Constants.Color.WHITE + " /mca-admin deh " + Constants.Color.GOLD + " - Decrease hearts by 10.", true);
-        sendMessage(commandSender, Constants.Color.WHITE + " /mca-admin kgr " + Constants.Color.GOLD + " - Kill all Grim Reapers in the world.", true);
         sendMessage(commandSender, Constants.Color.WHITE + " /mca-admin dpd " + Constants.Color.GOLD + " - Dumps player data to chat.", true);
         sendMessage(commandSender, Constants.Color.WHITE + " /mca-admin rvd <UUID>" + Constants.Color.GOLD + " - Resets the given villager.", true);
         sendMessage(commandSender, Constants.Color.WHITE + " /mca-admin rpd <PlayerName>" + Constants.Color.GOLD + " - Resets the given player's MCA data.", true);
