@@ -31,6 +31,8 @@ import net.minecraftforge.fml.common.registry.EntityRegistry;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import org.apache.logging.log4j.Logger;
 
+import java.util.Random;
+
 @Mod(modid = Tags.MOD_ID, name = Tags.MOD_NAME, version = Tags.VERSION, guiFactory = "mca.client.MCAGuiFactory")
 public class MCA {
     public static final String MODID = Tags.MOD_ID;
@@ -43,6 +45,7 @@ public class MCA {
     private static Logger logger;
     private static Localizer localizer;
     private static Config config;
+    private static final Random random = new Random();
 
 
     public static Logger getLog() {
@@ -62,6 +65,10 @@ public class MCA {
 
     public static Config getConfig() {
         return config;
+    }
+
+    public static Random getRandom() {
+        return random;
     }
 
 

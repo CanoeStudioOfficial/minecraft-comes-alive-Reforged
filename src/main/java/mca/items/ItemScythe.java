@@ -109,7 +109,7 @@ public class ItemScythe extends ItemSword {
         // Collect soul when killing a villager
         if (!hasSoul(stack) && target.getHealth() <= 0 && target instanceof EntityVillagerMCA) {
             setSoul(stack, true);
-            sound = net.minecraft.init.SoundEvents.BLOCK_BELL_RESONATE;
+            sound = net.minecraft.init.SoundEvents.ENTITY_PLAYER_LEVELUP;
         }
 
         attacker.world.playSound(null, attacker.getPosition(), sound, SoundCategory.PLAYERS,

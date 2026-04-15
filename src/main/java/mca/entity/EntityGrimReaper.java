@@ -69,7 +69,7 @@ public class EntityGrimReaper extends EntityMob {
 
     @Override
     protected void dropFewItems(boolean hitByPlayer, int lootingLvl) {
-        dropItem(ItemsMCA.STAFF_OF_LIFE, 1);
+        dropItem(ItemsMCA.SCYTHE, 1);
     }
 
     @Override
