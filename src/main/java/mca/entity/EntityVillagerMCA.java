@@ -410,7 +410,16 @@ public class EntityVillagerMCA extends EntityVillager {
         // translate profession name
         ITextComponent careerName = new TextComponentTranslation("entity.Villager." + getVanillaCareer().getName());
         EnumAgeState age = EnumAgeState.byId(get(AGE_STATE));
-        String professionName = age != EnumAgeState.ADULT ? age.localizedName() : careerName.getUnformattedText();
+
+        // 构建显示名称：年龄阶段 + 职业
+        String professionName;
+        if (age == EnumAgeState.ADULT) {
+            professionName = careerName.getUnformattedText();
+        } else {
+            // 非成人显示：年龄阶段 + 职业
+            professionName = age.localizedName() + " " + careerName.getUnformattedText();
+        }
+
         String color = this.getProfessionForge() == ProfessionsMCA.bandit ? Constants.Color.RED : this.getProfessionForge() == ProfessionsMCA.guard ? Constants.Color.GREEN : "";
 
         return new TextComponentString(String.format("%1$s%2$s%3$s (%4$s)", color, MCA.getConfig().villagerChatPrefix, get(VILLAGER_NAME), professionName));
