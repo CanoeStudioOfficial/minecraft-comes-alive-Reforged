@@ -12,8 +12,6 @@ import mca.core.minecraft.ItemsMCA;
 import mca.core.minecraft.ProfessionsMCA;
 import mca.entity.EntityGrimReaper;
 import mca.entity.EntityVillagerMCA;
-import mca.entity.EntityVillagerMCAFemale;
-import mca.entity.EntityVillagerMCAMale;
 import mca.entity.EntityZombieVillagerMCA;
 import mca.enums.EnumGender;
 import mca.mca.Tags;
@@ -97,12 +95,9 @@ public class MCA {
 
     @EventHandler
     public void init(FMLInitializationEvent event) {
-        // Register villagers - split by gender for /summon support
-        EntityRegistry.registerModEntity(new ResourceLocation(MODID, "villager_mca"), EntityVillagerMCA.class, "villager_mca", 1120, this, 50, 2, true);
-        EntityRegistry.registerModEntity(new ResourceLocation(MODID, "villager_mca_male"), EntityVillagerMCAMale.class, "villager_mca_male", 1123, this, 50, 2, true);
-        EntityRegistry.registerModEntity(new ResourceLocation(MODID, "villager_mca_female"), EntityVillagerMCAFemale.class, "villager_mca_female", 1124, this, 50, 2, true);
-        EntityRegistry.registerModEntity(new ResourceLocation(MODID, "grim_reaper"), EntityGrimReaper.class, "grim_reaper", 1121, this, 50, 2, true);
-        EntityRegistry.registerModEntity(new ResourceLocation(MODID, "zombie_villager_mca"), EntityZombieVillagerMCA.class, "zombie_villager_mca", 1122, this, 50, 2, true);
+        EntityRegistry.registerModEntity(new ResourceLocation(MODID, "EntityVillagerMCA"), EntityVillagerMCA.class, EntityVillagerMCA.class.getSimpleName(), 1120, this, 50, 2, true);
+        EntityRegistry.registerModEntity(new ResourceLocation(MODID, "GrimReaperMCA"), EntityGrimReaper.class, EntityGrimReaper.class.getSimpleName(), 1121, this, 50, 2, true);
+        EntityRegistry.registerModEntity(new ResourceLocation(MODID, "ZombieVillagerMCA"), EntityZombieVillagerMCA.class, EntityZombieVillagerMCA.class.getSimpleName(), 1122, this, 50, 2, true);
 
         // Register TileEntities
         GameRegistry.registerTileEntity(TileEntityTombstone.class, new ResourceLocation(MODID, "tombstone"));
