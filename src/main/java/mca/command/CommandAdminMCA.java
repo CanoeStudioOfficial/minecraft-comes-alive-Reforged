@@ -7,7 +7,6 @@ import mca.core.minecraft.ItemsMCA;
 import mca.entity.EntityGrimReaper;
 import mca.entity.EntityVillagerMCA;
 import mca.entity.data.PlayerSaveData;
-import mca.enums.EnumGender;
 import mca.items.ItemBaby;
 import mca.util.Util;
 import net.minecraft.command.CommandBase;
@@ -61,8 +60,6 @@ public class CommandAdminMCA extends CommandBase {
                 case "deh": decrementHearts(player); break;
                 case "sgr": spawnGrimReaper(player); break;
                 case "kgr": killGrimReaper(player); break;
-                case "smv": spawnMaleVillager(player); break;
-                case "sfv": spawnFemaleVillager(player); break;
                 case "dpd": dumpPlayerData(player); break;
                 case "rvd": resetVillagerData(player, arguments); break;
                 case "rpd": resetPlayerData(player, arguments); break;
@@ -137,60 +134,10 @@ public class CommandAdminMCA extends CommandBase {
         EntityGrimReaper reaper = new EntityGrimReaper(player.world);
         reaper.setPosition(player.posX, player.posY, player.posZ);
         player.world.spawnEntity(reaper);
-        sendMessage(player, Constants.Color.GREEN + "Spawned Grim Reaper.");
     }
 
     private void killGrimReaper(EntityPlayer player) {
-        long count = player.world.loadedEntityList.stream().filter((e) -> e instanceof EntityGrimReaper).peek((e) -> e.setDead()).count();
-        sendMessage(player, Constants.Color.GREEN + "Killed " + count + " Grim Reaper(s).");
-    }
-
-    private void spawnVillager(EntityPlayer player, String[] arguments) {
-        if (arguments.length < 1) {
-            sendMessage(player, Constants.Color.RED + "Usage: /mca-admin sv <male|female>");
-            return;
-        }
-
-        String gender = arguments[0].toLowerCase();
-        Optional<EnumGender> genderOpt;
-
-        switch (gender) {
-            case "male":
-            case "m":
-            case "boy":
-                genderOpt = Optional.of(EnumGender.MALE);
-                break;
-            case "female":
-            case "f":
-            case "girl":
-                genderOpt = Optional.of(EnumGender.FEMALE);
-                break;
-            default:
-                sendMessage(player, Constants.Color.RED + "Invalid gender. Use 'male' or 'female'.");
-                return;
-        }
-
-        EntityVillagerMCA villager = new EntityVillagerMCA(player.world, Optional.absent(), genderOpt);
-        villager.setPosition(player.posX, player.posY, player.posZ);
-        villager.finalizeMobSpawn(player.world.getDifficultyForLocation(villager.getPos()), null, false);
-        player.world.spawnEntity(villager);
-        sendMessage(player, Constants.Color.GREEN + "Spawned " + genderOpt.get().getStrName() + " villager.");
-    }
-
-    private void spawnVillagerMale(EntityPlayer player) {
-        EntityVillagerMCA villager = new EntityVillagerMCA(player.world, Optional.absent(), Optional.of(EnumGender.MALE));
-        villager.setPosition(player.posX, player.posY, player.posZ);
-        villager.finalizeMobSpawn(player.world.getDifficultyForLocation(villager.getPos()), null, false);
-        player.world.spawnEntity(villager);
-        sendMessage(player, Constants.Color.GREEN + "Spawned male villager.");
-    }
-
-    private void spawnVillagerFemale(EntityPlayer player) {
-        EntityVillagerMCA villager = new EntityVillagerMCA(player.world, Optional.absent(), Optional.of(EnumGender.FEMALE));
-        villager.setPosition(player.posX, player.posY, player.posZ);
-        villager.finalizeMobSpawn(player.world.getDifficultyForLocation(villager.getPos()), null, false);
-        player.world.spawnEntity(villager);
-        sendMessage(player, Constants.Color.GREEN + "Spawned female villager.");
+        player.world.loadedEntityList.stream().filter((e) -> e instanceof EntityGrimReaper).forEach((e) -> e.setDead());
     }
 
     private void dumpPlayerData(EntityPlayer player) {
@@ -252,12 +199,6 @@ public class CommandAdminMCA extends CommandBase {
     }
 
     private void displayHelp(ICommandSender commandSender) {
-        sendMessage(commandSender, Constants.Color.DARKRED + "--- " + Constants.Color.GOLD + "SPAWN COMMANDS" + Constants.Color.DARKRED + " ---", true);
-        sendMessage(commandSender, Constants.Color.WHITE + " /mca-admin sv <male|female>" + Constants.Color.GOLD + " - Spawn a villager with specified gender.", true);
-        sendMessage(commandSender, Constants.Color.WHITE + " /mca-admin svm " + Constants.Color.GOLD + " - Spawn a male villager.", true);
-        sendMessage(commandSender, Constants.Color.WHITE + " /mca-admin svf " + Constants.Color.GOLD + " - Spawn a female villager.", true);
-        sendMessage(commandSender, Constants.Color.WHITE + " /mca-admin sgr " + Constants.Color.GOLD + " - Spawn Grim Reaper at your location.", true);
-
         sendMessage(commandSender, Constants.Color.DARKRED + "--- " + Constants.Color.GOLD + "OP COMMANDS" + Constants.Color.DARKRED + " ---", true);
         sendMessage(commandSender, Constants.Color.WHITE + " /mca-admin ffh " + Constants.Color.GOLD + " - Force all hearts on all villagers.", true);
         sendMessage(commandSender, Constants.Color.WHITE + " /mca-admin fbg " + Constants.Color.GOLD + " - Force your baby to grow up.", true);
