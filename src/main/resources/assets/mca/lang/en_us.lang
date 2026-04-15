@@ -60,6 +60,7 @@ item.bouquet.tooltip=Use to promise to marry someone.
 tile.rose_gold_block.name=Rose Gold Block
 tile.mca:villager_spawner.name=Villager Spawner
 tile.mca:rose_gold_block.name=Rose Gold Block
+tile.mca:infernal_flame.name=Infernal Flame
 
 # Tombstones
 tile.mca:gravelling_headstone.name=Gravelling Headstone

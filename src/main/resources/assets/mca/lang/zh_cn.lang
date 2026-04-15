@@ -59,6 +59,7 @@ item.bouquet.tooltip=用于向某人表白（承诺）。
 tile.rose_gold_block.name=玫瑰金块
 tile.mca:villager_spawner.name=村民生成器
 tile.mca:rose_gold_block.name=玫瑰金块
+tile.mca:infernal_flame.name=地狱火焰
 
 # 墓碑
 tile.mca:gravelling_headstone.name=碎石墓碑

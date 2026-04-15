@@ -1,5 +1,6 @@
 package mca.core.minecraft;
 
+import mca.blocks.BlockInfernalFlame;
 import mca.blocks.BlockTombstone;
 import mca.blocks.BlockVillagerSpawner;
 import mca.core.MCA;
@@ -23,6 +24,7 @@ import java.util.ArrayList;
 public final class BlocksMCA {
     public static final Block ROSE_GOLD_BLOCK = new BlockOre();
     public static final BlockVillagerSpawner VILLAGER_SPAWNER = new BlockVillagerSpawner();
+    public static final BlockInfernalFlame INFERNAL_FLAME = new BlockInfernalFlame();
 
     // Tombstones - 10 different styles
     public static Block GRAVELLING_HEADSTONE;
@@ -64,6 +66,7 @@ public final class BlocksMCA {
         Block[] blocks = {
                 ROSE_GOLD_BLOCK,
                 VILLAGER_SPAWNER,
+                INFERNAL_FLAME,
                 GRAVELLING_HEADSTONE,
                 UPRIGHT_HEADSTONE,
                 SLANTED_HEADSTONE,
@@ -81,6 +84,7 @@ public final class BlocksMCA {
 
         setBlockName(ROSE_GOLD_BLOCK, "rose_gold_block");
         setBlockName(VILLAGER_SPAWNER, "villager_spawner");
+        setBlockName(INFERNAL_FLAME, "infernal_flame");
         setBlockName(GRAVELLING_HEADSTONE, "gravelling_headstone");
         setBlockName(UPRIGHT_HEADSTONE, "upright_headstone");
         setBlockName(SLANTED_HEADSTONE, "slanted_headstone");
@@ -106,6 +110,7 @@ public final class BlocksMCA {
         ItemBlock[] items = {
                 new ItemBlock(ROSE_GOLD_BLOCK),
                 new ItemBlock(VILLAGER_SPAWNER),
+                new ItemBlock(INFERNAL_FLAME),
                 new ItemBlock(GRAVELLING_HEADSTONE),
                 new ItemBlock(UPRIGHT_HEADSTONE),
                 new ItemBlock(SLANTED_HEADSTONE),
