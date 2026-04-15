@@ -1025,14 +1025,29 @@ public class EntityVillagerMCA extends EntityVillager {
                 child.setScaleForAge(true);
                 child.setPosition(this.posX, this.posY, this.posZ);
                 child.set(EntityVillagerMCA.PARENTS, ParentData.create(this.getUniqueID(), this.get(SPOUSE_UUID).get(), this.get(VILLAGER_NAME), this.get(SPOUSE_NAME)).toNBT());
+
+                // 混合父母基因 - 使用基因遗传算法
+                UUID spouseUUID = this.get(SPOUSE_UUID).or(Constants.ZERO_UUID);
+                Optional<EntityVillagerMCA> spouse = Util.getEntityByUUID(world, spouseUUID, EntityVillagerMCA.class);
+                if (spouse.isPresent()) {
+                    EntityVillagerMCA father = this.get(GENDER) == EnumGender.FEMALE.getId() ? spouse.get() : this;
+                    EntityVillagerMCA mother = this.get(GENDER) == EnumGender.FEMALE.getId() ? this : spouse.get();
+
+                    Genetics childGenetics = new Genetics(child);
+                    childGenetics.combine(new Genetics(mother), new Genetics(father));
+
+                    Traits childTraits = new Traits(child);
+                    childTraits.inherit(new Traits(mother));
+                    childTraits.inherit(new Traits(father));
+                }
+
                 world.spawnEntity(child);
-                
+
                 // Update family tree
                 FamilyTreeNode childNode = child.updateFamilyTreeNode();
                 FamilyTreeNode motherNode = this.updateFamilyTreeNode();
-                UUID spouseUUID = this.get(SPOUSE_UUID).or(Constants.ZERO_UUID);
                 FamilyTreeNode fatherNode = FamilyTree.get(world).getNode(spouseUUID);
-                
+
                 if (motherNode != null) motherNode.addChild(child.getUniqueID());
                 if (fatherNode != null) fatherNode.addChild(child.getUniqueID());
 
