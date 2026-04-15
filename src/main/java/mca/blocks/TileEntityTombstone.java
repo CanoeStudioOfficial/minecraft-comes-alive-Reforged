@@ -16,6 +16,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
@@ -68,6 +70,18 @@ public class TileEntityTombstone extends TileEntity implements ITickable {
         }
         markDirty();
         sync();
+
+        // 播放音效和更新邻居方块（红石）
+        if (world != null) {
+            world.playSound(null, pos.getX(), pos.getY(), pos.getZ(),
+                    SoundEvents.BLOCK_NOTE_BELL, SoundCategory.BLOCKS, 1.0F, 1.0F);
+            world.playEvent(2001, pos, net.minecraft.block.Block.getIdFromBlock(world.getBlockState(pos).getBlock()));
+
+            // 更新红石信号
+            world.notifyNeighborsOfStateChange(pos, world.getBlockState(pos).getBlock(), false);
+            EnumFacing facing = world.getBlockState(pos).getValue(BlockTombstone.FACING);
+            world.notifyNeighborsOfStateChange(pos.offset(facing), world.getBlockState(pos).getBlock(), false);
+        }
     }
 
     private EnumGender getEntityGender(Entity entity) {
@@ -105,7 +119,7 @@ public class TileEntityTombstone extends TileEntity implements ITickable {
                 // 每30tick播放音效和产生粒子效果
                 if (resurrectionProgress % 30 == 0) {
                     world.playSound(null, pos.getX(), pos.getY(), pos.getZ(),
-                            cure ? SoundEvents.BLOCK_BELL_USE : SoundEvents.ENTITY_POLAR_BEAR_AMBIENT,
+                            cure ? SoundEvents.BLOCK_NOTE_BELL : SoundEvents.ENTITY_POLAR_BEAR_AMBIENT,
                             SoundCategory.BLOCKS, 1.0F, 1.0F);
                     // 产生破坏方块粒子效果
                     world.playEvent(2001, pos, net.minecraft.block.Block.getIdFromBlock(world.getBlockState(pos).getBlock()));
@@ -118,7 +132,7 @@ public class TileEntityTombstone extends TileEntity implements ITickable {
             } else {
                 // 客户端粒子效果
                 for (int i = 0; i < world.rand.nextInt(8) + 1; ++i) {
-                    world.spawnParticle(world.rand.nextBoolean() ? net.minecraft.util.EnumParticleTypes.LARGE_SMOKE : net.minecraft.util.EnumParticleTypes.SMOKE_NORMAL,
+                    world.spawnParticle(EnumParticleTypes.SMOKE_LARGE,
                             pos.getX() + world.rand.nextFloat(),
                             pos.getY() + world.rand.nextFloat(),
                             pos.getZ() + world.rand.nextFloat(),
@@ -137,8 +151,6 @@ public class TileEntityTombstone extends TileEntity implements ITickable {
                     createEntity(world, true).ifPresent(entity -> {
                         generateLightning();
                         entity.setPosition(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
-                        entity.clearActivePotions();
-                        entity.extinguish();
                         entity.fallDistance = 0.0f;
 
                         if (entity instanceof EntityLivingBase) {
@@ -174,9 +186,9 @@ public class TileEntityTombstone extends TileEntity implements ITickable {
 
     private void generateLightning() {
         if (!world.isRemote) {
-            world.setSkyFlashTime(10);
-            EntityLightningBolt bolt = new EntityLightningBolt(world, pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, true);
-            world.addWeatherEffect(bolt);
+            // 1.12.2 使用不同的闪电生成方式
+            EntityLightningBolt bolt = new EntityLightningBolt(world, pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, false);
+            world.spawnEntity(bolt);
         }
     }
 

@@ -7,6 +7,7 @@ import mca.client.render.RenderZombieVillagerFactory;
 import mca.client.render.TileEntityTombstoneRenderer;
 import mca.core.minecraft.BlocksMCA;
 import mca.core.minecraft.ItemsMCA;
+import mca.core.minecraft.ParticlesMCA;
 import mca.entity.EntityGrimReaper;
 import mca.entity.EntityVillagerMCA;
 import mca.entity.EntityZombieVillagerMCA;
@@ -23,6 +24,9 @@ public class ClientProxy extends ServerProxy {
 
         // Register TileEntitySpecialRenderer for tombstones
         ClientRegistry.bindTileEntitySpecialRenderer(TileEntityTombstone.class, new TileEntityTombstoneRenderer());
+
+        // Register particles
+        ParticlesMCA.initClient();
     }
 
     @Override
