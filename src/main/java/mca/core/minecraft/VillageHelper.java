@@ -18,6 +18,34 @@ public class VillageHelper {
         world.getVillageCollection().getVillageList().forEach(v -> spawnGuards(world, v));
     }
 
+    /**
+     * 获取指定村庄范围内的MCA村民数量
+     */
+    public static int getVillagerCountInVillage(World world, Village village) {
+        if (village == null) return 0;
+
+        List<EntityVillagerMCA> villagers = world.getEntitiesWithinAABB(EntityVillagerMCA.class,
+                new AxisAlignedBB((double) (village.getCenter().getX() - village.getVillageRadius()),
+                        (double) (village.getCenter().getY() - 4),
+                        (double) (village.getCenter().getZ() - village.getVillageRadius()),
+                        (double) (village.getCenter().getX() + village.getVillageRadius()),
+                        (double) (village.getCenter().getY() + 4),
+                        (double) (village.getCenter().getZ() + village.getVillageRadius())));
+
+        return villagers.size();
+    }
+
+    /**
+     * 检查村庄是否已达到人口上限
+     */
+    public static boolean isVillageAtPopulationCap(World world, Village village) {
+        if (!MCA.getConfig().enablePopulationCap || village == null) {
+            return false;
+        }
+        int currentPopulation = getVillagerCountInVillage(world, village);
+        return currentPopulation >= MCA.getConfig().villagePopulationCap;
+    }
+
     public static void forceSpawnGuards(EntityPlayerMP player) {
         Village nearestVillage = player.world.getVillageCollection().getNearestVillage(player.getPosition(), 100);
         spawnGuards(player.world, nearestVillage);
@@ -29,6 +57,11 @@ public class VillageHelper {
     }
 
     private static void spawnGuards(World world, Village village) {
+        // 检查人口上限，如果已达到上限则不再生成守卫
+        if (isVillageAtPopulationCap(world, village)) {
+            return;
+        }
+
         int guardCapacity = village.getNumVillagers() / MCA.getConfig().guardSpawnRate;
         int guards = 0;
 
@@ -46,8 +79,14 @@ public class VillageHelper {
             if (villager.getProfessionForge().getRegistryName().equals(ProfessionsMCA.guard.getRegistryName())) guards++;
         }
 
-        // Spawn a new guard if we don't have enough, up to 10
+        // Spawn a new guard if we don't have enough, up to 10, and population cap allows
         if (guards < guardCapacity && guards < 10) {
+            // 再次检查人口上限，确保生成守卫后不会超过上限
+            int currentPopulation = getVillagerCountInVillage(world, village);
+            if (MCA.getConfig().enablePopulationCap && currentPopulation >= MCA.getConfig().villagePopulationCap) {
+                return;
+            }
+
             Vec3d spawnPos = findRandomSpawnPos(world, village, village.getCenter(), 2, 4, 2);
 
             if (spawnPos != null) {

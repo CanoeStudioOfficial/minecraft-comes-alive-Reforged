@@ -863,6 +863,9 @@ public class EntityVillagerMCA extends EntityVillager {
                 if (PlayerSaveData.get(player).isBabyPresent())
                     say(Optional.of(player), "interaction.procreate.fail.hasbaby");
                 else if (history.getHearts() < 100) say(Optional.of(player), "interaction.procreate.fail.lowhearts");
+                else if (mca.core.minecraft.VillageHelper.isVillageAtPopulationCap(world, world.getVillageCollection().getNearestVillage(getPosition(), 64))) {
+                    say(Optional.of(player), "interaction.procreate.fail.populationcap");
+                }
                 else {
                     EntityAITasks.EntityAITaskEntry task = tasks.taskEntries.stream().filter((ai) -> ai.action instanceof EntityAIProcreate).findFirst().orElse(null);
                     if (task != null) {
@@ -935,6 +938,12 @@ public class EntityVillagerMCA extends EntityVillager {
             }
             return true;
         } else if (item == Items.CAKE) {
+            // 检查人口上限
+            if (mca.core.minecraft.VillageHelper.isVillageAtPopulationCap(world, world.getVillageCollection().getNearestVillage(getPosition(), 64))) {
+                say(Optional.of(player), "gift.cake.fail.populationcap");
+                return true; // 返回true表示已处理，不消耗蛋糕
+            }
+
             Optional<Entity> spouse = Util.getEntityByUUID(world, get(SPOUSE_UUID).or(Constants.ZERO_UUID));
             if (spouse.isPresent()) {
                 EntityVillagerMCA progressor = this.get(GENDER) == EnumGender.FEMALE.getId() ? this : (EntityVillagerMCA) spouse.get();
@@ -1028,40 +1037,46 @@ public class EntityVillagerMCA extends EntityVillager {
             set(BABY_AGE, get(BABY_AGE) + 1);
 
             if (get(BABY_AGE) >= MCA.getConfig().babyGrowUpTime * 60) { // grow up time is in minutes and we measure age in seconds
-                EntityVillagerMCA child = new EntityVillagerMCA(world, Optional.absent(), Optional.of(get(BABY_IS_MALE) ? EnumGender.MALE : EnumGender.FEMALE));
-                child.set(EntityVillagerMCA.AGE_STATE, EnumAgeState.BABY.getId());
-                child.setStartingAge(MCA.getConfig().childGrowUpTime * 60 * 20 * -1);
-                child.setScaleForAge(true);
-                child.setPosition(this.posX, this.posY, this.posZ);
-                child.set(EntityVillagerMCA.PARENTS, ParentData.create(this.getUniqueID(), this.get(SPOUSE_UUID).get(), this.get(VILLAGER_NAME), this.get(SPOUSE_NAME)).toNBT());
+                // 检查人口上限，如果已达到上限则阻止婴儿成长
+                if (mca.core.minecraft.VillageHelper.isVillageAtPopulationCap(world, world.getVillageCollection().getNearestVillage(getPosition(), 64))) {
+                    // 人口已满，婴儿不会成长，但保持怀孕状态直到有空间
+                    // 可以在这里添加通知逻辑
+                } else {
+                    EntityVillagerMCA child = new EntityVillagerMCA(world, Optional.absent(), Optional.of(get(BABY_IS_MALE) ? EnumGender.MALE : EnumGender.FEMALE));
+                    child.set(EntityVillagerMCA.AGE_STATE, EnumAgeState.BABY.getId());
+                    child.setStartingAge(MCA.getConfig().childGrowUpTime * 60 * 20 * -1);
+                    child.setScaleForAge(true);
+                    child.setPosition(this.posX, this.posY, this.posZ);
+                    child.set(EntityVillagerMCA.PARENTS, ParentData.create(this.getUniqueID(), this.get(SPOUSE_UUID).get(), this.get(VILLAGER_NAME), this.get(SPOUSE_NAME)).toNBT());
 
-                // 混合父母基因 - 使用基因遗传算法
-                UUID spouseUUID = this.get(SPOUSE_UUID).or(Constants.ZERO_UUID);
-                Optional<EntityVillagerMCA> spouse = Util.getEntityByUUID(world, spouseUUID, EntityVillagerMCA.class);
-                if (spouse.isPresent()) {
-                    EntityVillagerMCA father = this.get(GENDER) == EnumGender.FEMALE.getId() ? spouse.get() : this;
-                    EntityVillagerMCA mother = this.get(GENDER) == EnumGender.FEMALE.getId() ? this : spouse.get();
+                    // 混合父母基因 - 使用基因遗传算法
+                    UUID spouseUUID = this.get(SPOUSE_UUID).or(Constants.ZERO_UUID);
+                    Optional<EntityVillagerMCA> spouse = Util.getEntityByUUID(world, spouseUUID, EntityVillagerMCA.class);
+                    if (spouse.isPresent()) {
+                        EntityVillagerMCA father = this.get(GENDER) == EnumGender.FEMALE.getId() ? spouse.get() : this;
+                        EntityVillagerMCA mother = this.get(GENDER) == EnumGender.FEMALE.getId() ? this : spouse.get();
 
-                    Genetics childGenetics = new Genetics(child);
-                    childGenetics.combine(new Genetics(mother), new Genetics(father));
+                        Genetics childGenetics = new Genetics(child);
+                        childGenetics.combine(new Genetics(mother), new Genetics(father));
 
-                    Traits childTraits = new Traits(child);
-                    childTraits.inherit(new Traits(mother));
-                    childTraits.inherit(new Traits(father));
+                        Traits childTraits = new Traits(child);
+                        childTraits.inherit(new Traits(mother));
+                        childTraits.inherit(new Traits(father));
+                    }
+
+                    world.spawnEntity(child);
+
+                    // Update family tree
+                    FamilyTreeNode childNode = child.updateFamilyTreeNode();
+                    FamilyTreeNode motherNode = this.updateFamilyTreeNode();
+                    FamilyTreeNode fatherNode = FamilyTree.get(world).getNode(spouseUUID);
+
+                    if (motherNode != null) motherNode.addChild(child.getUniqueID());
+                    if (fatherNode != null) fatherNode.addChild(child.getUniqueID());
+
+                    set(HAS_BABY, false);
+                    set(BABY_AGE, 0);
                 }
-
-                world.spawnEntity(child);
-
-                // Update family tree
-                FamilyTreeNode childNode = child.updateFamilyTreeNode();
-                FamilyTreeNode motherNode = this.updateFamilyTreeNode();
-                FamilyTreeNode fatherNode = FamilyTree.get(world).getNode(spouseUUID);
-
-                if (motherNode != null) motherNode.addChild(child.getUniqueID());
-                if (fatherNode != null) fatherNode.addChild(child.getUniqueID());
-
-                set(HAS_BABY, false);
-                set(BABY_AGE, 0);
             }
         }
     }

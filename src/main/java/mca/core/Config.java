@@ -34,6 +34,8 @@ public final class Config implements Serializable {
     public int childGrowUpTime;
     public int villagerSpawnerCap;
     public int villagerSpawnerRateMinutes;
+    public int villagePopulationCap;
+    public boolean enablePopulationCap;
     public int villagerMaxHealth;
     public boolean allowTrading;
     public boolean logVillagerDeaths;
@@ -84,6 +86,8 @@ public final class Config implements Serializable {
         childGrowUpTime = config.get("General", "Child Grow Up Time (Minutes)", 60, "Minutes it takes for a child to grow into an adult.").getInt();
         villagerSpawnerCap = config.get("General", "Villager Spawner Cap", 5, "Maximum number of villagers that a spawner will create in the area before it stops.").getInt();
         villagerSpawnerRateMinutes = config.get("General", "Villager Spawner Rate", 30, "The spawner will spawn 1 villager per this many minutes.").getInt();
+        enablePopulationCap = config.get("General", "Enable Village Population Cap", true, "If enabled, limits the maximum number of villagers in a village.").getBoolean();
+        villagePopulationCap = config.get("General", "Village Population Cap", 50, "Maximum number of villagers allowed in a single village. Includes guards and children.").getInt();
         allowTrading = config.get("General", "Enable Trading?", true, "Is trading with villagers enabled?").getBoolean();
         logVillagerDeaths = config.get("General", "Log Villager Deaths?", true, "Should villager deaths be logged?").getBoolean();
         enableRevivals = config.get("General", "Enable Revivals?", true, "Should reviving dead villagers be enabled?").getBoolean();
