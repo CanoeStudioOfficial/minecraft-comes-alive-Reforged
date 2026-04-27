@@ -115,6 +115,7 @@ public class API {
 
     /**
      * Returns a random skin based on the profession and gender provided.
+     * 根据黑色素值选择合适的肤色皮肤。
      *
      * @param villager The villager who will be assigned the random skin.
      * @return String location of the random skin
@@ -141,6 +142,10 @@ public class API {
             }
         }
 
+        // 获取黑色素值 (0.0 - 1.0)，用于选择合适的肤色
+        mca.entity.data.Genetics genetics = new mca.entity.data.Genetics(villager);
+        float melanin = genetics.getGene(mca.entity.data.Genetics.MELANIN);
+
         //Default skin behavior
         Optional<SkinsGroup> group = skinGroups.stream()
                 .filter(g -> g.getGender() == gender && profession.getRegistryName() != null && g.getProfession().equals(profession.getRegistryName().toString()))
@@ -153,7 +158,8 @@ public class API {
                 MCA.getLog().error("SkinsGroup paths 为空，无法分配皮肤！");
                 return "mca:skins/default.png";
             }
-            return paths[rng.nextInt(paths.length)];
+            // 根据黑色素值选择合适的皮肤
+            return selectSkinByMelanin(paths, melanin);
         }
 
         // skinGroups 为空
@@ -179,6 +185,45 @@ public class API {
             MCA.getLog().error("随机选中的 SkinsGroup paths 为空，无法分配皮肤！");
             return "mca:skins/default.png";
         }
+        // 根据黑色素值选择合适的皮肤
+        return selectSkinByMelanin(paths, melanin);
+    }
+
+    /**
+     * 根据黑色素值选择合适的皮肤
+     * 皮肤编号 0-4 对应不同肤色深度：0=最浅, 4=最深
+     *
+     * @param paths 可用皮肤路径数组
+     * @param melanin 黑色素值 (0.0 - 1.0)
+     * @return 选中的皮肤路径
+     */
+    private static String selectSkinByMelanin(String[] paths, float melanin) {
+        if (paths == null || paths.length == 0) {
+            return "mca:skins/default.png";
+        }
+
+        // 如果只有一张皮肤，直接返回
+        if (paths.length == 1) {
+            return paths[0];
+        }
+
+        // 根据黑色素值计算皮肤索引
+        // melanin 0.0-0.2 -> 索引 0 (最浅)
+        // melanin 0.2-0.4 -> 索引 1
+        // melanin 0.4-0.6 -> 索引 2
+        // melanin 0.6-0.8 -> 索引 3
+        // melanin 0.8-1.0 -> 索引 4 (最深)
+        int skinIndex = Math.min(4, (int) (melanin * 5));
+
+        // 尝试找到对应编号的皮肤
+        for (String path : paths) {
+            // 提取文件名中的数字 (如 "0.png" 中的 0)
+            if (path.matches(".*[/\\\\]" + skinIndex + "\\.png$")) {
+                return path;
+            }
+        }
+
+        // 如果没有找到对应编号的皮肤，返回随机皮肤
         return paths[rng.nextInt(paths.length)];
     }
 

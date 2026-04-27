@@ -132,10 +132,11 @@ public class EntityVillagerMCA extends EntityVillager {
             set(VILLAGER_NAME, API.getRandomName(eGender));
             setProfession(profession.isPresent() ? profession.get() : ProfessionsMCA.randomProfession());
             setVanillaCareer(getProfessionForge().getRandomCareer(worldIn.rand));
-            set(TEXTURE, API.getRandomSkin(this));
 
+            // 先随机化基因，再根据黑色素值设置皮肤
             new Genetics(this).randomize();
             new Traits(this).randomize();
+            set(TEXTURE, API.getRandomSkin(this));
 
             applySpecialAI();
         }
