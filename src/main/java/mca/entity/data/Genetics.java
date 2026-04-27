@@ -107,17 +107,25 @@ public class Genetics {
         BlockPos pos = carrier.getPosition();
         float temp = world != null && pos != null ? world.getBiome(pos).getTemperature(pos) : 0.5f;
 
-        // immigrants chance from config
+        // immigrants chance from config - 生成完全随机的肤色，不受生物群系限制
         if (random.nextFloat() < MCA.getConfig().geneticImmigrantChance) {
-            temp = random.nextFloat() * 2 - 0.5F;
+            temp = random.nextFloat() * 2.0f - 0.5f; // -0.5 to 1.5 range
         }
 
         float height = pos != null ? (float) pos.getY() : 64;
         height -= world != null ? world.getSeaLevel() : 64;
         height /= 128;
 
-        nbt.setFloat(MELANIN, MathHelper.clamp(temperatureBaseRandom(temp) - height * 0.2f, 0, 1));
-        nbt.setFloat(HEMOGLOBIN, MathHelper.clamp(temperatureBaseRandom(temp) * 0.5f + height * 0.5f, 0, 1));
+        // 修复：确保黑色素值有更大的变化范围，避免总是生成深色皮肤
+        // 使用温度作为主要因素，但增加随机性
+        float melaninValue = temperatureBaseRandom(temp) - height * 0.15f;
+        // 添加额外的随机因子以确保肤色多样性
+        melaninValue += (random.nextFloat() - 0.5f) * 0.3f;
+        nbt.setFloat(MELANIN, MathHelper.clamp(melaninValue, 0, 1));
+
+        // 血红蛋白也增加随机性
+        float hemoglobinValue = temperatureBaseRandom(temp) * 0.4f + height * 0.4f + random.nextFloat() * 0.2f;
+        nbt.setFloat(HEMOGLOBIN, MathHelper.clamp(hemoglobinValue, 0, 1));
 
         carrier.setGenetics(nbt);
     }
