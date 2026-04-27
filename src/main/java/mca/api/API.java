@@ -254,7 +254,8 @@ public class API {
         if (stack.getItem().getRegistryName() == null) return 0;
 
         String name = stack.getItem().getRegistryName().toString();
-        return giftMap.containsKey(name) ? giftMap.get(name).getValue() : -5;
+        // 如果物品在礼物列表中，返回对应价值；否则返回0（不增加也不减少好感度）
+        return giftMap.containsKey(name) ? giftMap.get(name).getValue() : 0;
     }
 
     /**

@@ -103,6 +103,12 @@ public final class Config implements Serializable {
         geneticImmigrantChance = (float) config.get("Genetics", "Genetic Immigrant Chance", 0.1, "Chance for a villager to be an 'immigrant' with random genes. (0.0-1.0)").getDouble();
         traitChance = (float) config.get("Genetics", "Trait Chance", 0.1, "Base chance for a villager to have a trait. (0.0-1.0)").getDouble();
 
+        // 礼物系统配置
+        giftDesaturationQueueLength = config.get("Gifts", "Gift Desaturation Queue Length", 10, "Number of recent gifts remembered for desaturation calculation.").getInt();
+        giftDesaturationFactor = (float) config.get("Gifts", "Gift Desaturation Factor", 0.5, "Factor applied to gift desaturation penalty. (0.0-1.0)").getDouble();
+        giftDesaturationExponent = config.get("Gifts", "Gift Desaturation Exponent", 0.5, "Exponent applied to gift value for desaturation calculation.").getDouble();
+        giftSatisfactionFactor = config.get("Gifts", "Gift Satisfaction Factor", 1.0, "Multiplier for final gift value. 1.0 = normal, 2.0 = double, 0.5 = half.").getDouble();
+
         config.save();
     }
 
