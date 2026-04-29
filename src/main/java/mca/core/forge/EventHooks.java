@@ -203,11 +203,13 @@ public class EventHooks {
             Entity source = event.getSource() != null ? event.getSource().getTrueSource() : null;
             
             if (source instanceof EntityLivingBase && villager.getProfessionForge() != ProfessionsMCA.bandit) {
-                villager.world.loadedEntityList.stream().filter(e ->
-                        e instanceof EntityVillagerMCA &&
-                        e.getDistance(villager) <= 10.0D &&
-                        ((EntityVillagerMCA)e).getProfessionForge() == ProfessionsMCA.guard)
-                .forEach(e -> ((EntityVillagerMCA) e).setAttackTarget((EntityLivingBase)source));
+                for (Entity e : villager.world.loadedEntityList) {
+                    if (e instanceof EntityVillagerMCA &&
+                            e.getDistance(villager) <= 10.0D &&
+                            ((EntityVillagerMCA) e).getProfessionForge() == ProfessionsMCA.guard) {
+                        ((EntityVillagerMCA) e).setAttackTarget((EntityLivingBase) source);
+                    }
+                }
             }
         }
     }

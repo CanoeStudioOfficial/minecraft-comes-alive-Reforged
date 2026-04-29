@@ -47,10 +47,14 @@ public class MCAServer {
 
         // Collect all expired procreate requests and remove them.
         List<UUID> removals = new ArrayList<>();
-        procreateMap.keySet().stream()
-                .filter((k) -> procreateMap.get(k) < System.currentTimeMillis())
-                .forEach(removals::add);
-        removals.forEach(procreateMap::remove);
+        for (UUID k : procreateMap.keySet()) {
+            if (procreateMap.get(k) < System.currentTimeMillis()) {
+                removals.add(k);
+            }
+        }
+        for (UUID k : removals) {
+            procreateMap.remove(k);
+        }
     }
 
     /**
@@ -101,12 +105,12 @@ public class MCAServer {
         }
 
         // Send the name of all online players to the command sender.
-        proposals.forEach((uuid -> {
+        for (UUID uuid : proposals) {
             EntityPlayer player = sender.world.getPlayerEntityByUUID(uuid);
             if (player != null) {
                 infoMessage(sender, "- " + player.getName());
             }
-        }));
+        }
     }
 
     /**

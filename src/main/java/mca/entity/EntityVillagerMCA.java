@@ -376,12 +376,12 @@ public class EntityVillagerMCA extends EntityVillager {
 
             // Notify all parents of the death
             ParentData parents = ParentData.fromNBT(get(PARENTS));
-            Arrays.stream(parents.getParentEntities(world))
-                    .filter(e -> e instanceof EntityPlayer)
-                    .forEach(e -> {
-                        EntityPlayer player = (EntityPlayer) e;
-                        player.sendMessage(new TextComponentString(Constants.Color.RED + MCA.getLocalizer().localize("notify.childdied", get(VILLAGER_NAME), causeName)));
-                    });
+            for (Entity e : parents.getParentEntities(world)) {
+                if (e instanceof EntityPlayer) {
+                    EntityPlayer player = (EntityPlayer) e;
+                    player.sendMessage(new TextComponentString(Constants.Color.RED + MCA.getLocalizer().localize("notify.childdied", get(VILLAGER_NAME), causeName)));
+                }
+            }
 
             SavedVillagers.get(world).save(this);
             updateFamilyTreeNode();
@@ -392,11 +392,13 @@ public class EntityVillagerMCA extends EntityVillager {
     protected void onGrowingAdult() {
         Entity[] parents = ParentData.fromNBT(get(PARENTS)).getParentEntities(world);
         set(AGE_STATE, EnumAgeState.ADULT.getId());
-        Arrays.stream(parents).filter((e) -> e instanceof EntityPlayer).forEach((e) -> {
-            PlayerHistory history = getPlayerHistoryFor(e.getUniqueID());
-            history.setDialogueType(EnumDialogueType.ADULT);
-            e.sendMessage(new TextComponentString(MCA.getLocalizer().localize("notify.child.grownup", this.get(VILLAGER_NAME))));
-        });
+        for (Entity e : parents) {
+            if (e instanceof EntityPlayer) {
+                PlayerHistory history = getPlayerHistoryFor(e.getUniqueID());
+                history.setDialogueType(EnumDialogueType.ADULT);
+                e.sendMessage(new TextComponentString(MCA.getLocalizer().localize("notify.child.grownup", this.get(VILLAGER_NAME))));
+            }
+        }
 
         // set profession away from child for villager children
         if (getProfessionForge() == ProfessionsMCA.child) {
@@ -994,7 +996,9 @@ public class EntityVillagerMCA extends EntityVillager {
 
     private void onEachServerSecond() {
         NBTTagCompound memories = get(PLAYER_HISTORY_MAP);
-        memories.getKeySet().forEach((key) -> PlayerHistory.fromNBT(this, UUID.fromString(key), memories.getCompoundTag(key)).update());
+        for (String key : memories.getKeySet()) {
+            PlayerHistory.fromNBT(this, UUID.fromString(key), memories.getCompoundTag(key)).update();
+        }
 
         // Infection logic
         float progress = getInfectionProgress();

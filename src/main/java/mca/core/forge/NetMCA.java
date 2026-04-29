@@ -414,10 +414,10 @@ public class NetMCA {
         @Override
         public void toBytes(ByteBuf buf) {
             buf.writeInt(villagers.size());
-            villagers.forEach((k,v) -> {
-                ByteBufUtils.writeUTF8String(buf, k);
-                ByteBufUtils.writeTag(buf, v);
-            });
+            for (Map.Entry<String, NBTTagCompound> entry : villagers.entrySet()) {
+                ByteBufUtils.writeUTF8String(buf, entry.getKey());
+                ByteBufUtils.writeTag(buf, entry.getValue());
+            }
         }
 
         @Override
@@ -579,12 +579,18 @@ public class NetMCA {
             List<EntityVillagerMCA> villagers = new ArrayList<>();
             List<NBTTagCompound> familyData = new ArrayList<>();
 
-            player.world.loadedEntityList.stream().filter(e -> e instanceof EntityVillagerMCA).forEach(e -> villagers.add((EntityVillagerMCA)e));
-            villagers.stream().filter(e -> e.isMarriedTo(player.getUniqueID()) || e.playerIsParent(player)).forEach(e -> {
-                NBTTagCompound nbt = new NBTTagCompound();
-                e.writeEntityToNBT(nbt);
-                familyData.add(nbt);
-            });
+            for (Entity e : player.world.loadedEntityList) {
+                if (e instanceof EntityVillagerMCA) {
+                    villagers.add((EntityVillagerMCA) e);
+                }
+            }
+            for (EntityVillagerMCA e : villagers) {
+                if (e.isMarriedTo(player.getUniqueID()) || e.playerIsParent(player)) {
+                    NBTTagCompound nbt = new NBTTagCompound();
+                    e.writeEntityToNBT(nbt);
+                    familyData.add(nbt);
+                }
+            }
             return new GetFamilyResponse(familyData);
         }
     }
@@ -606,7 +612,9 @@ public class NetMCA {
         @Override
         public void toBytes(ByteBuf buf) {
             buf.writeInt(familyData.size());
-            familyData.stream().forEach(n -> ByteBufUtils.writeTag(buf, n));
+            for (NBTTagCompound n : familyData) {
+                ByteBufUtils.writeTag(buf, n);
+            }
         }
 
         @Override

@@ -15,7 +15,9 @@ import java.util.List;
 public class VillageHelper {
 
     public static void tick(World world) {
-        world.getVillageCollection().getVillageList().forEach(v -> spawnGuards(world, v));
+        for (Object v : world.getVillageCollection().getVillageList()) {
+            spawnGuards(world, (Village) v);
+        }
     }
 
     /**

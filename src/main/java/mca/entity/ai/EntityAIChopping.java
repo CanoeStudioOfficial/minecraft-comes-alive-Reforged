@@ -41,18 +41,17 @@ public class EntityAIChopping extends AbstractEntityAIChore {
             List<BlockPos> nearbyTrees = new ArrayList<>();
 
             // valid "trees" are logs on the ground with multiple leaves around/above them
-            nearbyLogs.stream()
-                    .filter(log -> {
-                        IBlockState down = villager.world.getBlockState(log.down());
-                        boolean isOnTreeBase = down.getBlock() == Blocks.GRASS || down.getBlock() == Blocks.DIRT;
-                        
-                        if (isOnTreeBase) {
-                            List<BlockPos> leaves = Util.getNearbyBlocks(log, villager.world, BlockLeaves.class, 3, 8);
-                            return leaves.size() >= 3; // Must have at least 3 leaf blocks nearby to be considered a tree
-                        }
-                        return false;
-                    })
-                    .forEach(nearbyTrees::add);
+            for (BlockPos log : nearbyLogs) {
+                IBlockState down = villager.world.getBlockState(log.down());
+                boolean isOnTreeBase = down.getBlock() == Blocks.GRASS || down.getBlock() == Blocks.DIRT;
+                
+                if (isOnTreeBase) {
+                    List<BlockPos> leaves = Util.getNearbyBlocks(log, villager.world, BlockLeaves.class, 3, 8);
+                    if (leaves.size() >= 3) {
+                        nearbyTrees.add(log);
+                    }
+                }
+            }
             targetTree = Util.getNearestPoint(villager.getPosition(), nearbyTrees);
             return;
         }

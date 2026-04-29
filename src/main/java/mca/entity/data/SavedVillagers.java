@@ -49,12 +49,16 @@ public class SavedVillagers extends WorldSavedData {
 
     @Override
     public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
-        villagerData.forEach(nbt::setTag);
+        for (Map.Entry<String, NBTTagCompound> entry : villagerData.entrySet()) {
+            nbt.setTag(entry.getKey(), entry.getValue());
+        }
         return nbt;
     }
 
     @Override
     public void readFromNBT(NBTTagCompound nbt) {
-        nbt.getKeySet().forEach((k) -> villagerData.put(k, nbt.getCompoundTag(k)));
+        for (String k : nbt.getKeySet()) {
+            villagerData.put(k, nbt.getCompoundTag(k));
+        }
     }
 }

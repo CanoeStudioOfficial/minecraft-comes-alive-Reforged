@@ -2,6 +2,7 @@ package mca.entity.ai;
 
 import mca.entity.EntityVillagerMCA;
 import mca.enums.EnumChore;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.passive.EntityAnimal;
 import net.minecraft.entity.passive.EntityTameable;
@@ -60,12 +61,12 @@ public class EntityAIHunting extends AbstractEntityAIChore {
 
             if (!pathSuccess || target.isDead) {
                 // search for EntityItems around the target and grab them
-                villager.world.loadedEntityList.stream()
-                        .filter((e) -> e instanceof EntityItem && e.getDistance(target) <= 5.0D)
-                        .forEach((item) -> {
-                            villager.inventory.addItem(((EntityItem) item).getItem());
-                            item.setDead();
-                        });
+                for (Entity e : villager.world.loadedEntityList) {
+                    if (e instanceof EntityItem && e.getDistance(target) <= 5.0D) {
+                        villager.inventory.addItem(((EntityItem) e).getItem());
+                        e.setDead();
+                    }
+                }
                 target = null;
             } else if (villager.getDistance(target) <= 3.5F) {
                 villager.getNavigator().setPath(villager.getNavigator().getPathToEntityLiving(target), 1.0F);

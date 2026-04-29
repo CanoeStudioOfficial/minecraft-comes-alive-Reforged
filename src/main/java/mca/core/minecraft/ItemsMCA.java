@@ -56,7 +56,9 @@ public final class ItemsMCA {
     }
 
     public static void assignCreativeTabs() {
-        ITEMS.stream().forEach(i -> i.setCreativeTab(MCA.creativeTab));
+        for (Item i : ITEMS) {
+            i.setCreativeTab(MCA.creativeTab);
+        }
     }
 
 

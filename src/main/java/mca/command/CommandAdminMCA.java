@@ -96,9 +96,11 @@ public class CommandAdminMCA extends CommandBase {
     }
 
     private void forceChildGrow(EntityPlayer player) {
-        player.world.loadedEntityList.stream()
-                .filter(e -> e instanceof EntityVillagerMCA && ((EntityVillagerMCA)e).isChild())
-                .forEach(e -> ((EntityVillagerMCA) e).addGrowth(999999));
+        for (Entity e : player.world.loadedEntityList) {
+            if (e instanceof EntityVillagerMCA && ((EntityVillagerMCA) e).isChild()) {
+                ((EntityVillagerMCA) e).addGrowth(999999);
+            }
+        }
         sendMessage(player, Constants.Color.GREEN + "Forced any children to grow to adults.");
     }
 
@@ -140,7 +142,11 @@ public class CommandAdminMCA extends CommandBase {
     }
 
     private void killGrimReaper(EntityPlayer player) {
-        player.world.loadedEntityList.stream().filter((e) -> e instanceof EntityGrimReaper).forEach((e) -> e.setDead());
+        for (Entity e : player.world.loadedEntityList) {
+            if (e instanceof EntityGrimReaper) {
+                e.setDead();
+            }
+        }
     }
 
     private void dumpPlayerData(EntityPlayer player) {
@@ -172,15 +178,17 @@ public class CommandAdminMCA extends CommandBase {
 
     private void clearVillagerEditors(EntityPlayer sender) {
         ItemStack editorStack = new ItemStack(ItemsMCA.VILLAGER_EDITOR);
-        sender.world.playerEntities.stream().filter(p -> p.inventory.hasItemStack(editorStack)).forEach(p -> {
-            int i = 0;
-            while (i < p.inventory.getSizeInventory() - 1) {
-                if (p.inventory.getStackInSlot(i).getItem() == ItemsMCA.VILLAGER_EDITOR) {
-                    p.inventory.setInventorySlotContents(i, ItemStack.EMPTY);
+        for (EntityPlayer p : sender.world.playerEntities) {
+            if (p.inventory.hasItemStack(editorStack)) {
+                int i = 0;
+                while (i < p.inventory.getSizeInventory() - 1) {
+                    if (p.inventory.getStackInSlot(i).getItem() == ItemsMCA.VILLAGER_EDITOR) {
+                        p.inventory.setInventorySlotContents(i, ItemStack.EMPTY);
+                    }
+                    i++;
                 }
-                i++;
             }
-        });
+        }
         sendMessage(sender, "All villager editors cleared from inventories.");
     }
 

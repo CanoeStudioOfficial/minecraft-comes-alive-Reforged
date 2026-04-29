@@ -310,10 +310,14 @@ public class GuiInteract extends GuiScreen {
     }
 
     private void enableAllButtons() {
-        buttonList.forEach((b) -> b.enabled = true);
+        for (GuiButton b : buttonList) {
+            b.enabled = true;
+        }
     }
 
     private void disableAllButtons() {
-        buttonList.forEach((b) -> b.enabled = false);
+        for (GuiButton b : buttonList) {
+            b.enabled = false;
+        }
     }
 }
