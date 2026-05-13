@@ -1,9 +1,0 @@
-{
-  "color": "ffff00ff",
-  "visible": false,
-  "priority": 1,
-  "blocks": {
-    "minecraft:jukebox": 1,
-    "minecraft:noteblock": 4
-  }
-}

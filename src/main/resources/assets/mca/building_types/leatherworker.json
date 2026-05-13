@@ -1,9 +1,0 @@
-{
-  "color": "ff8b4513",
-  "visible": false,
-  "priority": 1,
-  "blocks": {
-    "minecraft:cauldron": 1,
-    "minecraft:crafting_table": 1
-  }
-}

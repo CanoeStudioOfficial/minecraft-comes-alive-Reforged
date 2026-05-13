@@ -1,9 +1,0 @@
-{
-  "color": "ff808080",
-  "visible": false,
-  "priority": 1,
-  "blocks": {
-    "minecraft:crafting_table": 1,
-    "minecraft:furnace": 1
-  }
-}
