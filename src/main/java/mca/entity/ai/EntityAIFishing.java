@@ -19,6 +19,7 @@ public class EntityAIFishing extends AbstractEntityAIChore {
     private BlockPos targetWater;
     private boolean hasCastRod;
     private int ticks;
+    private int catchTime;
 
     public EntityAIFishing(EntityVillagerMCA entityIn) {
         super(entityIn);
@@ -53,11 +54,12 @@ public class EntityAIFishing extends AbstractEntityAIChore {
             if (!hasCastRod) {
                 villager.swingArm(EnumHand.MAIN_HAND);
                 hasCastRod = true;
+                catchTime = villager.world.rand.nextInt(200) + 200;
             }
 
             ticks++;
 
-            if (ticks >= villager.world.rand.nextInt(200) + 200) {
+            if (ticks >= catchTime) {
                 if (villager.world.rand.nextFloat() >= 0.35F) {
                     int typesSize = ItemFishFood.FishType.values().length;
                     ItemFishFood.FishType type = ItemFishFood.FishType.values()[villager.world.rand.nextInt(typesSize)];
@@ -68,6 +70,7 @@ public class EntityAIFishing extends AbstractEntityAIChore {
                     villager.getHeldItem(EnumHand.MAIN_HAND).damageItem(2, villager);
                 }
                 ticks = 0;
+                catchTime = villager.world.rand.nextInt(200) + 200;
             }
         }
     }

@@ -46,7 +46,7 @@ public class EntityAISleeping extends AbstractEntityAIChore {
     }
 
     public boolean shouldContinueExecuting() {
-        return shouldExecute() && (!villager.getNavigator().noPath() || villager.isSleeping());
+        return !villager.getNavigator().noPath() || villager.isSleeping();
     }
 
     public void startExecuting() {

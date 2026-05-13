@@ -16,8 +16,6 @@ public class EntityAIDefendFromTarget extends EntityAIBase {
     }
 
     public boolean shouldExecute() {
-        this.attackTick--;
-
         EntityLivingBase entitylivingbase = this.attacker.getAttackTarget();
 
         if (entitylivingbase == null) {
@@ -25,6 +23,7 @@ public class EntityAIDefendFromTarget extends EntityAIBase {
         } else if (!entitylivingbase.isEntityAlive()) {
             return false;
         } else if (this.attackTick > 0) {
+            this.attackTick--;
             return false;
         } else {
             return 4.0D >= this.attacker.getDistanceSq(entitylivingbase.posX, entitylivingbase.getEntityBoundingBox().minY, entitylivingbase.posZ);
