@@ -10,6 +10,7 @@ import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumHand;
 
 import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 
 public class EntityAIHunting extends AbstractEntityAIChore {
