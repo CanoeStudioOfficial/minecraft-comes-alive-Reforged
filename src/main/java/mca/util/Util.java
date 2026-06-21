@@ -97,18 +97,17 @@ public class Util {
     public static List<BlockPos> getNearbyBlocks(BlockPos origin, World world, @Nullable Class<? extends Block> filter, int xzDist, int yDist) {
         List<BlockPos> result = new ArrayList<>();
         int ox = origin.getX(), oy = origin.getY(), oz = origin.getZ();
-        BlockPos.MutableBlockPos mutablePos = new BlockPos.MutableBlockPos();
 
         for (int x = -xzDist; x <= xzDist; x++) {
             for (int y = -yDist; y <= yDist; y++) {
                 for (int z = -xzDist; z <= xzDist; z++) {
                     if (x == 0 && y == 0 && z == 0) continue;
 
-                    mutablePos.setPos(ox + x, oy + y, oz + z);
-                    Block block = world.getBlockState(mutablePos).getBlock();
+                    BlockPos pos = new BlockPos(ox + x, oy + y, oz + z);
+                    Block block = world.getBlockState(pos).getBlock();
 
                     if (filter == null || filter.isAssignableFrom(block.getClass())) {
-                        result.add(mutablePos.toImmutable());
+                        result.add(pos);
                     }
                 }
             }

@@ -1,5 +1,6 @@
 package mca.entity.ai;
 
+import lombok.RequiredArgsConstructor;
 import mca.core.Constants;
 import mca.core.MCA;
 import mca.core.minecraft.ItemsMCA;
@@ -12,13 +13,10 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.SoundCategory;
 
+@RequiredArgsConstructor
 public class EntityAIProcreate extends EntityAIBase {
     private final EntityVillagerMCA villager;
     public int procreateTimer;
-
-    public EntityAIProcreate(EntityVillagerMCA villager) {
-        this.villager = villager;
-    }
 
     @Override
     public boolean shouldExecute() {

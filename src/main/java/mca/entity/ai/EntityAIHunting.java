@@ -10,7 +10,6 @@ import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumHand;
 
 import java.util.Comparator;
-import java.util.List;
 import java.util.Optional;
 
 public class EntityAIHunting extends AbstractEntityAIChore {
@@ -43,13 +42,15 @@ public class EntityAIHunting extends AbstractEntityAIChore {
 
             if (ticks >= nextAction) {
                 ticks = 0;
-                Optional<EntityAnimal> animal = villager.world.getEntitiesWithinAABB(EntityAnimal.class, villager.getEntityBoundingBox().grow(15.0D, 3.0D, 15.0D)).stream()
-                        .filter((a) -> !(a instanceof EntityTameable))
-                        .min(Comparator.comparingDouble(villager::getDistance));
+                if (villager.world.rand.nextFloat() >= 0.0D) {
+                    Optional<EntityAnimal> animal = villager.world.getEntitiesWithinAABB(EntityAnimal.class, villager.getEntityBoundingBox().grow(15.0D, 3.0D, 15.0D)).stream()
+                            .filter((a) -> !(a instanceof EntityTameable))
+                            .min(Comparator.comparingDouble(villager::getDistance));
 
-                if (animal.isPresent()) {
-                    target = animal.get();
-                    target.getNavigator().setPath(target.getNavigator().getPathToEntityLiving(villager), 1.0F);
+                    if (animal.isPresent()) {
+                        target = animal.get();
+                        target.getNavigator().setPath(target.getNavigator().getPathToEntityLiving(villager), 1.0F);
+                    }
                 }
 
                 nextAction = 300;
@@ -58,11 +59,13 @@ public class EntityAIHunting extends AbstractEntityAIChore {
             boolean pathSuccess = villager.getNavigator().setPath(villager.getNavigator().getPathToEntityLiving(target), 0.6F);
 
             if (!pathSuccess || target.isDead) {
-                List<EntityItem> nearbyItems = villager.world.getEntitiesWithinAABB(EntityItem.class, target.getEntityBoundingBox().grow(5.0D));
-                for (EntityItem item : nearbyItems) {
-                    villager.inventory.addItem(item.getItem());
-                    item.setDead();
-                }
+                // search for EntityItems around the target and grab them
+                villager.world.loadedEntityList.stream()
+                        .filter((e) -> e instanceof EntityItem && e.getDistance(target) <= 5.0D)
+                        .forEach((item) -> {
+                            villager.inventory.addItem(((EntityItem) item).getItem());
+                            item.setDead();
+                        });
                 target = null;
             } else if (villager.getDistance(target) <= 3.5F) {
                 villager.getNavigator().setPath(villager.getNavigator().getPathToEntityLiving(target), 1.0F);

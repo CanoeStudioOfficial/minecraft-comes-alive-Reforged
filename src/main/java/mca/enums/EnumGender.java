@@ -1,29 +1,21 @@
 package mca.enums;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.Random;
 
+@AllArgsConstructor
+@Getter
 public enum EnumGender {
     UNASSIGNED(0, "unassigned"),
     MALE(1, "male"),
     FEMALE(2, "female");
 
-    private int id;
-    private String strName;
-
-    EnumGender(int id, String strName) {
-        this.id = id;
-        this.strName = strName;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public String getStrName() {
-        return strName;
-    }
+    int id;
+    String strName;
 
     public static EnumGender byId(int id) {
         Optional<EnumGender> gender = Arrays.stream(values()).filter((e) -> e.id == id).findFirst();
@@ -39,3 +31,4 @@ public enum EnumGender {
         return gender.orElse(UNASSIGNED);
     }
 }
+
