@@ -855,6 +855,7 @@ public class EntityVillagerMCA extends EntityVillager {
 
             this.tasks.addTask(1, new EntityAIAttackMelee(this, 0.8D, false));
             this.tasks.addTask(2, new EntityAIMoveThroughVillage(this, 0.6D, false));
+            this.tasks.addTask(3, new EntityAIPatrolVillage(this));
 
             this.targetTasks.addTask(0, new EntityAINearestAttackableTarget<>(this, EntityVillagerMCA.class, 100, false, false, GUARD_TARGET_SELECTOR));
             this.targetTasks.addTask(0, new EntityAINearestAttackableTarget<>(this, EntityZombie.class, 100, false, false, null));

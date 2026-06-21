@@ -12,12 +12,17 @@ import java.util.List;
 public final class Config implements Serializable {
     private transient final Configuration config;
 
-    public boolean overwriteOriginalVillagers;
+    public String villagerSpawnMode;
+    public double mcaVillagerSpawnRatio;
     public boolean enableDiminishingReturns;
     public boolean enableInfection;
     public int infectionChance;
     public boolean allowGrimReaper;
     public int guardSpawnRate;
+    public boolean guardPatrolEnabled;
+    public double guardPatrolSpeed;
+    public int guardPatrolRadius;
+    public int guardPatrolWaitTime;
     public int chanceToHaveTwins;
     public int marriageHeartsRequirement;
     public int babyGrowUpTime;
@@ -39,12 +44,17 @@ public final class Config implements Serializable {
     }
 
     private void addConfigValues() {
-        overwriteOriginalVillagers = config.get("General", "Overwrite Original Villagers?", true, "Should original villagers be overwritten by MCA villagers?").getBoolean();
+        villagerSpawnMode = config.get("General", "Villager Spawn Mode", "replace", "Modes: 'replace' - all vanilla villagers become MCA villagers; 'coexist' - both types spawn together; 'vanilla' - keep original villagers only.").getString();
+        mcaVillagerSpawnRatio = config.get("General", "MCA Villager Spawn Ratio", 0.5, "In 'coexist' mode, chance that a spawning villager is MCA type (0.0-1.0). Default 0.5 (50%).").getDouble();
         enableDiminishingReturns = config.get("General", "Enable Interaction Fatigue?", true, "Should interactions yield diminishing returns over time?").getBoolean();
         enableInfection = config.get("General", "Enable Zombie Infection?", true, "Should zombies be able to infect villagers?").getBoolean();
         infectionChance = config.get("General", "Chance of Infection", 5, "Chance that a villager will be infected on hit from a zombie. Default is 5 for 5%.").getInt();
         allowGrimReaper = config.get("General", "Allow Grim Reaper?", true, "Should the Grim Reaper boss be enabled?").getBoolean();
         guardSpawnRate = config.get("General", "Guard Spawn Rate", 6, "How many villagers that should be in a village before a guard spawns.").getInt();
+        guardPatrolEnabled = config.get("General", "Guard Patrol Enabled", true, "Enable guards to patrol around the village.").getBoolean();
+        guardPatrolSpeed = config.get("General", "Guard Patrol Speed", 0.5, "Movement speed of guards while patrolling.").getDouble();
+        guardPatrolRadius = config.get("General", "Guard Patrol Radius", 64, "Radius within which guards will search for their village.").getInt();
+        guardPatrolWaitTime = config.get("General", "Guard Patrol Wait Time", 120, "Time in ticks a guard will wait at each patrol point before moving to the next.").getInt();
         chanceToHaveTwins = config.get("General", "Chance to Have Twins", 2, "Chance that you will have twins. Default is 2 for 2%.").getInt();
         marriageHeartsRequirement = config.get("General", "Marriage Hearts Requirement", 100, "Number of hearts required to get married.").getInt();
         babyGrowUpTime = config.get("General", "Baby Grow Up Time (Minutes)", 30, "Minutes it takes for a baby to be ready to grow up.").getInt();
