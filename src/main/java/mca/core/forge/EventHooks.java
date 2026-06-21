@@ -125,31 +125,18 @@ public class EventHooks {
         Entity entity = event.getEntity();
 
         if (world.isRemote) return;
+        if (!MCA.getConfig().overwriteOriginalVillagers) return;
 
         if (entity.getClass().equals(EntityVillager.class)) {
             EntityVillager originalVillager = (EntityVillager) entity;
-            String mode = MCA.getConfig().villagerSpawnMode;
+            EntityVillagerMCA newVillager = new EntityVillagerMCA(world,
+                    com.google.common.base.Optional.of(originalVillager.getProfessionForge()),
+                    com.google.common.base.Optional.absent());
+            newVillager.setPosition(originalVillager.posX, originalVillager.posY, originalVillager.posZ);
+            newVillager.finalizeMobSpawn(world.getDifficultyForLocation(newVillager.getPos()), null, false);
+            newVillager.forcePositionAsHome();
+            world.spawnEntity(newVillager);
 
-            if ("replace".equalsIgnoreCase(mode)) {
-                EntityVillagerMCA newVillager = new EntityVillagerMCA(world,
-                        com.google.common.base.Optional.of(originalVillager.getProfessionForge()),
-                        com.google.common.base.Optional.absent());
-                newVillager.setPosition(originalVillager.posX, originalVillager.posY, originalVillager.posZ);
-                newVillager.finalizeMobSpawn(world.getDifficultyForLocation(newVillager.getPos()), null, false);
-                newVillager.forcePositionAsHome();
-                world.spawnEntity(newVillager);
-                event.setCanceled(true);
-            } else if ("coexist".equalsIgnoreCase(mode)) {
-                if (world.rand.nextDouble() < MCA.getConfig().mcaVillagerSpawnRatio) {
-                    EntityVillagerMCA newVillager = new EntityVillagerMCA(world,
-                            com.google.common.base.Optional.of(originalVillager.getProfessionForge()),
-                            com.google.common.base.Optional.absent());
-                    newVillager.setPosition(originalVillager.posX, originalVillager.posY, originalVillager.posZ);
-                    newVillager.finalizeMobSpawn(world.getDifficultyForLocation(newVillager.getPos()), null, false);
-                    newVillager.forcePositionAsHome();
-                    world.spawnEntity(newVillager);
-                }
-            }
         }
     }
 
