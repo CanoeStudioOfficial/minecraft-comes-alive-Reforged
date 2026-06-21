@@ -1,6 +1,6 @@
 package mca.client.gui;
 
-import lombok.NonNull;
+
 import mca.core.MCA;
 import mca.core.forge.NetMCA;
 import mca.entity.EntityVillagerMCA;
@@ -129,7 +129,7 @@ public class GuiWhistle extends GuiScreen {
         net.minecraft.client.gui.inventory.GuiInventory.drawEntityOnScreen(posX, posY, 75, 0, 0, dummyHuman);
     }
 
-    public void setVillagerDataList(@NonNull List<NBTTagCompound> dataList) {
+    public void setVillagerDataList( List<NBTTagCompound> dataList) {
         this.villagerDataList = dataList;
         this.loadingAnimationTicks = -1;
         this.selectedIndex = 1;
