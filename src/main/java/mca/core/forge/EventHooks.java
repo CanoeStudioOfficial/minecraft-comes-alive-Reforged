@@ -17,7 +17,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.effect.EntityLightningBolt;
 import net.minecraft.entity.monster.EntityMob;
-import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
@@ -29,7 +28,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.event.RegistryEvent;
-import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.PlaySoundAtEntityEvent;
 import net.minecraftforge.event.entity.item.ItemTossEvent;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
@@ -115,40 +113,6 @@ public class EventHooks {
 
                 reaperSpawnWorld = null;
                 reaperSpawnPos = BlockPos.ORIGIN;
-            }
-        }
-    }
-
-    @SubscribeEvent
-    public void onEntityJoinWorld(EntityJoinWorldEvent event) {
-        World world = event.getWorld();
-        Entity entity = event.getEntity();
-
-        if (world.isRemote) return;
-
-        if (entity.getClass().equals(EntityVillager.class)) {
-            EntityVillager originalVillager = (EntityVillager) entity;
-            String mode = MCA.getConfig().villagerSpawnMode;
-
-            if ("replace".equalsIgnoreCase(mode)) {
-                EntityVillagerMCA newVillager = new EntityVillagerMCA(world,
-                        com.google.common.base.Optional.of(originalVillager.getProfessionForge()),
-                        com.google.common.base.Optional.absent());
-                newVillager.setPosition(originalVillager.posX, originalVillager.posY, originalVillager.posZ);
-                newVillager.finalizeMobSpawn(world.getDifficultyForLocation(newVillager.getPos()), null, false);
-                newVillager.forcePositionAsHome();
-                world.spawnEntity(newVillager);
-                event.setCanceled(true);
-            } else if ("coexist".equalsIgnoreCase(mode)) {
-                if (world.rand.nextDouble() < MCA.getConfig().mcaVillagerSpawnRatio) {
-                    EntityVillagerMCA newVillager = new EntityVillagerMCA(world,
-                            com.google.common.base.Optional.of(originalVillager.getProfessionForge()),
-                            com.google.common.base.Optional.absent());
-                    newVillager.setPosition(originalVillager.posX, originalVillager.posY, originalVillager.posZ);
-                    newVillager.finalizeMobSpawn(world.getDifficultyForLocation(newVillager.getPos()), null, false);
-                    newVillager.forcePositionAsHome();
-                    world.spawnEntity(newVillager);
-                }
             }
         }
     }
