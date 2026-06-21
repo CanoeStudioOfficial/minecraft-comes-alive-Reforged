@@ -12,8 +12,6 @@ import java.util.List;
 public final class Config implements Serializable {
     private transient final Configuration config;
 
-    public String villagerSpawnMode;
-    public double mcaVillagerSpawnRatio;
     public boolean enableDiminishingReturns;
     public boolean enableInfection;
     public int infectionChance;
@@ -44,8 +42,6 @@ public final class Config implements Serializable {
     }
 
     private void addConfigValues() {
-        villagerSpawnMode = config.get("General", "Villager Spawn Mode", "replace", "Modes: 'replace' - all vanilla villagers become MCA villagers; 'coexist' - both types spawn together; 'vanilla' - keep original villagers only.").getString();
-        mcaVillagerSpawnRatio = config.get("General", "MCA Villager Spawn Ratio", 0.5, "In 'coexist' mode, chance that a spawning villager is MCA type (0.0-1.0). Default 0.5 (50%).").getDouble();
         enableDiminishingReturns = config.get("General", "Enable Interaction Fatigue?", true, "Should interactions yield diminishing returns over time?").getBoolean();
         enableInfection = config.get("General", "Enable Zombie Infection?", true, "Should zombies be able to infect villagers?").getBoolean();
         infectionChance = config.get("General", "Chance of Infection", 5, "Chance that a villager will be infected on hit from a zombie. Default is 5 for 5%.").getInt();
