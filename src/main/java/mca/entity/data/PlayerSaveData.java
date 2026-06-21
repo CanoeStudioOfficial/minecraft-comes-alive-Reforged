@@ -1,6 +1,5 @@
 package mca.entity.data;
 
-import lombok.Getter;
 import mca.core.Constants;
 import mca.core.MCA;
 import mca.enums.EnumGender;
@@ -18,7 +17,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-@Getter
 public class PlayerSaveData extends WorldSavedData {
     private static final String PREFIX = "MCA-Player-V1-";
 
@@ -28,6 +26,30 @@ public class PlayerSaveData extends WorldSavedData {
     private boolean babyPresent = false;
     private EnumGender gender = EnumGender.MALE;
     private boolean hasChosenDestiny = false;
+
+    public UUID getSpouseUUID() {
+        return spouseUUID;
+    }
+
+    public EnumMarriageState getMarriageState() {
+        return marriageState;
+    }
+
+    public String getSpouseName() {
+        return spouseName;
+    }
+
+    public boolean isBabyPresent() {
+        return babyPresent;
+    }
+
+    public EnumGender getGender() {
+        return gender;
+    }
+
+    public boolean isHasChosenDestiny() {
+        return hasChosenDestiny;
+    }
 
     public PlayerSaveData(String id) {
         super(id);

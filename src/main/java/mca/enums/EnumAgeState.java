@@ -1,14 +1,10 @@
 package mca.enums;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import mca.core.MCA;
 
 import java.util.Arrays;
 import java.util.Optional;
 
-@AllArgsConstructor
-@Getter
 public enum EnumAgeState {
     UNASSIGNED(-1, 0.8f, 2.0f, 1.5f),
     BABY(0, 0.3f, 0.5f, 0.4f),
@@ -17,10 +13,33 @@ public enum EnumAgeState {
     TEEN(3, 0.6f, 1.6f, 1.35f),
     ADULT(4, 0.8f, 2f, 1.5f);
 
-    int id;
-    float width;
-    float height;
-    float scaleForAge;
+    private int id;
+    private float width;
+    private float height;
+    private float scaleForAge;
+
+    EnumAgeState(int id, float width, float height, float scaleForAge) {
+        this.id = id;
+        this.width = width;
+        this.height = height;
+        this.scaleForAge = scaleForAge;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public float getWidth() {
+        return width;
+    }
+
+    public float getHeight() {
+        return height;
+    }
+
+    public float getScaleForAge() {
+        return scaleForAge;
+    }
 
     public static EnumAgeState byId(int id) {
         Optional<EnumAgeState> state = Arrays.stream(values()).filter((e) -> e.id == id).findFirst();

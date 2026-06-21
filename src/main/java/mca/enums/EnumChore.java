@@ -1,14 +1,11 @@
 package mca.enums;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import mca.core.MCA;
 import net.minecraft.item.*;
 
 import java.util.Arrays;
 import java.util.Optional;
 
-@AllArgsConstructor
 public enum EnumChore {
     NONE(0, "none", null),
     PROSPECT(1, "gui.label.prospecting", ItemPickaxe.class),
@@ -17,9 +14,23 @@ public enum EnumChore {
     HUNT(4, "gui.label.hunting", ItemSword.class),
     FISH(5, "gui.label.fishing", ItemFishingRod.class);
 
-    @Getter int id;
-    String friendlyName;
-    @Getter Class toolType;
+    private int id;
+    private String friendlyName;
+    private Class toolType;
+
+    EnumChore(int id, String friendlyName, Class toolType) {
+        this.id = id;
+        this.friendlyName = friendlyName;
+        this.toolType = toolType;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public Class getToolType() {
+        return toolType;
+    }
 
     public static EnumChore byId(int id) {
         Optional<EnumChore> state = Arrays.stream(values()).filter((e) -> e.id == id).findFirst();
@@ -30,4 +41,3 @@ public enum EnumChore {
         return MCA.getLocalizer().localize(this.friendlyName);
     }
 }
-

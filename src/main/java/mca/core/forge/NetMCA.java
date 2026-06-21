@@ -1,9 +1,6 @@
 package mca.core.forge;
 
 import io.netty.buffer.ByteBuf;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 import mca.client.gui.GuiStaffOfLife;
 import mca.client.gui.GuiWhistle;
 import mca.client.network.ClientMessageQueue;
@@ -75,13 +72,31 @@ public class NetMCA {
         return Minecraft.getMinecraft().player;
     }
 
-    @AllArgsConstructor
-    @NoArgsConstructor
-    @Getter
     public static class ButtonAction implements IMessage {
         private String guiKey;
         private String buttonId;
         private UUID targetUUID;
+
+        public ButtonAction() {
+        }
+
+        public ButtonAction(String guiKey, String buttonId, UUID targetUUID) {
+            this.guiKey = guiKey;
+            this.buttonId = buttonId;
+            this.targetUUID = targetUUID;
+        }
+
+        public String getGuiKey() {
+            return guiKey;
+        }
+
+        public String getButtonId() {
+            return buttonId;
+        }
+
+        public UUID getTargetUUID() {
+            return targetUUID;
+        }
 
         @Override
         public void toBytes(ByteBuf buf) {
@@ -115,7 +130,6 @@ public class NetMCA {
         public IMessage onMessage(ButtonAction message, MessageContext ctx) {
             EntityPlayerMP player = ctx.getServerHandler().player;
 
-            // The message can target a particular villager, or the server itself.
             if (!message.targetsServer()) {
                 EntityVillagerMCA villager = (EntityVillagerMCA) player.getServerWorld().getEntityFromUuid(message.targetUUID);
                 if (villager != null) player.getServerWorld().addScheduledTask(() -> villager.handleButtonClick(player, message.guiKey, message.buttonId));
@@ -124,11 +138,17 @@ public class NetMCA {
         }
     }
 
-    @AllArgsConstructor
-    @NoArgsConstructor
     public static class Say implements IMessage {
         private String phraseId;
         private int speakingEntityId;
+
+        public Say() {
+        }
+
+        public Say(String phraseId, int speakingEntityId) {
+            this.phraseId = phraseId;
+            this.speakingEntityId = speakingEntityId;
+        }
 
         @Override
         public void toBytes(ByteBuf buf) {
@@ -156,10 +176,15 @@ public class NetMCA {
         }
     }
 
-    @AllArgsConstructor
-    @NoArgsConstructor
     public static class BabyName implements IMessage {
         private String babyName;
+
+        public BabyName() {
+        }
+
+        public BabyName(String babyName) {
+            this.babyName = babyName;
+        }
 
         @Override
         public void toBytes(ByteBuf buf) {
@@ -185,12 +210,25 @@ public class NetMCA {
         }
     }
 
-    @AllArgsConstructor
-    @NoArgsConstructor
-    @Getter
     public static class CareerResponse implements IMessage {
         private int careerId;
         private UUID entityUUID;
+
+        public CareerResponse() {
+        }
+
+        public CareerResponse(int careerId, UUID entityUUID) {
+            this.careerId = careerId;
+            this.entityUUID = entityUUID;
+        }
+
+        public int getCareerId() {
+            return careerId;
+        }
+
+        public UUID getEntityUUID() {
+            return entityUUID;
+        }
 
         @Override
         public void toBytes(ByteBuf buf) {
@@ -209,17 +247,20 @@ public class NetMCA {
 
         @Override
         public IMessage onMessage(CareerResponse message, MessageContext ctx) {
-            // must be thrown in the queue and processed on the main thread since we must loop through the loaded entity list
-            // it could change while looping and cause a ConcurrentModificationException.
             ClientMessageQueue.add(message);
             return null;
         }
     }
 
-    @AllArgsConstructor
-    @NoArgsConstructor
     public static class CareerRequest implements IMessage {
         private UUID entityUUID;
+
+        public CareerRequest() {
+        }
+
+        public CareerRequest(UUID entityUUID) {
+            this.entityUUID = entityUUID;
+        }
 
         @Override
         public void toBytes(ByteBuf buf) {
@@ -260,10 +301,15 @@ public class NetMCA {
         }
     }
 
-    @AllArgsConstructor
-    @NoArgsConstructor
     public static class InventoryRequest implements IMessage {
         private UUID entityUUID;
+
+        public InventoryRequest() {
+        }
+
+        public InventoryRequest(UUID entityUUID) {
+            this.entityUUID = entityUUID;
+        }
 
         @Override
         public void toBytes(ByteBuf buf) {
@@ -287,16 +333,25 @@ public class NetMCA {
         }
     }
 
-    @NoArgsConstructor
-    @Getter
     public static class InventoryResponse implements IMessage {
         private UUID entityUUID;
         private NBTTagCompound inventoryNBT;
+
+        public InventoryResponse() {
+        }
 
         public InventoryResponse(UUID entityUUID, InventoryMCA inventory) {
             this.inventoryNBT = new NBTTagCompound();
             this.entityUUID = entityUUID;
             this.inventoryNBT.setTag("inventory", inventory.writeInventoryToNBT());
+        }
+
+        public UUID getEntityUUID() {
+            return entityUUID;
+        }
+
+        public NBTTagCompound getInventoryNBT() {
+            return inventoryNBT;
         }
 
         @Override
@@ -338,12 +393,18 @@ public class NetMCA {
         }
     }
 
-    @NoArgsConstructor
     public static class SavedVillagersResponse implements IMessage {
         private Map<String, NBTTagCompound> villagers = new HashMap<>();
 
+        public SavedVillagersResponse() {
+        }
+
         public SavedVillagersResponse(EntityPlayer player) {
             villagers = SavedVillagers.get(player.world).getMap();
+        }
+
+        public Map<String, NBTTagCompound> getVillagers() {
+            return villagers;
         }
 
         @Override
@@ -376,10 +437,15 @@ public class NetMCA {
         }
     }
 
-    @AllArgsConstructor
-    @NoArgsConstructor
     public static class ReviveVillager implements IMessage {
         private UUID target;
+
+        public ReviveVillager() {
+        }
+
+        public ReviveVillager(UUID target) {
+            this.target = target;
+        }
 
         @Override
         public void toBytes(ByteBuf buf) {
@@ -415,11 +481,17 @@ public class NetMCA {
         }
     }
 
-    @AllArgsConstructor
-    @NoArgsConstructor
     public static class SetName implements IMessage {
         private String name;
         private UUID entityUUID;
+
+        public SetName() {
+        }
+
+        public SetName(String name, UUID entityUUID) {
+            this.name = name;
+            this.entityUUID = entityUUID;
+        }
 
         @Override
         public void toBytes(ByteBuf buf) {
@@ -449,11 +521,17 @@ public class NetMCA {
         }
     }
 
-    @AllArgsConstructor
-    @NoArgsConstructor
     public static class SpawnParticles implements IMessage {
         private UUID entityUUID;
         private EnumParticleTypes particleType;
+
+        public SpawnParticles() {
+        }
+
+        public SpawnParticles(UUID entityUUID, EnumParticleTypes particleType) {
+            this.entityUUID = entityUUID;
+            this.particleType = particleType;
+        }
 
         @Override
         public void toBytes(ByteBuf buf) {
@@ -482,7 +560,6 @@ public class NetMCA {
         }
     }
 
-    @NoArgsConstructor
     public static class GetFamily implements IMessage {
         @Override
         public void toBytes(ByteBuf buf) {}
@@ -508,10 +585,19 @@ public class NetMCA {
         }
     }
 
-    @AllArgsConstructor
-    @NoArgsConstructor
     public static class GetFamilyResponse implements IMessage {
         private List<NBTTagCompound> familyData;
+
+        public GetFamilyResponse() {
+        }
+
+        public GetFamilyResponse(List<NBTTagCompound> familyData) {
+            this.familyData = familyData;
+        }
+
+        public List<NBTTagCompound> getFamilyData() {
+            return familyData;
+        }
 
         @Override
         public void toBytes(ByteBuf buf) {
@@ -541,10 +627,15 @@ public class NetMCA {
         }
     }
 
-    @AllArgsConstructor
-    @NoArgsConstructor
     public static class CallToPlayer implements IMessage {
         private UUID targetUUID;
+
+        public CallToPlayer() {
+        }
+
+        public CallToPlayer(UUID targetUUID) {
+            this.targetUUID = targetUUID;
+        }
 
         @Override
         public void toBytes(ByteBuf buf) {
@@ -570,11 +661,17 @@ public class NetMCA {
         }
     }
 
-    @AllArgsConstructor
-    @NoArgsConstructor
     public static class SetProfession implements IMessage {
         private UUID targetUUID;
         private String profession;
+
+        public SetProfession() {
+        }
+
+        public SetProfession(UUID targetUUID, String profession) {
+            this.targetUUID = targetUUID;
+            this.profession = profession;
+        }
 
         @Override
         public void toBytes(ByteBuf buf) {
@@ -596,15 +693,12 @@ public class NetMCA {
             EntityPlayer player = ctx.getServerHandler().player;
             Optional<Entity> entity = player.world.loadedEntityList.stream().filter(e -> e.getUniqueID().equals(message.targetUUID)).findFirst();
             if (entity.isPresent()) {
-                // Loop through all professions in the registry
                 for (Map.Entry<ResourceLocation, VillagerRegistry.VillagerProfession> professionEntry : ProfessionsMCA.registry.getEntries()) {
                     List<VillagerRegistry.VillagerCareer> careers = ObfuscationReflectionHelper.getPrivateValue(VillagerRegistry.VillagerProfession.class, professionEntry.getValue(), 3);
 
-                    // Career ids are based on their index in the careers list
                     for (int i = 0; i < careers.size(); i++) {
                         VillagerRegistry.VillagerCareer career = careers.get(i);
 
-                        // If we found the correct career, set the profession and career accordingly
                         if (career.getName().equals(message.profession)) {
                             EntityVillagerMCA villager = (EntityVillagerMCA)entity.get();
                             villager.setProfession(professionEntry.getValue());
@@ -627,11 +721,17 @@ public class NetMCA {
         }
     }
 
-    @AllArgsConstructor
-    @NoArgsConstructor
     public static class SetTexture implements IMessage {
         private UUID targetUUID;
         private String texture;
+
+        public SetTexture() {
+        }
+
+        public SetTexture(UUID targetUUID, String texture) {
+            this.targetUUID = targetUUID;
+            this.texture = texture;
+        }
 
         @Override
         public void toBytes(ByteBuf buf) {
@@ -656,11 +756,19 @@ public class NetMCA {
         }
     }
 
-    @AllArgsConstructor
-    @NoArgsConstructor
-    @Getter
     public static class SetPlayerGender implements IMessage {
         private EnumGender gender;
+
+        public SetPlayerGender() {
+        }
+
+        public SetPlayerGender(EnumGender gender) {
+            this.gender = gender;
+        }
+
+        public EnumGender getGender() {
+            return gender;
+        }
 
         @Override
         public void toBytes(ByteBuf buf) {
@@ -685,11 +793,19 @@ public class NetMCA {
         }
     }
 
-    @AllArgsConstructor
-    @NoArgsConstructor
-    @Getter
     public static class SetupComplete implements IMessage {
         private EnumSetupType setupType;
+
+        public SetupComplete() {
+        }
+
+        public SetupComplete(EnumSetupType setupType) {
+            this.setupType = setupType;
+        }
+
+        public EnumSetupType getSetupType() {
+            return setupType;
+        }
 
         @Override
         public void toBytes(ByteBuf buf) {
@@ -710,17 +826,14 @@ public class NetMCA {
                 PlayerSaveData data = PlayerSaveData.get(player);
                 data.setHasChosenDestiny(true);
 
-                // Consume the crystal ball if the player has it
                 if (player.getHeldItemMainhand().getItem() instanceof ItemCrystalBall) {
                     player.getHeldItemMainhand().shrink(1);
                 } else if (player.getHeldItemOffhand().getItem() instanceof ItemCrystalBall) {
                     player.getHeldItemOffhand().shrink(1);
                 }
 
-                // Handle destiny logic (simplified for now)
                 player.sendMessage(new TextComponentTranslation("notify.setup.destiny_chose", new TextComponentTranslation("gui.button." + message.setupType.getName())));
                 
-                // Here we could trigger house spawning, etc.
             });
             return null;
         }
