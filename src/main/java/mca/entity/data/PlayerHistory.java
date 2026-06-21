@@ -1,5 +1,6 @@
 package mca.entity.data;
 
+import lombok.Getter;
 import mca.core.Constants;
 import mca.entity.EntityVillagerMCA;
 import mca.enums.EnumDialogueType;
@@ -8,13 +9,13 @@ import net.minecraft.nbt.NBTTagCompound;
 import java.util.UUID;
 
 public class PlayerHistory {
-    private int hearts;
-    private int interactionFatigue;
-    private boolean giftPresent;
-    private int greetTimer;
-    private EnumDialogueType dialogueType;
+    @Getter private int hearts;
+    @Getter private int interactionFatigue;
+    @Getter private boolean giftPresent;
+    @Getter private int greetTimer;
+    @Getter private EnumDialogueType dialogueType;
 
-    private UUID playerUUID;
+    @Getter private UUID playerUUID;
     private EntityVillagerMCA villager;
 
     private PlayerHistory() {
@@ -24,30 +25,6 @@ public class PlayerHistory {
         greetTimer = 0;
         playerUUID = Constants.ZERO_UUID;
         dialogueType = EnumDialogueType.ADULT;
-    }
-
-    public int getHearts() {
-        return hearts;
-    }
-
-    public int getInteractionFatigue() {
-        return interactionFatigue;
-    }
-
-    public boolean isGiftPresent() {
-        return giftPresent;
-    }
-
-    public int getGreetTimer() {
-        return greetTimer;
-    }
-
-    public EnumDialogueType getDialogueType() {
-        return dialogueType;
-    }
-
-    public UUID getPlayerUUID() {
-        return playerUUID;
     }
 
     public static PlayerHistory getNew(EntityVillagerMCA villager, UUID uuid) {
@@ -105,6 +82,7 @@ public class PlayerHistory {
     }
 
     public void update() {
+        // every 5 minutes reduce interaction fatigues
         if (villager.ticksExisted % 6000 == 0) changeInteractionFatigue(-1);
     }
 
