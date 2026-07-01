@@ -6,12 +6,12 @@ import java.util.Arrays;
 import java.util.Optional;
 
 public enum EnumAgeState {
-    UNASSIGNED(-1, 0.8f, 2.0f, 1.5f),
-    BABY(0, 0.3f, 0.5f, 0.4f),
-    TODDLER(1, 0.3f, 0.6f, 0.5f),
-    CHILD(2, 0.5f, 1.1f, 1f),
-    TEEN(3, 0.6f, 1.6f, 1.35f),
-    ADULT(4, 0.8f, 2f, 1.5f);
+    UNASSIGNED(-1, 0.6f, 1.95f, 1.0f),
+    BABY(0, 0.27f, 0.78f, 0.4f),
+    TODDLER(1, 0.36f, 1.07f, 0.55f),
+    CHILD(2, 0.42f, 1.27f, 0.65f),
+    TEEN(3, 0.51f, 1.66f, 0.85f),
+    ADULT(4, 0.6f, 1.95f, 1.0f);
 
     private int id;
     private float width;
