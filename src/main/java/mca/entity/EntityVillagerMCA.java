@@ -10,6 +10,7 @@ import mca.core.forge.NetMCA;
 import mca.core.minecraft.ItemsMCA;
 import mca.core.minecraft.ProfessionsMCA;
 import mca.entity.ai.*;
+import mca.entity.ai.pathfinding.PathNavigateGroundMCA;
 import mca.entity.data.ParentData;
 import mca.entity.data.PlayerHistory;
 import mca.entity.data.PlayerSaveData;
@@ -21,7 +22,6 @@ import mca.util.ItemStackCache;
 import mca.util.ResourceLocationCache;
 import mca.util.Util;
 import net.minecraft.block.BlockBed;
-import net.minecraft.block.BlockDoor;
 import net.minecraft.block.BlockHorizontal;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
@@ -53,6 +53,7 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.world.World;
+import net.minecraft.pathfinding.PathNavigate;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import net.minecraftforge.fml.common.registry.VillagerRegistry;
 import net.minecraftforge.fml.relauncher.Side;
@@ -68,7 +69,6 @@ import static net.minecraft.block.BlockBed.PART;
 public class EntityVillagerMCA extends EntityVillager {
     public static final int VANILLA_CAREER_ID_FIELD_INDEX = 13;
     public static final int VANILLA_CAREER_LEVEL_FIELD_INDEX = 14;
-    private static final float CARPET_DOOR_HEIGHT = 1.875F;
 
     public static final DataParameter<String> VILLAGER_NAME = EntityDataManager.createKey(EntityVillagerMCA.class, DataSerializers.STRING);
     public static final DataParameter<String> TEXTURE = EntityDataManager.createKey(EntityVillagerMCA.class, DataSerializers.STRING);
@@ -175,6 +175,11 @@ public class EntityVillagerMCA extends EntityVillager {
         if (this.getHealth() <= MCA.getConfig().villagerMaxHealth) {
             this.setHealth(MCA.getConfig().villagerMaxHealth);
         }
+    }
+
+    @Override
+    protected PathNavigate createNavigator(World worldIn) {
+        return new PathNavigateGroundMCA(this, worldIn);
     }
 
     public <T> T get(DataParameter<T> key) {
@@ -284,7 +289,6 @@ public class EntityVillagerMCA extends EntityVillager {
 
     @Override
     public void onUpdate() {
-        updateCarpetDoorwayHeight();
         super.onUpdate();
         updateSwinging();
         updateSleeping();
@@ -485,55 +489,8 @@ public class EntityVillagerMCA extends EntityVillager {
 
     private void setSizeForAge() {
         EnumAgeState age = EnumAgeState.byId(get(AGE_STATE));
-        this.setSize(age.getWidth(), getEffectiveHeight(age));
+        this.setSize(MCAVillagerDimensions.getCollisionWidth(age), MCAVillagerDimensions.getCollisionHeight(age));
         this.setScale(1.0F); // trigger rebuild of the bounding box
-    }
-
-    private float getEffectiveHeight(EnumAgeState age) {
-        return shouldUseCarpetDoorwayHeight(age) ? CARPET_DOOR_HEIGHT : age.getHeight();
-    }
-
-    private boolean shouldUseCarpetDoorwayHeight(EnumAgeState age) {
-        return age.getHeight() > CARPET_DOOR_HEIGHT && isOnOrNearCarpet() && isInOrNearOpenDoor();
-    }
-
-    private boolean isOnOrNearCarpet() {
-        BlockPos base = new BlockPos(this.posX, this.getEntityBoundingBox().minY - 0.01D, this.posZ);
-        for (int x = -1; x <= 1; x++) {
-            for (int z = -1; z <= 1; z++) {
-                if (this.world.getBlockState(base.add(x, 0, z)).getBlock() == Blocks.CARPET) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    private boolean isInOrNearOpenDoor() {
-        BlockPos base = new BlockPos(this);
-        for (int x = -1; x <= 1; x++) {
-            for (int y = 0; y <= 1; y++) {
-                for (int z = -1; z <= 1; z++) {
-                    if (isOpenDoor(base.add(x, y, z))) {
-                        return true;
-                    }
-                }
-            }
-        }
-
-        return false;
-    }
-
-    private boolean isOpenDoor(BlockPos pos) {
-        IBlockState state = this.world.getBlockState(pos);
-        return state.getBlock() instanceof BlockDoor && BlockDoor.isOpen(this.world, pos);
-    }
-
-    private void updateCarpetDoorwayHeight() {
-        if (!isSleeping()) {
-            setSizeForAge();
-        }
     }
 
     private void configureDoorNavigation() {
@@ -887,6 +844,8 @@ public class EntityVillagerMCA extends EntityVillager {
     @Override
     protected void initEntityAI() {
         super.initEntityAI();
+        removeCertainTasks(EntityAIOpenDoor.class);
+        removeCertainTasks(EntityAIRestrictOpenDoor.class);
         configureDoorNavigation();
         this.tasks.addTask(0, new EntityAIProspecting(this));
         this.tasks.addTask(0, new EntityAIHunting(this));
@@ -898,6 +857,7 @@ public class EntityVillagerMCA extends EntityVillager {
         this.tasks.addTask(0, new EntityAIProcreate(this));
         this.tasks.addTask(5, new EntityAIGoWorkplace(this));
         this.tasks.addTask(5, new EntityAIGoHangout(this));
+        this.tasks.addTask(4, new EntityAIMCAOpenDoor(this, true));
         this.tasks.addTask(1, new EntityAISleeping(this));
         this.tasks.addTask(10, new EntityAIWatchClosest(this, EntityPlayer.class, 8.0F));
         this.tasks.addTask(10, new EntityAILookIdle(this));
@@ -908,7 +868,7 @@ public class EntityVillagerMCA extends EntityVillager {
             this.tasks.taskEntries.clear();
             this.tasks.addTask(1, new EntityAIAttackMelee(this, 0.8D, false));
             this.tasks.addTask(2, new EntityAIMoveThroughVillage(this, 0.6D, false));
-            this.tasks.addTask(4, new EntityAIOpenDoor(this, true));
+            this.tasks.addTask(4, new EntityAIMCAOpenDoor(this, true));
 
             this.targetTasks.addTask(0, new EntityAINearestAttackableTarget<>(this, EntityVillagerMCA.class, 100, false, false, BANDIT_TARGET_SELECTOR));
             this.targetTasks.addTask(1, new EntityAINearestAttackableTarget<>(this, EntityPlayer.class, true));
@@ -1081,7 +1041,7 @@ public class EntityVillagerMCA extends EntityVillager {
                     this.setPosition((double) ((float) bedLocation.getX() + 0.5F), (double) ((float) bedLocation.getY() + 0.6875F), (double) ((float) bedLocation.getZ() + 0.5F));
                 }
 
-                this.setSize(0.2F, 0.2F);
+                this.setSize(MCAVillagerDimensions.SLEEPING_WIDTH, MCAVillagerDimensions.SLEEPING_HEIGHT);
 
                 this.motionX = 0.0D;
                 this.motionY = 0.0D;

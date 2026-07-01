@@ -12,6 +12,7 @@ import mca.core.minecraft.SoundsMCA;
 import mca.entity.EntityGrimReaper;
 import mca.entity.EntityVillagerMCA;
 import mca.items.ItemBaby;
+import mca.util.MCACollisionUtil;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -25,7 +26,9 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.stats.StatList;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.SoundCategory;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.event.RegistryEvent;
@@ -37,6 +40,7 @@ import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingSetAttackTargetEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.world.BlockEvent;
+import net.minecraftforge.event.world.GetCollisionBoxesEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.eventhandler.Event;
@@ -137,6 +141,14 @@ public class EventHooks {
             newVillager.finalizeMobSpawn(world.getDifficultyForLocation(newVillager.getPos()), null, false);
             newVillager.forcePositionAsHome();
             world.spawnEntity(newVillager);
+        }
+    }
+
+    @SubscribeEvent
+    public void onGetCollisionBoxes(GetCollisionBoxesEvent event) {
+        if (event.getEntity() instanceof EntityVillagerMCA) {
+            // Let MCA villagers pass carpeted two-block doorways without changing carpet behavior for anything else.
+            removeCarpetCollisions(event);
         }
     }
 
@@ -262,6 +274,33 @@ public class EventHooks {
             event.setCanceled(event.getSound().getSoundName().toString().contains("villager"));
         } catch (NullPointerException e) {
             // throw out potential NPEs due to bad event data. some of these have been reported
+        }
+    }
+
+    private void removeCarpetCollisions(GetCollisionBoxesEvent event) {
+        AxisAlignedBB query = event.getAabb();
+        World world = event.getWorld();
+        int minX = MathHelper.floor(query.minX) - 1;
+        int maxX = MathHelper.ceil(query.maxX) + 1;
+        int minY = MathHelper.floor(query.minY) - 1;
+        int maxY = MathHelper.ceil(query.maxY) + 1;
+        int minZ = MathHelper.floor(query.minZ) - 1;
+        int maxZ = MathHelper.ceil(query.maxZ) + 1;
+
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = minY; y <= maxY; y++) {
+                for (int z = minZ; z <= maxZ; z++) {
+                    BlockPos pos = new BlockPos(x, y, z);
+                    if (world.isBlockLoaded(pos)) {
+                        AxisAlignedBB carpetBox = MCACollisionUtil.getPassableCarpetCollisionBox(world, pos);
+                        if (carpetBox == null) {
+                            continue;
+                        }
+
+                        event.getCollisionBoxesList().removeIf(box -> MCACollisionUtil.isSameBox(box, carpetBox));
+                    }
+                }
+            }
         }
     }
 }
