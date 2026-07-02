@@ -3,12 +3,12 @@ package mca.client.model;
 import mca.entity.EntityVillagerMCA;
 import mca.entity.EntityZombieVillagerMCA;
 import mca.enums.EnumGender;
+import mca.util.RangedWeaponUtil;
 import net.minecraft.client.model.ModelBiped;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.inventory.EntityEquipmentSlot;
-import net.minecraft.item.ItemBow;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.EnumHandSide;
@@ -53,7 +53,7 @@ public class ModelVillagerMCA extends ModelBiped {
     }
 
     private boolean isUsingBow(EntityLivingBase entity) {
-        return entity.getActiveItemStack().getItem() instanceof ItemBow || entity.getHeldItem(EnumHand.MAIN_HAND).getItem() instanceof ItemBow;
+        return RangedWeaponUtil.isMcaRangedWeapon(entity.getActiveItemStack()) || RangedWeaponUtil.isMcaRangedWeapon(entity.getHeldItem(EnumHand.MAIN_HAND));
     }
 
     @Override

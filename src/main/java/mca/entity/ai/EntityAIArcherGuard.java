@@ -1,6 +1,7 @@
 package mca.entity.ai;
 
 import mca.entity.EntityVillagerMCA;
+import mca.util.RangedWeaponUtil;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.entity.ai.RandomPositionGenerator;
@@ -46,12 +47,12 @@ public class EntityAIArcherGuard extends EntityAIBase {
         }
 
         this.attackTarget = target;
-        return isBowInMainhand();
+        return isRangedWeaponInMainhand();
     }
 
     @Override
     public boolean shouldContinueExecuting() {
-        return isValidTarget(this.archer.getAttackTarget()) && isBowInMainhand();
+        return isValidTarget(this.archer.getAttackTarget()) && isRangedWeaponInMainhand();
     }
 
     @Override
@@ -215,8 +216,8 @@ public class EntityAIArcherGuard extends EntityAIBase {
         }
     }
 
-    private boolean isBowInMainhand() {
-        return !this.archer.getHeldItemMainhand().isEmpty() && this.archer.getHeldItemMainhand().getItem() instanceof ItemBow;
+    private boolean isRangedWeaponInMainhand() {
+        return RangedWeaponUtil.isMcaRangedWeapon(this.archer.getHeldItemMainhand());
     }
 
     private static boolean isValidTarget(EntityLivingBase target) {

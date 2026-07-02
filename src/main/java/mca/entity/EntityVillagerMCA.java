@@ -9,6 +9,7 @@ import mca.core.MCA;
 import mca.core.forge.NetMCA;
 import mca.core.minecraft.ItemsMCA;
 import mca.core.minecraft.ProfessionsMCA;
+import mca.compat.TConstructCompat;
 import mca.entity.ai.*;
 import mca.entity.ai.pathfinding.PathNavigateGroundMCA;
 import mca.entity.data.ParentData;
@@ -111,6 +112,9 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
     private BlockPos home = BlockPos.ORIGIN;
     private int startingAge = 0;
     private float swingProgressTicks;
+    private ItemStack defaultMainHandStack = ItemStack.EMPTY;
+    private VillagerRegistry.VillagerProfession defaultMainHandProfession;
+    private VillagerRegistry.VillagerCareer defaultMainHandCareer;
 
     public float renderOffsetX;
     public float renderOffsetY;
@@ -451,8 +455,13 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
 
     @Override
     public void attackEntityWithRangedAttack(EntityLivingBase target, float distanceFactor) {
-        EntityArrow arrow = getArrow(distanceFactor);
         ItemStack heldItem = getHeldItemMainhand();
+        if (TConstructCompat.shootCrossbow(this, heldItem, target)) {
+            setSwingingArms(true);
+            return;
+        }
+
+        EntityArrow arrow = getArrow(distanceFactor);
 
         if (heldItem.getItem() instanceof ItemBow) {
             arrow = ((ItemBow) heldItem.getItem()).customizeArrow(arrow);
@@ -491,11 +500,32 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
             } else if (chore != EnumChore.NONE) {
                 return inventory.getBestItemOfType(chore.getToolType());
             } else {
-                return ProfessionsMCA.getDefaultHeldItem(profession, getVanillaCareer());
+                return getDefaultMainHandStack(profession, getVanillaCareer());
             }
         } else {
             return inventory.getBestArmorOfType(slotIn);
         }
+    }
+
+    private ItemStack getDefaultMainHandStack(VillagerRegistry.VillagerProfession profession, VillagerRegistry.VillagerCareer career) {
+        if (defaultMainHandStack.isEmpty() || defaultMainHandProfession != profession || defaultMainHandCareer != career) {
+            defaultMainHandProfession = profession;
+            defaultMainHandCareer = career;
+            defaultMainHandStack = createDefaultMainHandStack(profession, career);
+        }
+
+        return defaultMainHandStack;
+    }
+
+    private ItemStack createDefaultMainHandStack(VillagerRegistry.VillagerProfession profession, VillagerRegistry.VillagerCareer career) {
+        if (profession == ProfessionsMCA.bandit && ProfessionsMCA.isBanditPillagerCareer(career)) {
+            ItemStack crossbow = TConstructCompat.getPillagerCrossbow(this);
+            if (!crossbow.isEmpty()) {
+                return crossbow;
+            }
+        }
+
+        return ProfessionsMCA.getDefaultHeldItem(profession, career);
     }
 
     public void setStartingAge(int value) {
@@ -1056,7 +1086,11 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
 
         if (getProfessionForge() == ProfessionsMCA.bandit) {
             this.tasks.taskEntries.clear();
-            this.tasks.addTask(1, new EntityAIAttackMelee(this, 0.8D, false));
+            if (isBanditArcher()) {
+                this.tasks.addTask(1, new EntityAIArcherGuard(this, 0.8D, 20, 15.0F));
+            } else {
+                this.tasks.addTask(1, new EntityAIAttackMelee(this, 0.8D, false));
+            }
             this.tasks.addTask(2, new EntityAIMoveThroughVillage(this, 0.6D, false));
             this.tasks.addTask(4, new EntityAIMCAOpenDoor(this, true));
 
@@ -1098,6 +1132,10 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
 
     private boolean isGuardArcher() {
         return getProfessionForge() == ProfessionsMCA.guard && ProfessionsMCA.isGuardArcherCareer(getVanillaCareer());
+    }
+
+    private boolean isBanditArcher() {
+        return getProfessionForge() == ProfessionsMCA.bandit && ProfessionsMCA.isBanditPillagerCareer(getVanillaCareer());
     }
 
     //guards should not run away from zombies
