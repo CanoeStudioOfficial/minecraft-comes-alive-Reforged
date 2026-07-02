@@ -1060,8 +1060,10 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
             this.tasks.addTask(2, new EntityAIMoveThroughVillage(this, 0.6D, false));
             this.tasks.addTask(4, new EntityAIMCAOpenDoor(this, true));
 
-            this.targetTasks.addTask(0, new EntityAINearestAttackableTarget<>(this, EntityVillagerMCA.class, 100, false, false, BANDIT_TARGET_SELECTOR));
-            this.targetTasks.addTask(1, new EntityAINearestAttackableTarget<>(this, EntityPlayer.class, true));
+            this.targetTasks.addTask(0, new EntityAIHurtByTarget(this, false));
+            this.targetTasks.addTask(1, new EntityAINearestAttackableTarget<>(this, EntityZombieVillagerMCA.class, 10, true, false, null));
+            this.targetTasks.addTask(2, new EntityAINearestAttackableTarget<>(this, EntityVillagerMCA.class, 100, false, false, BANDIT_TARGET_SELECTOR));
+            this.targetTasks.addTask(3, new EntityAINearestAttackableTarget<>(this, EntityPlayer.class, true));
         } else if (getProfessionForge() == ProfessionsMCA.guard) {
             removeExternalAvoidTasks();
 
@@ -1072,7 +1074,9 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
             }
             this.tasks.addTask(2, new EntityAIMoveThroughVillage(this, 0.6D, false));
 
-            this.targetTasks.addTask(0, new EntityAINearestAttackableTarget<>(this, EntityLivingBase.class, 100, false, false, target -> GuardTargeting.isGuardEnemy(this, target)));
+            this.targetTasks.addTask(0, new EntityAIHurtByTarget(this, false));
+            this.targetTasks.addTask(1, new EntityAINearestAttackableTarget<>(this, EntityZombieVillagerMCA.class, 10, true, false, null));
+            this.targetTasks.addTask(2, new EntityAINearestAttackableTarget<>(this, EntityLivingBase.class, 20, false, false, target -> GuardTargeting.isGuardEnemy(this, target)));
         } else {
             //every other villager is allowed to defend itself from zombies while fleeing
             this.tasks.addTask(0, new EntityAIDefendFromTarget(this));

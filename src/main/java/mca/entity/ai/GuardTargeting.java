@@ -3,6 +3,7 @@ package mca.entity.ai;
 import mca.compat.RaidsBackportCompat;
 import mca.core.minecraft.ProfessionsMCA;
 import mca.entity.EntityVillagerMCA;
+import mca.entity.EntityZombieVillagerMCA;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.monster.EntityVex;
@@ -23,6 +24,10 @@ public final class GuardTargeting {
         }
 
         if (RaidsBackportCompat.isRaidEnemy(target)) {
+            return true;
+        }
+
+        if (target instanceof EntityZombieVillagerMCA) {
             return true;
         }
 
