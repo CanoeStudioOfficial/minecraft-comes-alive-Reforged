@@ -1,11 +1,13 @@
 package mca.entity.ai;
 
+import mca.compat.TConstructCompat;
 import mca.entity.EntityVillagerMCA;
 import mca.util.RangedWeaponUtil;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.entity.ai.RandomPositionGenerator;
 import net.minecraft.item.ItemBow;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.Vec3d;
 
@@ -27,6 +29,7 @@ public class EntityAIArcherGuard extends EntityAIBase {
     private int seeTime;
     private int repathCooldown;
     private int strafingTime = -1;
+    private int crossbowChargeTicks;
     private boolean strafingClockwise;
     private boolean kiting;
 
@@ -58,7 +61,7 @@ public class EntityAIArcherGuard extends EntityAIBase {
     @Override
     public void startExecuting() {
         super.startExecuting();
-        this.archer.setSwingingArms(true);
+        this.archer.setChargingRangedWeapon(false);
     }
 
     @Override
@@ -69,8 +72,10 @@ public class EntityAIArcherGuard extends EntityAIBase {
         this.seeTime = 0;
         this.repathCooldown = 0;
         this.strafingTime = -1;
+        this.crossbowChargeTicks = 0;
         this.kiting = false;
         this.archer.setSwingingArms(false);
+        this.archer.setChargingRangedWeapon(false);
         this.archer.resetActiveHand();
         this.archer.getNavigator().clearPath();
     }
@@ -88,7 +93,12 @@ public class EntityAIArcherGuard extends EntityAIBase {
         boolean canSee = this.archer.getEntitySenses().canSee(target);
         updateSeeTime(canSee);
         updateMovement(target, distanceSquared, canSee);
-        updateBowAttack(target, distanceSquared, canSee);
+        ItemStack weapon = this.archer.getHeldItemMainhand();
+        if (TConstructCompat.isCrossbow(weapon)) {
+            updateCrossbowAttack(target, weapon, distanceSquared, canSee);
+        } else {
+            updateBowAttack(target, distanceSquared, canSee);
+        }
     }
 
     private void updateMovement(EntityLivingBase target, double distanceSquared, boolean canSee) {
@@ -131,6 +141,8 @@ public class EntityAIArcherGuard extends EntityAIBase {
     }
 
     private void updateBowAttack(EntityLivingBase target, double distanceSquared, boolean canSee) {
+        this.crossbowChargeTicks = 0;
+        this.archer.setChargingRangedWeapon(false);
         if (this.attackTime > 0) {
             this.attackTime--;
         }
@@ -150,6 +162,38 @@ public class EntityAIArcherGuard extends EntityAIBase {
 
         if (!this.kiting && canSee && distanceSquared <= this.maxAttackDistanceSquared && this.attackTime <= 0) {
             this.archer.setActiveHand(EnumHand.MAIN_HAND);
+        }
+    }
+
+    private void updateCrossbowAttack(EntityLivingBase target, ItemStack weapon, double distanceSquared, boolean canSee) {
+        this.archer.resetActiveHand();
+
+        if (this.attackTime > 0) {
+            this.attackTime--;
+            this.crossbowChargeTicks = 0;
+            this.archer.setSwingingArms(false);
+            this.archer.setChargingRangedWeapon(false);
+            return;
+        }
+
+        if (this.kiting || !canSee || distanceSquared > this.maxAttackDistanceSquared) {
+            this.crossbowChargeTicks = 0;
+            this.archer.setSwingingArms(false);
+            this.archer.setChargingRangedWeapon(false);
+            TConstructCompat.setCrossbowLoaded(weapon, false);
+            return;
+        }
+
+        this.archer.setChargingRangedWeapon(true);
+        this.crossbowChargeTicks++;
+        if (this.crossbowChargeTicks >= 20) {
+            TConstructCompat.setCrossbowLoaded(weapon, false);
+            this.archer.attackEntityWithRangedAttack(target, 1.0F);
+            this.archer.resetActiveHand();
+            this.archer.setSwingingArms(false);
+            this.archer.setChargingRangedWeapon(false);
+            this.crossbowChargeTicks = 0;
+            this.attackTime = this.attackCooldown + 10;
         }
     }
 

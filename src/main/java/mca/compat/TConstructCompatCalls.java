@@ -41,6 +41,10 @@ final class TConstructCompatCalls {
         return stack.getItem() instanceof CrossBow;
     }
 
+    static void setCrossbowLoaded(ItemStack stack, boolean loaded) {
+        ((CrossBow)stack.getItem()).setLoaded(stack, loaded);
+    }
+
     static float getChargeAmount(ItemStack stack, EntityLivingBase entity) {
         return ((CrossBow)stack.getItem()).getDrawbackProgress(stack, entity);
     }
@@ -60,6 +64,7 @@ final class TConstructCompatCalls {
             world.spawnEntity(projectile);
         }
 
+        setCrossbowLoaded(stack, false);
         world.playSound(null, entity.posX, entity.posY, entity.posZ, SoundEvents.ENTITY_ARROW_SHOOT, entity.getSoundCategory(), 1.0F, 1.0F / (entity.getRNG().nextFloat() * 0.4F + 1.2F) + power * 0.5F);
     }
 }

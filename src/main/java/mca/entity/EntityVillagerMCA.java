@@ -94,6 +94,7 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
     public static final DataParameter<Integer> STARTING_AGE = EntityDataManager.createKey(EntityVillagerMCA.class, DataSerializers.VARINT);
     public static final DataParameter<Integer> ACTIVE_CHORE = EntityDataManager.createKey(EntityVillagerMCA.class, DataSerializers.VARINT);
     public static final DataParameter<Boolean> IS_SWINGING = EntityDataManager.createKey(EntityVillagerMCA.class, DataSerializers.BOOLEAN);
+    public static final DataParameter<Boolean> IS_CHARGING_RANGED_WEAPON = EntityDataManager.createKey(EntityVillagerMCA.class, DataSerializers.BOOLEAN);
     public static final DataParameter<Boolean> HAS_BABY = EntityDataManager.createKey(EntityVillagerMCA.class, DataSerializers.BOOLEAN);
     public static final DataParameter<Boolean> BABY_IS_MALE = EntityDataManager.createKey(EntityVillagerMCA.class, DataSerializers.BOOLEAN);
     public static final DataParameter<Integer> BABY_AGE = EntityDataManager.createKey(EntityVillagerMCA.class, DataSerializers.VARINT);
@@ -167,6 +168,7 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
         this.dataManager.register(STARTING_AGE, 0);
         this.dataManager.register(ACTIVE_CHORE, EnumChore.NONE.getId());
         this.dataManager.register(IS_SWINGING, false);
+        this.dataManager.register(IS_CHARGING_RANGED_WEAPON, false);
         this.dataManager.register(HAS_BABY, false);
         this.dataManager.register(BABY_IS_MALE, false);
         this.dataManager.register(BABY_AGE, 0);
@@ -430,7 +432,9 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
 
     @Override
     public void swingArm(EnumHand hand) {
-        this.setActiveHand(EnumHand.MAIN_HAND);
+        if (!TConstructCompat.isCrossbow(getHeldItemMainhand())) {
+            this.setActiveHand(EnumHand.MAIN_HAND);
+        }
         super.swingArm(EnumHand.MAIN_HAND);
 
         if (!get(IS_SWINGING) || swingProgressTicks >= 8 / 2 || swingProgressTicks < 0) {
@@ -457,7 +461,7 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
     public void attackEntityWithRangedAttack(EntityLivingBase target, float distanceFactor) {
         ItemStack heldItem = getHeldItemMainhand();
         if (TConstructCompat.shootCrossbow(this, heldItem, target)) {
-            setSwingingArms(true);
+            setChargingRangedWeapon(false);
             return;
         }
 
@@ -487,6 +491,10 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
     @Override
     public void setSwingingArms(boolean swingingArms) {
         setIfDataReady(IS_SWINGING, swingingArms);
+    }
+
+    public void setChargingRangedWeapon(boolean charging) {
+        setIfDataReady(IS_CHARGING_RANGED_WEAPON, charging);
     }
 
     @Override

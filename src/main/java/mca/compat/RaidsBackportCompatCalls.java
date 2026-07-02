@@ -2,9 +2,13 @@ package mca.compat;
 
 import mca.entity.EntityBanditMCA;
 import mca.entity.EntityVillagerMCA;
+import mca.entity.EntityZombieVillagerMCA;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.ai.EntityAIBase;
+import net.minecraft.entity.ai.EntityAINearestAttackableTarget;
+import net.minecraft.entity.ai.EntityAITasks;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -12,6 +16,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.WorldServer;
 import net.smileycorp.raids.common.Constants;
 import net.smileycorp.raids.common.RaidsContent;
+import net.smileycorp.raids.common.entities.EntityRavager;
 import net.smileycorp.raids.common.raid.Raid;
 import net.smileycorp.raids.common.raid.RaidHandler;
 import net.smileycorp.raids.common.raid.Raider;
@@ -42,6 +47,26 @@ final class RaidsBackportCompatCalls {
 
     static boolean isRaider(EntityLivingBase entity) {
         return entity instanceof EntityLiving && RaidHandler.isRaider(entity);
+    }
+
+    static void addMcaZombieTargetForRavager(EntityLivingBase entity) {
+        if (!(entity instanceof EntityRavager) || hasMcaZombieTargetTask((EntityRavager) entity)) {
+            return;
+        }
+
+        EntityRavager ravager = (EntityRavager) entity;
+        ravager.targetTasks.addTask(4, new EntityAINearestMcaZombieTarget(ravager));
+    }
+
+    private static boolean hasMcaZombieTargetTask(EntityRavager ravager) {
+        for (EntityAITasks.EntityAITaskEntry entry : ravager.targetTasks.taskEntries) {
+            EntityAIBase action = entry.action;
+            if (action instanceof EntityAINearestMcaZombieTarget) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     static void convertRaiderToBandit(EntityLivingBase entity) {
@@ -144,5 +169,11 @@ final class RaidsBackportCompatCalls {
 
     private static boolean countsTowardOutpostCap(EntityLivingBase entity) {
         return entity instanceof EntityBanditMCA || OutpostConfig.isSpawnEntity(entity);
+    }
+
+    private static final class EntityAINearestMcaZombieTarget extends EntityAINearestAttackableTarget<EntityZombieVillagerMCA> {
+        private EntityAINearestMcaZombieTarget(EntityRavager ravager) {
+            super(ravager, EntityZombieVillagerMCA.class, 10, true, false, null);
+        }
     }
 }

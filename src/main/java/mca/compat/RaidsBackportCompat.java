@@ -47,6 +47,7 @@ public final class RaidsBackportCompat {
             return;
         }
 
+        RaidsBackportCompatCalls.addMcaZombieTargetForRavager(event.getEntityLiving());
         RaidsBackportCompatCalls.convertRaiderToBandit(event.getEntityLiving());
 
         if (event.getEntityLiving() instanceof EntityVillagerMCA) {

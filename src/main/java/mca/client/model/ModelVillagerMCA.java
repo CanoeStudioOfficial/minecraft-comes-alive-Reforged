@@ -41,7 +41,7 @@ public class ModelVillagerMCA extends ModelBiped {
         this.rightArmPose = ArmPose.EMPTY;
         this.leftArmPose = ArmPose.EMPTY;
 
-        if (entity instanceof EntityVillagerMCA && entity.isHandActive() && isUsingBow(entity)) {
+        if (entity instanceof EntityVillagerMCA && (entity.isHandActive() || ((EntityVillagerMCA)entity).get(EntityVillagerMCA.IS_CHARGING_RANGED_WEAPON)) && isUsingBow(entity)) {
             if (entity.getPrimaryHand() == EnumHandSide.RIGHT) {
                 this.rightArmPose = ArmPose.BOW_AND_ARROW;
             } else {

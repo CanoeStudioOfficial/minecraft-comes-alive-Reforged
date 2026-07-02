@@ -63,4 +63,15 @@ public final class TConstructCompat {
             return false;
         }
     }
+
+    public static void setCrossbowLoaded(ItemStack stack, boolean loaded) {
+        if (!isCrossbow(stack)) {
+            return;
+        }
+
+        try {
+            TConstructCompatCalls.setCrossbowLoaded(stack, loaded);
+        } catch (Throwable ignored) {
+        }
+    }
 }
