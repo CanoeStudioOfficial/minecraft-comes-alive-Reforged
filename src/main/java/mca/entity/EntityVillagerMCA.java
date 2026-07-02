@@ -25,10 +25,10 @@ import net.minecraft.block.BlockBed;
 import net.minecraft.block.BlockHorizontal;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.*;
 import net.minecraft.entity.monster.EntityVex;
-import net.minecraft.entity.monster.EntityVindicator;
 import net.minecraft.entity.monster.EntityZombie;
 import net.minecraft.entity.passive.EntityHorse;
 import net.minecraft.entity.passive.EntityVillager;
@@ -98,7 +98,6 @@ public class EntityVillagerMCA extends EntityVillager {
     public static final DataParameter<Boolean> SLEEPING = EntityDataManager.createKey(EntityVillagerMCA.class, DataSerializers.BOOLEAN);
 
     private static final Predicate<EntityVillagerMCA> BANDIT_TARGET_SELECTOR = (v) -> v.getProfessionForge() != ProfessionsMCA.bandit && v.getProfessionForge() != ProfessionsMCA.child;
-    private static final Predicate<EntityVillagerMCA> GUARD_TARGET_SELECTOR = (v) -> v.getProfessionForge() == ProfessionsMCA.bandit;
 
     public final InventoryMCA inventory;
     public int babyAge = 0;
@@ -134,7 +133,7 @@ public class EntityVillagerMCA extends EntityVillager {
             setVanillaCareer(getProfessionForge().getRandomCareer(worldIn.rand));
             set(TEXTURE, API.getRandomSkin(this));
 
-            applySpecialAI();
+            refreshSpecialAI();
         }
     }
 
@@ -238,7 +237,7 @@ public class EntityVillagerMCA extends EntityVillager {
         this.babyAge = nbt.getInteger("babyAge");
         set(BABY_AGE, nbt.hasKey("babyAgeSeconds") ? nbt.getInteger("babyAgeSeconds") : this.babyAge * 60);
 
-        applySpecialAI();
+        refreshSpecialAI();
     }
 
     @Override
@@ -827,6 +826,7 @@ public class EntityVillagerMCA extends EntityVillager {
             case "gui.button.profession.randomize":
                 setProfession(ProfessionsMCA.randomProfession());
                 setVanillaCareer(getProfessionForge().getRandomCareer(world.rand));
+                refreshSpecialAI();
                 break;
             case "gui.button.gender":
                 EnumGender gender = EnumGender.byId(get(GENDER));
@@ -846,7 +846,7 @@ public class EntityVillagerMCA extends EntityVillager {
                 RegistryNamespaced<ResourceLocation, VillagerRegistry.VillagerProfession> registry = ObfuscationReflectionHelper.getPrivateValue(VillagerRegistry.class, VillagerRegistry.instance(), "REGISTRY");
                 setProfession(ProfessionsMCA.randomProfession());
                 setVanillaCareer(getProfessionForge().getRandomCareer(world.rand));
-                applySpecialAI();
+                refreshSpecialAI();
                 break;
             case "gui.button.prospecting":
                 startChore(EnumChore.PROSPECT, player);
@@ -975,7 +975,27 @@ public class EntityVillagerMCA extends EntityVillager {
         this.tasks.addTask(10, new EntityAILookIdle(this));
     }
 
+    public void refreshSpecialAI() {
+        applySpecialAI();
+    }
+
+    public void setBanditPillagerCareer() {
+        List<VillagerRegistry.VillagerCareer> careers = ObfuscationReflectionHelper.getPrivateValue(VillagerRegistry.VillagerProfession.class, ProfessionsMCA.bandit, 3);
+        for (int i = 0; i < careers.size(); i++) {
+            if (careers.get(i) == ProfessionsMCA.bandit_pillager || "pillager".equals(careers.get(i).getName())) {
+                setVanillaCareer(i);
+                return;
+            }
+        }
+
+        if (world != null) {
+            setVanillaCareer(ProfessionsMCA.bandit.getRandomCareer(world.rand));
+        }
+    }
+
     private void applySpecialAI() {
+        resetSpecialAI();
+
         if (getProfessionForge() == ProfessionsMCA.bandit) {
             this.tasks.taskEntries.clear();
             this.tasks.addTask(1, new EntityAIAttackMelee(this, 0.8D, false));
@@ -990,19 +1010,22 @@ public class EntityVillagerMCA extends EntityVillager {
             this.tasks.addTask(1, new EntityAIAttackMelee(this, 0.8D, false));
             this.tasks.addTask(2, new EntityAIMoveThroughVillage(this, 0.6D, false));
 
-            this.targetTasks.addTask(0, new EntityAINearestAttackableTarget<>(this, EntityVillagerMCA.class, 100, false, false, GUARD_TARGET_SELECTOR));
-            this.targetTasks.addTask(0, new EntityAINearestAttackableTarget<>(this, EntityZombie.class, 100, false, false, null));
-            this.targetTasks.addTask(0, new EntityAINearestAttackableTarget<>(this, EntityVex.class, 100, false, false, null));
-            this.targetTasks.addTask(0, new EntityAINearestAttackableTarget<>(this, EntityVindicator.class, 100, false, false, null));
+            this.targetTasks.addTask(0, new EntityAINearestAttackableTarget<>(this, EntityLivingBase.class, 100, false, false, target -> GuardTargeting.isGuardEnemy(this, target)));
         } else {
             //every other villager is allowed to defend itself from zombies while fleeing
             this.tasks.addTask(0, new EntityAIDefendFromTarget(this));
 
-            this.targetTasks.taskEntries.clear();
             this.targetTasks.addTask(0, new EntityAINearestAttackableTarget<>(this, EntityZombie.class, 100, false, false, null));
         }
 
         configureDoorNavigation();
+    }
+
+    private void resetSpecialAI() {
+        this.targetTasks.taskEntries.clear();
+        removeCertainTasks(EntityAIAttackMelee.class);
+        removeCertainTasks(EntityAIMoveThroughVillage.class);
+        removeCertainTasks(EntityAIDefendFromTarget.class);
     }
 
     //guards should not run away from zombies

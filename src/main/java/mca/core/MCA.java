@@ -9,6 +9,8 @@ import mca.core.forge.NetMCA;
 import mca.core.forge.ServerProxy;
 import mca.core.minecraft.ItemsMCA;
 import mca.core.minecraft.ProfessionsMCA;
+import mca.compat.RaidsBackportCompat;
+import mca.entity.EntityBanditMCA;
 import mca.entity.EntityGrimReaper;
 import mca.entity.EntityVillagerMCA;
 import mca.enums.EnumGender;
@@ -28,7 +30,7 @@ import net.minecraftforge.fml.common.network.NetworkRegistry;
 import net.minecraftforge.fml.common.registry.EntityRegistry;
 import org.apache.logging.log4j.Logger;
 
-@Mod(modid = Tags.MOD_ID, name = Tags.MOD_NAME, version = Tags.VERSION, guiFactory = "mca.client.MCAGuiFactory")
+@Mod(modid = Tags.MOD_ID, name = Tags.MOD_NAME, version = Tags.VERSION, guiFactory = "mca.client.MCAGuiFactory", dependencies = "after:raids")
 public class MCA {
     public static final String MODID = Tags.MOD_ID;
 
@@ -87,6 +89,7 @@ public class MCA {
     public void init(FMLInitializationEvent event) {
         EntityRegistry.registerModEntity(new ResourceLocation(MODID, "EntityVillagerMCA"), EntityVillagerMCA.class, EntityVillagerMCA.class.getSimpleName(), 1120, this, 50, 2, true);
         EntityRegistry.registerModEntity(new ResourceLocation(MODID, "GrimReaperMCA"), EntityGrimReaper.class, EntityGrimReaper.class.getSimpleName(), 1121, this, 50, 2, true);
+        EntityRegistry.registerModEntity(new ResourceLocation(MODID, "bandit_mca"), EntityBanditMCA.class, EntityBanditMCA.class.getSimpleName(), 1122, this, 50, 2, true);
 
         proxy.registerModelMeshers();
         ItemsMCA.assignCreativeTabs();
@@ -95,6 +98,7 @@ public class MCA {
     @EventHandler
     public void postInit(FMLPostInitializationEvent event) {
         API.init();
+        RaidsBackportCompat.postInit();
     }
 
     @EventHandler

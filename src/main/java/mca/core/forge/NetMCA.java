@@ -703,6 +703,7 @@ public class NetMCA {
                             EntityVillagerMCA villager = (EntityVillagerMCA)entity.get();
                             villager.setProfession(professionEntry.getValue());
                             villager.setVanillaCareer(i);
+                            villager.refreshSpecialAI();
                             player.sendMessage(new TextComponentTranslation("notify.profession.set", message.profession));
                             isCareerSet = true;
                             break;
