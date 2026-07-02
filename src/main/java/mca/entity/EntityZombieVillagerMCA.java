@@ -32,6 +32,7 @@ import java.util.Objects;
 public class EntityZombieVillagerMCA extends EntityZombieVillager {
     public static final DataParameter<String> VILLAGER_NAME = EntityDataManager.createKey(EntityZombieVillagerMCA.class, DataSerializers.STRING);
     public static final DataParameter<String> TEXTURE = EntityDataManager.createKey(EntityZombieVillagerMCA.class, DataSerializers.STRING);
+    public static final DataParameter<String> ORIGINAL_TEXTURE = EntityDataManager.createKey(EntityZombieVillagerMCA.class, DataSerializers.STRING);
     public static final DataParameter<Integer> GENDER = EntityDataManager.createKey(EntityZombieVillagerMCA.class, DataSerializers.VARINT);
     public static final DataParameter<Integer> AGE_STATE = EntityDataManager.createKey(EntityZombieVillagerMCA.class, DataSerializers.VARINT);
     public static final DataParameter<Integer> GROWTH_AMOUNT = EntityDataManager.createKey(EntityZombieVillagerMCA.class, DataSerializers.VARINT);
@@ -55,6 +56,7 @@ public class EntityZombieVillagerMCA extends EntityZombieVillager {
         set(AGE_STATE, EnumAgeState.ADULT.getId());
         setStartingAge(0);
         set(TEXTURE, getDefaultZombieTexture());
+        set(ORIGINAL_TEXTURE, "");
     }
 
     @Override
@@ -62,6 +64,7 @@ public class EntityZombieVillagerMCA extends EntityZombieVillager {
         super.entityInit();
         this.dataManager.register(VILLAGER_NAME, "");
         this.dataManager.register(TEXTURE, "");
+        this.dataManager.register(ORIGINAL_TEXTURE, "");
         this.dataManager.register(GENDER, EnumGender.UNASSIGNED.getId());
         this.dataManager.register(AGE_STATE, EnumAgeState.ADULT.getId());
         this.dataManager.register(GROWTH_AMOUNT, 0);
@@ -85,6 +88,7 @@ public class EntityZombieVillagerMCA extends EntityZombieVillager {
 
         set(GENDER, gender.getId());
         set(VILLAGER_NAME, villager.get(EntityVillagerMCA.VILLAGER_NAME));
+        set(ORIGINAL_TEXTURE, villager.get(EntityVillagerMCA.TEXTURE));
         set(TEXTURE, getZombieTextureFor(gender));
         set(AGE_STATE, villager.get(EntityVillagerMCA.AGE_STATE));
         setStartingAge(villager.getStartingAgeForMCA());
@@ -120,6 +124,10 @@ public class EntityZombieVillagerMCA extends EntityZombieVillager {
             set(TEXTURE, getDefaultZombieTexture());
         }
 
+        if (!this.world.isRemote && get(ORIGINAL_TEXTURE).isEmpty()) {
+            set(ORIGINAL_TEXTURE, getRandomOriginalTextureFor(EnumGender.byId(get(GENDER))));
+        }
+
         if (isChild() && getCurrentAgeState() == EnumAgeState.ADULT) {
             set(AGE_STATE, EnumAgeState.CHILD.getId());
             setStartingAge(MCA.getConfig().childGrowUpTime * 60 * 20 * -1);
@@ -135,6 +143,7 @@ public class EntityZombieVillagerMCA extends EntityZombieVillager {
         super.writeEntityToNBT(compound);
         compound.setString("mcaName", get(VILLAGER_NAME));
         compound.setString("mcaTexture", get(TEXTURE));
+        compound.setString("mcaOriginalTexture", get(ORIGINAL_TEXTURE));
         compound.setInteger("mcaGender", get(GENDER));
         compound.setInteger("mcaAgeState", get(AGE_STATE));
         compound.setInteger("mcaStartingAge", startingAge);
@@ -148,6 +157,7 @@ public class EntityZombieVillagerMCA extends EntityZombieVillager {
         super.readEntityFromNBT(compound);
         set(VILLAGER_NAME, compound.getString("mcaName"));
         set(TEXTURE, compound.getString("mcaTexture"));
+        set(ORIGINAL_TEXTURE, compound.getString("mcaOriginalTexture"));
         set(GENDER, compound.hasKey("mcaGender") ? compound.getInteger("mcaGender") : EnumGender.getRandom().getId());
         set(AGE_STATE, compound.hasKey("mcaAgeState") ? compound.getInteger("mcaAgeState") : EnumAgeState.ADULT.getId());
         this.startingAge = compound.hasKey("mcaStartingAge") ? compound.getInteger("mcaStartingAge") : getDefaultStartingAge(compound.getInteger("mcaGrowthAmount"));
@@ -158,6 +168,10 @@ public class EntityZombieVillagerMCA extends EntityZombieVillager {
 
         if (get(TEXTURE).isEmpty()) {
             set(TEXTURE, getDefaultZombieTexture());
+        }
+
+        if (get(ORIGINAL_TEXTURE).isEmpty() && mcaData.hasKey("texture")) {
+            set(ORIGINAL_TEXTURE, mcaData.getString("texture"));
         }
 
         updateAgeStateAndDimensions();
@@ -201,6 +215,8 @@ public class EntityZombieVillagerMCA extends EntityZombieVillager {
         if (!storedData.isEmpty()) {
             villager.readEntityFromNBT(storedData.copy());
             villager.copyLocationAndAnglesFrom(this);
+        } else if (!get(ORIGINAL_TEXTURE).isEmpty()) {
+            villager.set(EntityVillagerMCA.TEXTURE, get(ORIGINAL_TEXTURE));
         } else {
             villager.set(EntityVillagerMCA.TEXTURE, API.getRandomSkin(villager));
         }
@@ -274,6 +290,14 @@ public class EntityZombieVillagerMCA extends EntityZombieVillager {
 
     public ResourceLocation getTextureResourceLocation() {
         return ResourceLocationCache.getResourceLocationFor(get(TEXTURE).isEmpty() ? getDefaultZombieTexture() : get(TEXTURE));
+    }
+
+    public String getOriginalTextureForMCA() {
+        return get(ORIGINAL_TEXTURE);
+    }
+
+    public EnumGender getGenderForMCA() {
+        return EnumGender.byId(get(GENDER));
     }
 
     public float getRenderScaleForAge() {
@@ -372,6 +396,12 @@ public class EntityZombieVillagerMCA extends EntityZombieVillager {
 
     private String getZombieTextureFor(EnumGender gender) {
         return String.format("mca:skins/%s/zombievillager.png", gender == EnumGender.FEMALE ? "female" : "male");
+    }
+
+    private String getRandomOriginalTextureFor(EnumGender gender) {
+        EntityVillagerMCA dummy = new EntityVillagerMCA(this.world, Optional.of(getForgeProfession()), Optional.of(gender));
+        dummy.set(EntityVillagerMCA.VILLAGER_NAME, get(VILLAGER_NAME));
+        return API.getRandomSkin(dummy);
     }
 
     private NBTTagCompound copyVillagerData(EntityVillagerMCA villager) {

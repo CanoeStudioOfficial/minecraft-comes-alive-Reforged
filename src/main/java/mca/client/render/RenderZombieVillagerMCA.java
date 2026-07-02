@@ -1,22 +1,21 @@
 package mca.client.render;
 
-import mca.client.model.ModelVillagerMCA;
+import mca.client.model.ModelZombieVillagerMCA;
 import mca.entity.EntityZombieVillagerMCA;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.entity.RenderBiped;
 import net.minecraft.client.renderer.entity.RenderManager;
-import net.minecraft.client.renderer.entity.layers.LayerBipedArmor;
 import net.minecraft.util.ResourceLocation;
 
 public class RenderZombieVillagerMCA extends RenderBiped<EntityZombieVillagerMCA> {
     public RenderZombieVillagerMCA(RenderManager manager) {
-        super(manager, new ModelVillagerMCA(), 0.5F);
-        this.addLayer(new LayerBipedArmor(this));
+        super(manager, new ModelZombieVillagerMCA(), 0.5F);
+        this.addLayer(new LayerZombieVillagerMCAArmor(this));
     }
 
     @Override
     protected ResourceLocation getEntityTexture(EntityZombieVillagerMCA entity) {
-        return entity.getTextureResourceLocation();
+        return ZombieVillagerMCATextureCache.getZombieTexture(entity.getOriginalTextureForMCA(), entity.getGenderForMCA(), entity.getTextureResourceLocation());
     }
 
     @Override

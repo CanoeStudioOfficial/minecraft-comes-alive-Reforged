@@ -2,6 +2,7 @@ package mca.client.render;
 
 import mca.client.model.ModelVillagerMCA;
 import mca.entity.EntityVillagerMCA;
+import mca.enums.EnumGender;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
@@ -90,6 +91,12 @@ public class RenderVillagerMCA<T extends EntityVillagerMCA> extends RenderBiped<
 
     @Override
     protected ResourceLocation getEntityTexture(EntityVillagerMCA villager) {
+        if (villager.get(EntityVillagerMCA.IS_INFECTED)) {
+            return ZombieVillagerMCATextureCache.getZombieTexture(
+                    villager.get(EntityVillagerMCA.TEXTURE),
+                    EnumGender.byId(villager.get(EntityVillagerMCA.GENDER)),
+                    villager.getTextureResourceLocation());
+        }
         return villager.getTextureResourceLocation();
     }
 
