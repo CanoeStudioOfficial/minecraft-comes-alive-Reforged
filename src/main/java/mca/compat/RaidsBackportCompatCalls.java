@@ -9,11 +9,15 @@ import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.WorldServer;
 import net.smileycorp.raids.common.Constants;
 import net.smileycorp.raids.common.RaidsContent;
 import net.smileycorp.raids.common.raid.Raid;
 import net.smileycorp.raids.common.raid.RaidHandler;
 import net.smileycorp.raids.common.raid.Raider;
+import net.smileycorp.raids.common.world.WorldDataOutposts;
+import net.smileycorp.raids.common.world.WorldGenOutpost;
+import net.smileycorp.raids.config.OutpostConfig;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -24,6 +28,9 @@ final class RaidsBackportCompatCalls {
     private static final Set<ResourceLocation> CONVERTIBLE_RAIDERS = new HashSet<>(Arrays.asList(
             new ResourceLocation("raids", "pillager"),
             new ResourceLocation("minecraft", "vindication_illager")
+    ));
+    private static final Set<ResourceLocation> CONVERTIBLE_OUTPOST_ENTITIES = new HashSet<>(Arrays.asList(
+            new ResourceLocation("raids", "pillager")
     ));
 
     private RaidsBackportCompatCalls() {
@@ -38,20 +45,30 @@ final class RaidsBackportCompatCalls {
     }
 
     static void convertRaiderToBandit(EntityLivingBase entity) {
-        if (!(entity instanceof EntityLiving) || entity instanceof EntityVillagerMCA || entity.ticksExisted < 5) {
+        if (!(entity instanceof EntityLiving) || entity instanceof EntityVillagerMCA || entity.ticksExisted < 1) {
             return;
         }
 
         EntityLiving source = (EntityLiving) entity;
-        if (source.getEntityData().getBoolean(CONVERTED_TAG) || !isConvertibleRaider(source)) {
+        if (source.getEntityData().getBoolean(CONVERTED_TAG)) {
+            return;
+        }
+
+        if (!isRaidOrPatrolRaider(source) && isExcessOutpostEntity(source)) {
+            source.getEntityData().setBoolean(CONVERTED_TAG, true);
+            source.setDead();
+            return;
+        }
+
+        if (!isConvertibleBanditSource(source)) {
             return;
         }
 
         Raider sourceRaider = source.getCapability(RaidsContent.RAIDER, null);
-        Raid raid = sourceRaider.getCurrentRaid();
-        int wave = sourceRaider.getWave();
-        boolean wasLeader = sourceRaider.isPatrolLeader() || ItemStack.areItemStacksEqual(source.getItemStackFromSlot(EntityEquipmentSlot.HEAD), Constants.ominousBanner());
-        NBTTagCompound patrolData = raid == null ? sourceRaider.writeNBT(new NBTTagCompound()) : null;
+        Raid raid = sourceRaider != null ? sourceRaider.getCurrentRaid() : null;
+        int wave = sourceRaider != null ? sourceRaider.getWave() : 0;
+        boolean wasLeader = sourceRaider != null && (sourceRaider.isPatrolLeader() || ItemStack.areItemStacksEqual(source.getItemStackFromSlot(EntityEquipmentSlot.HEAD), Constants.ominousBanner()));
+        NBTTagCompound patrolData = sourceRaider != null && raid == null ? sourceRaider.writeNBT(new NBTTagCompound()) : null;
 
         EntityBanditMCA bandit = new EntityBanditMCA(source.world);
         bandit.setPositionAndRotation(source.posX, source.posY, source.posZ, source.rotationYaw, source.rotationPitch);
@@ -87,17 +104,45 @@ final class RaidsBackportCompatCalls {
         source.setDead();
     }
 
-    private static boolean isConvertibleRaider(EntityLiving source) {
-        if (!source.hasCapability(RaidsContent.RAIDER, null)) {
+    private static boolean isConvertibleBanditSource(EntityLiving source) {
+        ResourceLocation id = EntityList.getKey(source);
+        if (id == null) {
+            return false;
+        }
+
+        return CONVERTIBLE_RAIDERS.contains(id);
+    }
+
+    private static boolean isRaidOrPatrolRaider(EntityLiving source) {
+        ResourceLocation id = EntityList.getKey(source);
+        if (id == null || !CONVERTIBLE_RAIDERS.contains(id) || !source.hasCapability(RaidsContent.RAIDER, null)) {
             return false;
         }
 
         Raider raider = source.getCapability(RaidsContent.RAIDER, null);
-        if (raider == null || (!raider.hasActiveRaid() && !raider.isPatrolling())) {
-            return false;
+        return raider != null && (raider.hasActiveRaid() || raider.isPatrolling());
+    }
+
+    private static boolean isExcessOutpostEntity(EntityLiving source) {
+        ResourceLocation id = EntityList.getKey(source);
+        int outpostEntities = getOutpostEntityCount(source);
+        return id != null && CONVERTIBLE_OUTPOST_ENTITIES.contains(id) && outpostEntities > OutpostConfig.maxEntities;
+    }
+
+    private static int getOutpostEntityCount(EntityLiving source) {
+        if (!(source.world instanceof WorldServer)) {
+            return 0;
         }
 
-        ResourceLocation id = EntityList.getKey(source);
-        return id != null && CONVERTIBLE_RAIDERS.contains(id);
+        WorldGenOutpost.OutpostStart structure = WorldDataOutposts.getData((WorldServer) source.world).getStructureAt(source.getPosition());
+        if (structure == null) {
+            return -1;
+        }
+
+        return source.world.getEntitiesWithinAABB(EntityLivingBase.class, structure.getSpawnBox(), RaidsBackportCompatCalls::countsTowardOutpostCap).size();
+    }
+
+    private static boolean countsTowardOutpostCap(EntityLivingBase entity) {
+        return entity instanceof EntityBanditMCA || OutpostConfig.isSpawnEntity(entity);
     }
 }
