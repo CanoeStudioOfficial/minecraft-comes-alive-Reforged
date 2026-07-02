@@ -84,6 +84,8 @@ public class EntityVillagerMCA extends EntityVillager {
     public static final DataParameter<NBTTagCompound> PARENTS = EntityDataManager.createKey(EntityVillagerMCA.class, DataSerializers.COMPOUND_TAG);
     public static final DataParameter<Boolean> IS_INFECTED = EntityDataManager.createKey(EntityVillagerMCA.class, DataSerializers.BOOLEAN);
     public static final DataParameter<Integer> AGE_STATE = EntityDataManager.createKey(EntityVillagerMCA.class, DataSerializers.VARINT);
+    public static final DataParameter<Integer> GROWTH_AMOUNT = EntityDataManager.createKey(EntityVillagerMCA.class, DataSerializers.VARINT);
+    public static final DataParameter<Integer> STARTING_AGE = EntityDataManager.createKey(EntityVillagerMCA.class, DataSerializers.VARINT);
     public static final DataParameter<Integer> ACTIVE_CHORE = EntityDataManager.createKey(EntityVillagerMCA.class, DataSerializers.VARINT);
     public static final DataParameter<Boolean> IS_SWINGING = EntityDataManager.createKey(EntityVillagerMCA.class, DataSerializers.BOOLEAN);
     public static final DataParameter<Boolean> HAS_BABY = EntityDataManager.createKey(EntityVillagerMCA.class, DataSerializers.BOOLEAN);
@@ -153,6 +155,8 @@ public class EntityVillagerMCA extends EntityVillager {
         this.dataManager.register(PARENTS, new NBTTagCompound());
         this.dataManager.register(IS_INFECTED, false);
         this.dataManager.register(AGE_STATE, EnumAgeState.ADULT.getId());
+        this.dataManager.register(GROWTH_AMOUNT, 0);
+        this.dataManager.register(STARTING_AGE, 0);
         this.dataManager.register(ACTIVE_CHORE, EnumChore.NONE.getId());
         this.dataManager.register(IS_SWINGING, false);
         this.dataManager.register(HAS_BABY, false);
@@ -171,6 +175,7 @@ public class EntityVillagerMCA extends EntityVillager {
         super.applyEntityAttributes();
         this.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(MCA.getConfig().villagerMaxHealth);
         this.getEntityAttribute(SharedMonsterAttributes.FOLLOW_RANGE).setBaseValue(32.0D);
+        this.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(MCAVillagerDimensions.BASE_MOVEMENT_SPEED);
 
         if (this.getHealth() <= MCA.getConfig().villagerMaxHealth) {
             this.setHealth(MCA.getConfig().villagerMaxHealth);
@@ -224,12 +229,14 @@ public class EntityVillagerMCA extends EntityVillager {
         inventory.readInventoryFromNBT(nbt.getTagList("inventory", 10));
 
         // Vanilla Age doesn't apply from the superclass call. Causes children to revert to the starting age on world reload.
-        this.startingAge = nbt.getInteger("startingAge");
+        this.startingAge = nbt.hasKey("startingAge") ? nbt.getInteger("startingAge") : getDefaultStartingAge(nbt.getInteger("Age"));
+        setIfDataReady(STARTING_AGE, this.startingAge);
         setGrowingAge(nbt.getInteger("Age"));
 
         this.home = new BlockPos(nbt.getDouble("homePositionX"), nbt.getDouble("homePositionY"), nbt.getDouble("homePositionZ"));
         this.playerToFollowUUID = nbt.getUniqueId("playerToFollowUUID");
         this.babyAge = nbt.getInteger("babyAge");
+        set(BABY_AGE, nbt.hasKey("babyAgeSeconds") ? nbt.getInteger("babyAgeSeconds") : this.babyAge * 60);
 
         applySpecialAI();
     }
@@ -259,7 +266,8 @@ public class EntityVillagerMCA extends EntityVillager {
         nbt.setInteger("activeChore", get(ACTIVE_CHORE));
         nbt.setUniqueId("choreAssigningPlayer", get(CHORE_ASSIGNING_PLAYER).or(Constants.ZERO_UUID));
         nbt.setTag("inventory", inventory.writeInventoryToNBT());
-        nbt.setInteger("babyAge", babyAge);
+        nbt.setInteger("babyAge", get(BABY_AGE) / 60);
+        nbt.setInteger("babyAgeSeconds", get(BABY_AGE));
         nbt.setTag("parents", get(PARENTS));
         nbt.setInteger("bedX", get(BED_POS).getX());
         nbt.setInteger("bedY", get(BED_POS).getY());
@@ -319,6 +327,12 @@ public class EntityVillagerMCA extends EntityVillager {
     }
 
     @Override
+    protected float getSoundPitch() {
+        float agePitch = MCAVillagerDimensions.getSoundPitch(getCurrentAgeState(), getAgeProgressDelta());
+        return (this.rand.nextFloat() - this.rand.nextFloat()) * 0.2F + agePitch;
+    }
+
+    @Override
     public boolean processInteract(EntityPlayer player, @Nonnull EnumHand hand) {
         // No-op, handled by EventHooks
         return true;
@@ -368,6 +382,7 @@ public class EntityVillagerMCA extends EntityVillager {
     protected void onGrowingAdult() {
         Entity[] parents = ParentData.fromNBT(get(PARENTS)).getParentEntities(world);
         set(AGE_STATE, EnumAgeState.ADULT.getId());
+        updateAgeStateAndDimensions();
         Arrays.stream(parents).filter((e) -> e instanceof EntityPlayer).forEach((e) -> {
             PlayerHistory history = getPlayerHistoryFor(e.getUniqueID());
             history.setDialogueType(EnumDialogueType.ADULT);
@@ -450,7 +465,34 @@ public class EntityVillagerMCA extends EntityVillager {
 
     public void setStartingAge(int value) {
         this.startingAge = value;
+        setIfDataReady(STARTING_AGE, value);
         setGrowingAge(value);
+    }
+
+    @Override
+    public void setGrowingAge(int age) {
+        if (age < 0 && this.startingAge >= 0) {
+            this.startingAge = age;
+            setIfDataReady(STARTING_AGE, this.startingAge);
+        }
+
+        super.setGrowingAge(age);
+        setIfDataReady(GROWTH_AMOUNT, Math.min(age, 0));
+        updateAgeStateAndDimensions();
+    }
+
+    @Override
+    public void setScaleForAge(boolean child) {
+        updateAgeStateAndDimensions();
+    }
+
+    @Override
+    public void notifyDataManagerChange(DataParameter<?> key) {
+        super.notifyDataManagerChange(key);
+
+        if (AGE_STATE.equals(key) || GROWTH_AMOUNT.equals(key) || STARTING_AGE.equals(key) || SLEEPING.equals(key)) {
+            updateAgeStateAndDimensions();
+        }
     }
 
     public PlayerHistory getPlayerHistoryFor(UUID uuid) {
@@ -488,9 +530,82 @@ public class EntityVillagerMCA extends EntityVillager {
     }
 
     private void setSizeForAge() {
-        EnumAgeState age = EnumAgeState.byId(get(AGE_STATE));
-        this.setSize(MCAVillagerDimensions.getCollisionWidth(age), MCAVillagerDimensions.getCollisionHeight(age));
+        EnumAgeState age = getCurrentAgeState();
+        float delta = getAgeProgressDelta();
+        this.setSize(MCAVillagerDimensions.getCollisionWidth(age, delta), MCAVillagerDimensions.getCollisionHeight(age, delta));
         this.setScale(1.0F); // trigger rebuild of the bounding box
+    }
+
+    public float getRenderScaleForAge() {
+        return MCAVillagerDimensions.getRenderScale(getCurrentAgeState(), getAgeProgressDelta());
+    }
+
+    private void updateAgeStateAndDimensions() {
+        if (!hasDataParameter(AGE_STATE) || !hasDataParameter(GROWTH_AMOUNT) || !hasDataParameter(STARTING_AGE)) {
+            return;
+        }
+
+        boolean serverSide = this.world == null || !this.world.isRemote;
+        int growthAmount = serverSide ? Math.min(getGrowingAge(), 0) : getTrackedGrowingAge();
+        if (serverSide) {
+            setIfDataReady(GROWTH_AMOUNT, growthAmount);
+            setIfDataReady(STARTING_AGE, startingAge);
+        }
+
+        EnumAgeState target = EnumAgeState.byCurrentAge(getTrackedStartingAge(), growthAmount);
+        if (serverSide && get(AGE_STATE) != target.getId()) {
+            set(AGE_STATE, target.getId());
+        }
+
+        if (this.world != null && !isSleeping()) {
+            setSizeForAge();
+        }
+
+        if (this.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED) != null) {
+            this.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(
+                    MCAVillagerDimensions.getMovementSpeed(target, getAgeProgressDelta()));
+        }
+    }
+
+    private EnumAgeState getCurrentAgeState() {
+        EnumAgeState target = EnumAgeState.byCurrentAge(getTrackedStartingAge(), getTrackedGrowingAge());
+        EnumAgeState syncedState = hasDataParameter(AGE_STATE) ? EnumAgeState.byId(get(AGE_STATE)) : target;
+        return target == EnumAgeState.ADULT && syncedState != EnumAgeState.ADULT && syncedState != EnumAgeState.UNASSIGNED ? syncedState : target;
+    }
+
+    private float getAgeProgressDelta() {
+        return EnumAgeState.getDelta(getTrackedStartingAge(), getTrackedGrowingAge());
+    }
+
+    private int getTrackedStartingAge() {
+        return hasDataParameter(STARTING_AGE) ? get(STARTING_AGE) : startingAge;
+    }
+
+    private int getTrackedGrowingAge() {
+        return hasDataParameter(GROWTH_AMOUNT) ? get(GROWTH_AMOUNT) : getGrowingAge();
+    }
+
+    private <T> void setIfDataReady(DataParameter<T> key, T value) {
+        if (hasDataParameter(key) && !Objects.equals(get(key), value)) {
+            set(key, value);
+        }
+    }
+
+    private boolean hasDataParameter(DataParameter<?> key) {
+        if (this.dataManager == null) {
+            return false;
+        }
+
+        try {
+            this.dataManager.get(key);
+            return true;
+        } catch (RuntimeException ignored) {
+            return false;
+        }
+    }
+
+    private int getDefaultStartingAge(int age) {
+        return age < 0 ? MCA.getConfig().childGrowUpTime * 60 * 20 * -1 : 0;
     }
 
     private void configureDoorNavigation() {
@@ -767,6 +882,8 @@ public class EntityVillagerMCA extends EntityVillager {
                 EntityVillagerMCA progressor = this.get(GENDER) == EnumGender.FEMALE.getId() ? this : (EntityVillagerMCA) spouse.get();
                 progressor.set(HAS_BABY, true);
                 progressor.set(BABY_IS_MALE, rand.nextBoolean());
+                progressor.set(BABY_AGE, 0);
+                progressor.babyAge = 0;
                 progressor.spawnParticles(EnumParticleTypes.HEART);
             } else say(Optional.of(player), "gift.cake.fail");
         } else if (item == Items.GOLDEN_APPLE && this.isChild()) {
@@ -802,13 +919,7 @@ public class EntityVillagerMCA extends EntityVillager {
             }
         }
 
-        if (isChild()) {
-            EnumAgeState current = EnumAgeState.byId(get(AGE_STATE));
-            EnumAgeState target = EnumAgeState.byCurrentAge(startingAge, getGrowingAge());
-            if (current != target) {
-                set(AGE_STATE, target.getId());
-            }
-        }
+        updateAgeStateAndDimensions();
     }
 
     private void onEachServerSecond() {
@@ -816,19 +927,21 @@ public class EntityVillagerMCA extends EntityVillager {
         memories.getKeySet().forEach((key) -> PlayerHistory.fromNBT(this, UUID.fromString(key), memories.getCompoundTag(key)).update());
 
         if (get(HAS_BABY)) {
-            set(BABY_AGE, get(BABY_AGE) + 1);
+            int babyAgeSeconds = get(BABY_AGE) + 1;
+            set(BABY_AGE, babyAgeSeconds);
+            this.babyAge = babyAgeSeconds / 60;
 
-            if (get(BABY_AGE) >= MCA.getConfig().babyGrowUpTime * 60) { // grow up time is in minutes and we measure age in seconds
-                EntityVillagerMCA child = new EntityVillagerMCA(world, Optional.absent(), Optional.of(get(BABY_IS_MALE) ? EnumGender.MALE : EnumGender.FEMALE));
+            if (babyAgeSeconds >= MCA.getConfig().babyGrowUpTime * 60) { // grow up time is in minutes and we measure age in seconds
+                EntityVillagerMCA child = new EntityVillagerMCA(world, Optional.of(ProfessionsMCA.child), Optional.of(get(BABY_IS_MALE) ? EnumGender.MALE : EnumGender.FEMALE));
                 child.set(EntityVillagerMCA.AGE_STATE, EnumAgeState.BABY.getId());
                 child.setStartingAge(MCA.getConfig().childGrowUpTime * 60 * 20 * -1);
-                child.setScaleForAge(true);
                 child.setPosition(this.posX, this.posY, this.posZ);
                 child.set(EntityVillagerMCA.PARENTS, ParentData.create(this.getUniqueID(), this.get(SPOUSE_UUID).get(), this.get(VILLAGER_NAME), this.get(SPOUSE_NAME)).toNBT());
                 world.spawnEntity(child);
 
                 set(HAS_BABY, false);
                 set(BABY_AGE, 0);
+                this.babyAge = 0;
             }
         }
     }
@@ -853,7 +966,6 @@ public class EntityVillagerMCA extends EntityVillager {
         this.tasks.addTask(0, new EntityAIHarvesting(this));
         this.tasks.addTask(0, new EntityAIFishing(this));
         this.tasks.addTask(0, new EntityAIMoveState(this));
-        this.tasks.addTask(0, new EntityAIAgeBaby(this));
         this.tasks.addTask(0, new EntityAIProcreate(this));
         this.tasks.addTask(5, new EntityAIGoWorkplace(this));
         this.tasks.addTask(5, new EntityAIGoHangout(this));

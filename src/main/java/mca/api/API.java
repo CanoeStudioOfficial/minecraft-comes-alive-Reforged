@@ -11,12 +11,10 @@ import mca.entity.EntityVillagerMCA;
 import mca.enums.EnumConstraint;
 import mca.enums.EnumGender;
 import mca.util.Util;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.StringUtils;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import net.minecraftforge.fml.common.registry.VillagerRegistry;
 import net.minecraftforge.fml.relauncher.Side;
@@ -32,6 +30,12 @@ import java.util.*;
  * Class API handles interaction with MCA's configurable options via JSON in the resources folder
  */
 public class API {
+    private static final String DEFAULT_SKIN = "mca:skins/default.png";
+    private static final String[] SKIN_MANIFESTS = {
+            "api/skins.json",
+            "api/skins_high_version.json"
+    };
+
     private static Map<String, Gift> giftMap = new HashMap<>();
     private static Map<String, APIButton[]> buttonMap = new HashMap<>();
     private static List<String> maleNames = new ArrayList<>();
@@ -47,9 +51,8 @@ public class API {
 
         // Load skins
         skinGroups.clear();
-        SkinsGroup[] skins = Util.readResourceAsJSON("api/skins.json", SkinsGroup[].class);
-        if (skins != null) {
-            Collections.addAll(skinGroups, skins);
+        for (String manifest : SKIN_MANIFESTS) {
+            loadSkinGroups(manifest);
         }
 
         // Load names
@@ -123,10 +126,12 @@ public class API {
         VillagerRegistry.VillagerProfession profession = villager.getProfessionForge();
         EnumGender gender = EnumGender.byId(villager.get(EntityVillagerMCA.GENDER));
         String name = villager.get(EntityVillagerMCA.VILLAGER_NAME);
+        String normalizedName = name == null ? "" : name.toLowerCase(Locale.ROOT);
+        String professionName = profession == null || profession.getRegistryName() == null ? null : profession.getRegistryName().toString();
 
         //Special-case skins
         if (gender == EnumGender.MALE) {
-            switch (name.toLowerCase()) {
+            switch (normalizedName) {
                 case "pewdiepie": return "mca:skins/male/special/pewdiepie_boy.png";
                 case "sven": return "mca:skins/male/special/sven.png";
                 case "noob":
@@ -136,50 +141,53 @@ public class API {
                 case "minsc": return "mca:skins/male/special/minsc.png";
             }
         } else if (gender == EnumGender.FEMALE) {
-            switch (name.toLowerCase()) {
+            switch (normalizedName) {
                 case "pewdiepie": return "mca:skins/female/special/pewdiepie_girl.png";
             }
         }
 
-        //Default skin behavior
-        Optional<SkinsGroup> group = skinGroups.stream()
-                .filter(g -> g.getGender() == gender && profession.getRegistryName() != null && g.getProfession().equals(profession.getRegistryName().toString()))
-                .findFirst();
+        List<String> professionSkins = collectSkinPaths(gender, professionName);
+        if (!professionSkins.isEmpty()) {
+            return professionSkins.get(rng.nextInt(professionSkins.size()));
+        }
 
-        // group 存在且 paths 不为空
-        if (group.isPresent()) {
-            String[] paths = group.get().getPaths();
-            if (paths == null || paths.length == 0) {
-                MCA.getLog().error("SkinsGroup paths 为空，无法分配皮肤！");
-                return "mca:skins/default.png";
+        List<String> genderSkins = collectSkinPaths(gender, null);
+        if (!genderSkins.isEmpty()) {
+            return genderSkins.get(rng.nextInt(genderSkins.size()));
+        }
+
+        MCA.getLog().error("No MCA villager skins are available for gender " + gender + " and profession " + professionName);
+        return DEFAULT_SKIN;
+    }
+
+    private static void loadSkinGroups(String manifest) {
+        try {
+            SkinsGroup[] skins = Util.readResourceAsJSON(manifest, SkinsGroup[].class);
+            if (skins != null) {
+                Collections.addAll(skinGroups, skins);
             }
-            return paths[rng.nextInt(paths.length)];
+        } catch (RuntimeException e) {
+            MCA.getLog().warn("Could not load MCA skin manifest: " + manifest, e);
         }
+    }
 
-        // skinGroups 为空
-        if (skinGroups.isEmpty()) {
-            MCA.getLog().error("skinGroups 为空，无法分配皮肤！");
-            return "mca:skins/default.png";
-        }
-
-        // 随机选取同性别的 SkinsGroup
-        List<SkinsGroup> genderGroups = new ArrayList<>();
-        for (SkinsGroup g : skinGroups) {
-            if (g.getGender() == gender) {
-                genderGroups.add(g);
+    private static List<String> collectSkinPaths(EnumGender gender, @Nullable String professionName) {
+        List<String> paths = new ArrayList<>();
+        for (SkinsGroup group : skinGroups) {
+            if (group.getGender() != gender) {
+                continue;
             }
+            if (professionName != null && !professionName.equals(group.getProfession())) {
+                continue;
+            }
+
+            String[] groupPaths = group.getPaths();
+            if (groupPaths == null || groupPaths.length == 0) {
+                continue;
+            }
+            Collections.addAll(paths, groupPaths);
         }
-        if (genderGroups.isEmpty()) {
-            MCA.getLog().error("没有找到对应性别的 SkinsGroup，无法分配皮肤！");
-            return "mca:skins/default.png";
-        }
-        SkinsGroup randomGroup = genderGroups.get(rng.nextInt(genderGroups.size()));
-        String[] paths = randomGroup.getPaths();
-        if (paths == null || paths.length == 0) {
-            MCA.getLog().error("随机选中的 SkinsGroup paths 为空，无法分配皮肤！");
-            return "mca:skins/default.png";
-        }
-        return paths[rng.nextInt(paths.length)];
+        return paths;
     }
 
     /**

@@ -153,5 +153,8 @@ public class GuiWhistle extends GuiScreen {
         dummyHuman.set(TALLNESS, nbt.getFloat("tallness"));
         dummyHuman.set(IS_INFECTED, nbt.getBoolean("infected"));
         dummyHuman.set(AGE_STATE, nbt.getInteger("ageState"));
+        int age = nbt.getInteger("Age");
+        dummyHuman.set(STARTING_AGE, nbt.hasKey("startingAge") ? nbt.getInteger("startingAge") : age < 0 ? age : 0);
+        dummyHuman.setGrowingAge(age);
     }
 }

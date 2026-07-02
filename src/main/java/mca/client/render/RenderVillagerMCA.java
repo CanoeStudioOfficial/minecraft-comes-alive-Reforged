@@ -2,7 +2,6 @@ package mca.client.render;
 
 import mca.client.model.ModelVillagerMCA;
 import mca.entity.EntityVillagerMCA;
-import mca.enums.EnumAgeState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
@@ -13,7 +12,6 @@ import net.minecraft.client.renderer.entity.layers.LayerBipedArmor;
 import net.minecraft.client.renderer.entity.layers.LayerHeldItem;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.ResourceLocation;
-import org.lwjgl.opengl.GL11;
 
 public class RenderVillagerMCA<T extends EntityVillagerMCA> extends RenderBiped<EntityVillagerMCA> {
     private static final ResourceLocation gui = new ResourceLocation("mca:textures/gui.png");
@@ -28,7 +26,7 @@ public class RenderVillagerMCA<T extends EntityVillagerMCA> extends RenderBiped<
     @Override
     protected void preRenderCallback(EntityVillagerMCA villager, float partialTickTime) {
         if (villager.isChild()) {
-            float scaleForAge = EnumAgeState.byId(villager.get(EntityVillagerMCA.AGE_STATE)).getScaleForAge();
+            float scaleForAge = villager.getRenderScaleForAge();
             GlStateManager.scale(scaleForAge, scaleForAge, scaleForAge);
         }
 
