@@ -26,6 +26,7 @@ import net.minecraft.block.BlockHorizontal;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.IRangedAttackMob;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.*;
 import net.minecraft.entity.monster.EntityVex;
@@ -34,11 +35,14 @@ import net.minecraft.entity.passive.EntityHorse;
 import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.projectile.EntityArrow;
+import net.minecraft.entity.projectile.EntityTippedArrow;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemBow;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.datasync.DataParameter;
@@ -47,6 +51,7 @@ import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.pathfinding.PathNavigateGround;
 import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.registry.RegistryNamespaced;
 import net.minecraft.util.text.ITextComponent;
@@ -66,7 +71,7 @@ import java.util.*;
 import static net.minecraft.block.BlockBed.OCCUPIED;
 import static net.minecraft.block.BlockBed.PART;
 
-public class EntityVillagerMCA extends EntityVillager {
+public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMob {
     public static final int VANILLA_CAREER_ID_FIELD_INDEX = 13;
     public static final int VANILLA_CAREER_LEVEL_FIELD_INDEX = 14;
 
@@ -442,6 +447,37 @@ public class EntityVillagerMCA extends EntityVillager {
             swingProgressTicks = 0;
         }
         swingProgress = swingProgressTicks / (float) 8;
+    }
+
+    @Override
+    public void attackEntityWithRangedAttack(EntityLivingBase target, float distanceFactor) {
+        EntityArrow arrow = getArrow(distanceFactor);
+        ItemStack heldItem = getHeldItemMainhand();
+
+        if (heldItem.getItem() instanceof ItemBow) {
+            arrow = ((ItemBow) heldItem.getItem()).customizeArrow(arrow);
+        }
+
+        double targetX = target.posX - this.posX;
+        double targetY = target.getEntityBoundingBox().minY + (double) (target.height / 3.0F) - arrow.posY;
+        double targetZ = target.posZ - this.posZ;
+        double horizontalDistance = MathHelper.sqrt(targetX * targetX + targetZ * targetZ);
+
+        arrow.shoot(targetX, targetY + horizontalDistance * 0.20000000298023224D, targetZ, 1.6F, 14 - this.world.getDifficulty().getId() * 4);
+        playSound(SoundEvents.ENTITY_SKELETON_SHOOT, 1.0F, 1.0F / (getRNG().nextFloat() * 0.4F + 0.8F));
+        world.spawnEntity(arrow);
+        swingArm(EnumHand.MAIN_HAND);
+    }
+
+    protected EntityArrow getArrow(float distanceFactor) {
+        EntityTippedArrow arrow = new EntityTippedArrow(world, this);
+        arrow.setEnchantmentEffectsFromEntity(this, distanceFactor);
+        return arrow;
+    }
+
+    @Override
+    public void setSwingingArms(boolean swingingArms) {
+        setIfDataReady(IS_SWINGING, swingingArms);
     }
 
     @Override
@@ -909,6 +945,10 @@ public class EntityVillagerMCA extends EntityVillager {
     }
 
     private void onEachServerUpdate() {
+        if (getProfessionForge() == ProfessionsMCA.guard && (this.ticksExisted <= 5 || this.ticksExisted % 20 == 0)) {
+            removeExternalAvoidTasks();
+        }
+
         if (this.ticksExisted % 20 == 0) { // Every second
             onEachServerSecond();
         }
@@ -979,6 +1019,12 @@ public class EntityVillagerMCA extends EntityVillager {
         applySpecialAI();
     }
 
+    public void removeExternalAvoidTasks() {
+        if (getProfessionForge() == ProfessionsMCA.guard) {
+            removeCertainTasks(EntityAIAvoidEntity.class);
+        }
+    }
+
     public void setBanditPillagerCareer() {
         List<VillagerRegistry.VillagerCareer> careers = ObfuscationReflectionHelper.getPrivateValue(VillagerRegistry.VillagerProfession.class, ProfessionsMCA.bandit, 3);
         for (int i = 0; i < careers.size(); i++) {
@@ -1005,9 +1051,13 @@ public class EntityVillagerMCA extends EntityVillager {
             this.targetTasks.addTask(0, new EntityAINearestAttackableTarget<>(this, EntityVillagerMCA.class, 100, false, false, BANDIT_TARGET_SELECTOR));
             this.targetTasks.addTask(1, new EntityAINearestAttackableTarget<>(this, EntityPlayer.class, true));
         } else if (getProfessionForge() == ProfessionsMCA.guard) {
-            removeCertainTasks(EntityAIAvoidEntity.class);
+            removeExternalAvoidTasks();
 
-            this.tasks.addTask(1, new EntityAIAttackMelee(this, 0.8D, false));
+            if (isGuardArcher()) {
+                this.tasks.addTask(1, new EntityAIAttackRanged(this, 0.8D, 20, 15.0F));
+            } else {
+                this.tasks.addTask(1, new EntityAIAttackMelee(this, 0.8D, false));
+            }
             this.tasks.addTask(2, new EntityAIMoveThroughVillage(this, 0.6D, false));
 
             this.targetTasks.addTask(0, new EntityAINearestAttackableTarget<>(this, EntityLivingBase.class, 100, false, false, target -> GuardTargeting.isGuardEnemy(this, target)));
@@ -1024,8 +1074,13 @@ public class EntityVillagerMCA extends EntityVillager {
     private void resetSpecialAI() {
         this.targetTasks.taskEntries.clear();
         removeCertainTasks(EntityAIAttackMelee.class);
+        removeCertainTasks(EntityAIAttackRanged.class);
         removeCertainTasks(EntityAIMoveThroughVillage.class);
         removeCertainTasks(EntityAIDefendFromTarget.class);
+    }
+
+    private boolean isGuardArcher() {
+        return getProfessionForge() == ProfessionsMCA.guard && getVanillaCareer() == ProfessionsMCA.guard_archer;
     }
 
     //guards should not run away from zombies

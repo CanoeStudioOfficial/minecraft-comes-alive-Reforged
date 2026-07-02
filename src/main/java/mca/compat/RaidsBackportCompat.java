@@ -1,6 +1,7 @@
 package mca.compat;
 
 import mca.core.MCA;
+import mca.entity.EntityVillagerMCA;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingEvent;
@@ -47,5 +48,9 @@ public final class RaidsBackportCompat {
         }
 
         RaidsBackportCompatCalls.convertRaiderToBandit(event.getEntityLiving());
+
+        if (event.getEntityLiving() instanceof EntityVillagerMCA) {
+            ((EntityVillagerMCA) event.getEntityLiving()).removeExternalAvoidTasks();
+        }
     }
 }
