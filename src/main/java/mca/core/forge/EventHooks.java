@@ -11,6 +11,7 @@ import mca.core.minecraft.WorldEventListenerMCA;
 import mca.core.minecraft.SoundsMCA;
 import mca.entity.EntityGrimReaper;
 import mca.entity.EntityVillagerMCA;
+import mca.entity.EntityZombieVillagerMCA;
 import mca.items.ItemBaby;
 import mca.util.MCACollisionUtil;
 import net.minecraft.block.Block;
@@ -18,6 +19,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.effect.EntityLightningBolt;
 import net.minecraft.entity.monster.EntityMob;
+import net.minecraft.entity.monster.EntityZombie;
 import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
@@ -245,6 +247,15 @@ public class EventHooks {
 
     @SubscribeEvent
     public void onLivingDeath(LivingDeathEvent event) {
+        if (!event.getEntityLiving().world.isRemote && event.getEntityLiving() instanceof EntityVillagerMCA) {
+            EntityVillagerMCA villager = (EntityVillagerMCA)event.getEntityLiving();
+            if (villager.get(EntityVillagerMCA.IS_INFECTED) && event.getSource().getImmediateSource() instanceof EntityZombie) {
+                event.setCanceled(true);
+                convertToZombieVillager(villager);
+                return;
+            }
+        }
+
         // If a player dies while holding a baby, remember it until they respawn.
         if (event.getEntityLiving() instanceof EntityPlayer) {
             EntityPlayer player = (EntityPlayer)event.getEntityLiving();
@@ -302,5 +313,18 @@ public class EventHooks {
                 }
             }
         }
+    }
+
+    private void convertToZombieVillager(EntityVillagerMCA villager) {
+        World world = villager.world;
+        EntityZombieVillagerMCA zombie = new EntityZombieVillagerMCA(world);
+        zombie.copyLocationAndAnglesFrom(villager);
+        zombie.onInitialSpawn(world.getDifficultyForLocation(new BlockPos(zombie)), null);
+        zombie.copyMCADataFrom(villager);
+        zombie.setNoAI(villager.isAIDisabled());
+
+        world.removeEntity(villager);
+        world.spawnEntity(zombie);
+        world.playEvent(null, 1026, zombie.getPosition(), 0);
     }
 }

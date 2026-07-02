@@ -5,8 +5,12 @@ import mca.enums.EnumGender;
 import net.minecraft.client.model.ModelBiped;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.inventory.EntityEquipmentSlot;
+import net.minecraft.item.ItemBow;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.EnumHand;
+import net.minecraft.util.EnumHandSide;
 import org.lwjgl.opengl.GL11;
 
 public class ModelVillagerMCA extends ModelBiped {
@@ -22,8 +26,32 @@ public class ModelVillagerMCA extends ModelBiped {
     }
 
     @Override
+    public void setLivingAnimations(EntityLivingBase entity, float limbSwing, float limbSwingAmount, float partialTickTime) {
+        this.rightArmPose = ArmPose.EMPTY;
+        this.leftArmPose = ArmPose.EMPTY;
+
+        if (entity instanceof EntityVillagerMCA && entity.isHandActive() && isUsingBow(entity)) {
+            if (entity.getPrimaryHand() == EnumHandSide.RIGHT) {
+                this.rightArmPose = ArmPose.BOW_AND_ARROW;
+            } else {
+                this.leftArmPose = ArmPose.BOW_AND_ARROW;
+            }
+        }
+
+        super.setLivingAnimations(entity, limbSwing, limbSwingAmount, partialTickTime);
+    }
+
+    private boolean isUsingBow(EntityLivingBase entity) {
+        return entity.getActiveItemStack().getItem() instanceof ItemBow || entity.getHeldItem(EnumHand.MAIN_HAND).getItem() instanceof ItemBow;
+    }
+
+    @Override
     public void render(Entity entity, float swing, float swingAmount, float age, float headYaw, float headPitch, float scale) {
         super.render(entity, swing, swingAmount, age, headYaw, headPitch, scale);
+        if (!(entity instanceof EntityVillagerMCA)) {
+            return;
+        }
+
         EntityVillagerMCA villager = (EntityVillagerMCA)entity;
         if (EnumGender.byId(villager.get(EntityVillagerMCA.GENDER)) == EnumGender.FEMALE && !villager.isChild() && villager.getItemStackFromSlot(EntityEquipmentSlot.CHEST) == ItemStack.EMPTY) {
             GL11.glPushMatrix();

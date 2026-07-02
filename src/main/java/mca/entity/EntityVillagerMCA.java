@@ -466,7 +466,7 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
         arrow.shoot(targetX, targetY + horizontalDistance * 0.20000000298023224D, targetZ, 1.6F, 14 - this.world.getDifficulty().getId() * 4);
         playSound(SoundEvents.ENTITY_SKELETON_SHOOT, 1.0F, 1.0F / (getRNG().nextFloat() * 0.4F + 0.8F));
         world.spawnEntity(arrow);
-        swingArm(EnumHand.MAIN_HAND);
+        setSwingingArms(true);
     }
 
     protected EntityArrow getArrow(float distanceFactor) {
@@ -573,6 +573,18 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
 
     public float getRenderScaleForAge() {
         return MCAVillagerDimensions.getRenderScale(getCurrentAgeState(), getAgeProgressDelta());
+    }
+
+    public EnumAgeState getCurrentAgeStateForMCA() {
+        return getCurrentAgeState();
+    }
+
+    public int getStartingAgeForMCA() {
+        return getTrackedStartingAge();
+    }
+
+    public int getGrowingAgeForMCA() {
+        return getTrackedGrowingAge();
     }
 
     private void updateAgeStateAndDimensions() {
@@ -1054,7 +1066,7 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
             removeExternalAvoidTasks();
 
             if (isGuardArcher()) {
-                this.tasks.addTask(1, new EntityAIAttackRanged(this, 0.8D, 20, 15.0F));
+                this.tasks.addTask(1, new EntityAIArcherGuard(this, 0.8D, 20, 15.0F));
             } else {
                 this.tasks.addTask(1, new EntityAIAttackMelee(this, 0.8D, false));
             }
@@ -1075,12 +1087,13 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
         this.targetTasks.taskEntries.clear();
         removeCertainTasks(EntityAIAttackMelee.class);
         removeCertainTasks(EntityAIAttackRanged.class);
+        removeCertainTasks(EntityAIArcherGuard.class);
         removeCertainTasks(EntityAIMoveThroughVillage.class);
         removeCertainTasks(EntityAIDefendFromTarget.class);
     }
 
     private boolean isGuardArcher() {
-        return getProfessionForge() == ProfessionsMCA.guard && getVanillaCareer() == ProfessionsMCA.guard_archer;
+        return getProfessionForge() == ProfessionsMCA.guard && ProfessionsMCA.isGuardArcherCareer(getVanillaCareer());
     }
 
     //guards should not run away from zombies

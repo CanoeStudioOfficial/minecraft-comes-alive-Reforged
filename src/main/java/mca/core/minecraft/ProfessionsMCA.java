@@ -84,9 +84,13 @@ public class ProfessionsMCA {
     }
 
     public static ItemStack getDefaultHeldItem(VillagerProfession profession, VillagerCareer career) {
-        if (profession == ProfessionsMCA.guard) return career == ProfessionsMCA.guard_archer ? ItemStackCache.get(Items.BOW) : ItemStackCache.get(Items.IRON_SWORD);
+        if (profession == ProfessionsMCA.guard) return isGuardArcherCareer(career) ? ItemStackCache.get(Items.BOW) : ItemStackCache.get(Items.IRON_SWORD);
         else if (profession == ProfessionsMCA.bandit) return ItemStackCache.get(Items.IRON_SWORD);
         return ItemStack.EMPTY;
+    }
+
+    public static boolean isGuardArcherCareer(VillagerCareer career) {
+        return career != null && (career == guard_archer || "archer".equals(career.getName()));
     }
 
     public static VillagerProfession randomProfession() {

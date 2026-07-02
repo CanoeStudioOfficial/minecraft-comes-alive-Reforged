@@ -18,6 +18,8 @@ import java.util.List;
 public final class ItemsMCA {
     public static final ItemSpawnEgg EGG_MALE = new ItemSpawnEgg(true);
     public static final ItemSpawnEgg EGG_FEMALE = new ItemSpawnEgg(false);
+    public static final ItemSpawnEgg EGG_MALE_ZOMBIE = new ItemSpawnEgg(true, true);
+    public static final ItemSpawnEgg EGG_FEMALE_ZOMBIE = new ItemSpawnEgg(false, true);
     public static final Item WEDDING_RING = new ItemWeddingRing().setMaxStackSize(1);
     public static final Item WEDDING_RING_RG = new ItemWeddingRing().setMaxStackSize(1);
     public static final Item ENGAGEMENT_RING = new ItemEngagementRing().setMaxStackSize(1);
