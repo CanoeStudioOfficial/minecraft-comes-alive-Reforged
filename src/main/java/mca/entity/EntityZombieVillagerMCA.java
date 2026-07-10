@@ -30,6 +30,9 @@ import javax.annotation.Nullable;
 import java.util.Objects;
 
 public class EntityZombieVillagerMCA extends EntityZombieVillager {
+    private static final double BASE_ZOMBIE_MOVEMENT_SPEED = 0.23000000417232513D;
+    private static final float MIN_ZOMBIE_CHILD_SPEED_FACTOR = EnumAgeState.TODDLER.getSpeed();
+
     public static final DataParameter<String> VILLAGER_NAME = EntityDataManager.createKey(EntityZombieVillagerMCA.class, DataSerializers.STRING);
     public static final DataParameter<String> TEXTURE = EntityDataManager.createKey(EntityZombieVillagerMCA.class, DataSerializers.STRING);
     public static final DataParameter<String> ORIGINAL_TEXTURE = EntityDataManager.createKey(EntityZombieVillagerMCA.class, DataSerializers.STRING);
@@ -353,8 +356,18 @@ public class EntityZombieVillagerMCA extends EntityZombieVillager {
 
         if (this.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED) != null) {
             this.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(
-                    MCAVillagerDimensions.getMovementSpeed(target, getAgeProgressDelta()));
+                    getZombieMovementSpeed(target, getAgeProgressDelta()));
         }
+    }
+
+    private double getZombieMovementSpeed(EnumAgeState age, float delta) {
+        EnumAgeState next = age.getNext();
+        float speedFactor = age.getSpeed() + delta * (next.getSpeed() - age.getSpeed());
+        if (age != EnumAgeState.ADULT) {
+            speedFactor = Math.max(MIN_ZOMBIE_CHILD_SPEED_FACTOR, speedFactor);
+        }
+
+        return BASE_ZOMBIE_MOVEMENT_SPEED * speedFactor;
     }
 
     private EnumAgeState getCurrentAgeState() {
