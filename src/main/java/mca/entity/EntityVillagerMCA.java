@@ -87,6 +87,7 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
     public static final DataParameter<Optional<UUID>> SPOUSE_UUID = EntityDataManager.createKey(EntityVillagerMCA.class, DataSerializers.OPTIONAL_UNIQUE_ID);
     public static final DataParameter<Integer> MARRIAGE_STATE = EntityDataManager.createKey(EntityVillagerMCA.class, DataSerializers.VARINT);
     public static final DataParameter<Boolean> IS_PROCREATING = EntityDataManager.createKey(EntityVillagerMCA.class, DataSerializers.BOOLEAN);
+    public static final DataParameter<Integer> LAST_PROCREATION = EntityDataManager.createKey(EntityVillagerMCA.class, DataSerializers.VARINT);
     public static final DataParameter<NBTTagCompound> PARENTS = EntityDataManager.createKey(EntityVillagerMCA.class, DataSerializers.COMPOUND_TAG);
     public static final DataParameter<Boolean> IS_INFECTED = EntityDataManager.createKey(EntityVillagerMCA.class, DataSerializers.BOOLEAN);
     public static final DataParameter<Integer> AGE_STATE = EntityDataManager.createKey(EntityVillagerMCA.class, DataSerializers.VARINT);
@@ -105,6 +106,9 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
     public static final DataParameter<Boolean> SLEEPING = EntityDataManager.createKey(EntityVillagerMCA.class, DataSerializers.BOOLEAN);
 
     private static final Predicate<EntityVillagerMCA> BANDIT_TARGET_SELECTOR = (v) -> v.getProfessionForge() != ProfessionsMCA.bandit && v.getProfessionForge() != ProfessionsMCA.child;
+    private static final double GUARD_ARCHER_SPEED = 0.5D;
+    private static final double GUARD_MELEE_SPEED = 0.75D;
+    private static final double GUARD_PATROL_SPEED = 0.4D;
 
     public final InventoryMCA inventory;
     public int babyAge = 0;
@@ -161,6 +165,7 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
         this.dataManager.register(SPOUSE_UUID, Optional.of(Constants.ZERO_UUID));
         this.dataManager.register(MARRIAGE_STATE, EnumMarriageState.NOT_MARRIED.getId());
         this.dataManager.register(IS_PROCREATING, false);
+        this.dataManager.register(LAST_PROCREATION, 0);
         this.dataManager.register(PARENTS, new NBTTagCompound());
         this.dataManager.register(IS_INFECTED, false);
         this.dataManager.register(AGE_STATE, EnumAgeState.ADULT.getId());
@@ -225,6 +230,7 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
         set(SPOUSE_UUID, Optional.of(nbt.getUniqueId("spouseUUID")));
         set(SPOUSE_NAME, nbt.getString("spouseName"));
         set(IS_PROCREATING, nbt.getBoolean("isProcreating"));
+        set(LAST_PROCREATION, nbt.getInteger("lastProcreation"));
         set(IS_INFECTED, nbt.getBoolean("infected"));
         set(AGE_STATE, nbt.getInteger("ageState"));
         set(ACTIVE_CHORE, nbt.getInteger("activeChore"));
@@ -270,6 +276,7 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
         nbt.setUniqueId("spouseUUID", get(SPOUSE_UUID).or(Constants.ZERO_UUID));
         nbt.setString("spouseName", get(SPOUSE_NAME));
         nbt.setBoolean("isProcreating", get(IS_PROCREATING));
+        nbt.setInteger("lastProcreation", get(LAST_PROCREATION));
         nbt.setBoolean("infected", get(IS_INFECTED));
         nbt.setInteger("ageState", get(AGE_STATE));
         nbt.setInteger("startingAge", startingAge);
@@ -500,6 +507,11 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
     @Override
     @Nonnull
     public ItemStack getItemStackFromSlot(EntityEquipmentSlot slotIn) {
+        ItemStack equipped = super.getItemStackFromSlot(slotIn);
+        if (!equipped.isEmpty()) {
+            return equipped;
+        }
+
         if (slotIn == EntityEquipmentSlot.MAINHAND) {
             VillagerRegistry.VillagerProfession profession = getProfessionForge();
             EnumChore chore = EnumChore.byId(get(ACTIVE_CHORE));
@@ -798,6 +810,17 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
         return get(SPOUSE_UUID).or(Constants.ZERO_UUID).equals(uuid);
     }
 
+    public boolean mayProcreateAgain(long worldTime) {
+        int lastProcreation = get(LAST_PROCREATION);
+        int intTime = (int) worldTime;
+        int delta = intTime - lastProcreation;
+        return lastProcreation == 0 || delta < 0 || delta > MCA.getConfig().procreationCooldown;
+    }
+
+    public void markProcreated(long worldTime) {
+        set(LAST_PROCREATION, (int) worldTime);
+    }
+
     public void marry(EntityPlayer player) {
         set(SPOUSE_UUID, Optional.of(player.getUniqueID()));
         set(SPOUSE_NAME, player.getName());
@@ -895,11 +918,13 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
                 if (PlayerSaveData.get(player).isBabyPresent())
                     say(Optional.of(player), "interaction.procreate.fail.hasbaby");
                 else if (history.getHearts() < 100) say(Optional.of(player), "interaction.procreate.fail.lowhearts");
+                else if (!mayProcreateAgain(world.getTotalWorldTime())) say(Optional.of(player), "interaction.procreate.fail.toosoon");
                 else {
                     EntityAITasks.EntityAITaskEntry task = tasks.taskEntries.stream().filter((ai) -> ai.action instanceof EntityAIProcreate).findFirst().orElse(null);
                     if (task != null) {
                         ((EntityAIProcreate) task.action).procreateTimer = 20 * 3; // 3 seconds
                         set(IS_PROCREATING, true);
+                        markProcreated(world.getTotalWorldTime());
                     }
                 }
                 break;
@@ -965,11 +990,28 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
         } else if (item == Items.CAKE) {
             Optional<Entity> spouse = Util.getEntityByUUID(world, get(SPOUSE_UUID).or(Constants.ZERO_UUID));
             if (spouse.isPresent()) {
-                EntityVillagerMCA progressor = this.get(GENDER) == EnumGender.FEMALE.getId() ? this : (EntityVillagerMCA) spouse.get();
+                Entity spouseEntity = spouse.get();
+                EntityVillagerMCA spouseVillager = spouseEntity instanceof EntityVillagerMCA ? (EntityVillagerMCA) spouseEntity : null;
+                PlayerSaveData spousePlayerData = spouseEntity instanceof EntityPlayer ? PlayerSaveData.get((EntityPlayer) spouseEntity) : null;
+                EntityVillagerMCA progressor = this.get(GENDER) == EnumGender.FEMALE.getId() || spouseVillager == null ? this : spouseVillager;
+                boolean spouseMayProcreate = spouseVillager == null
+                        ? spousePlayerData == null || spousePlayerData.mayProcreateAgain(world.getTotalWorldTime())
+                        : spouseVillager.mayProcreateAgain(world.getTotalWorldTime());
+
+                if (!mayProcreateAgain(world.getTotalWorldTime()) || !spouseMayProcreate) {
+                    say(Optional.of(player), "interaction.procreate.fail.toosoon");
+                    return false;
+                }
                 progressor.set(HAS_BABY, true);
                 progressor.set(BABY_IS_MALE, rand.nextBoolean());
                 progressor.set(BABY_AGE, 0);
                 progressor.babyAge = 0;
+                markProcreated(world.getTotalWorldTime());
+                if (spouseVillager != null) {
+                    spouseVillager.markProcreated(world.getTotalWorldTime());
+                } else if (spousePlayerData != null) {
+                    spousePlayerData.markProcreated(world.getTotalWorldTime());
+                }
                 progressor.spawnParticles(EnumParticleTypes.HEART);
             } else say(Optional.of(player), "gift.cake.fail");
         } else if (item == Items.GOLDEN_APPLE && this.isChild()) {
@@ -1076,9 +1118,23 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
     }
 
     public void setBanditPillagerCareer() {
+        setBanditCareer("pillager", ProfessionsMCA.bandit_pillager);
+    }
+
+    public void setBanditMeleeCareer() {
+        setBanditCareer("marauder", ProfessionsMCA.bandit_marauder);
+    }
+
+    public boolean hasBanditCareer() {
+        VillagerRegistry.VillagerCareer career = getVanillaCareer();
+        return career != null && (career == ProfessionsMCA.bandit_marauder || career == ProfessionsMCA.bandit_outlaw || career == ProfessionsMCA.bandit_pillager
+                || "marauder".equals(career.getName()) || "outlaw".equals(career.getName()) || "pillager".equals(career.getName()));
+    }
+
+    private void setBanditCareer(String careerName, VillagerRegistry.VillagerCareer fallbackCareer) {
         List<VillagerRegistry.VillagerCareer> careers = ObfuscationReflectionHelper.getPrivateValue(VillagerRegistry.VillagerProfession.class, ProfessionsMCA.bandit, 3);
         for (int i = 0; i < careers.size(); i++) {
-            if (careers.get(i) == ProfessionsMCA.bandit_pillager || "pillager".equals(careers.get(i).getName())) {
+            if (careers.get(i) == fallbackCareer || careerName.equals(careers.get(i).getName())) {
                 setVanillaCareer(i);
                 return;
             }
@@ -1095,11 +1151,11 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
         if (getProfessionForge() == ProfessionsMCA.bandit) {
             this.tasks.taskEntries.clear();
             if (isBanditArcher()) {
-                this.tasks.addTask(1, new EntityAIArcherGuard(this, 0.8D, 20, 15.0F));
+                this.tasks.addTask(1, new EntityAIArcherGuard(this, GUARD_ARCHER_SPEED, 20, 15.0F));
             } else {
-                this.tasks.addTask(1, new EntityAIAttackMelee(this, 0.8D, false));
+                this.tasks.addTask(1, new EntityAIAttackMelee(this, GUARD_MELEE_SPEED, false));
             }
-            this.tasks.addTask(2, new EntityAIMoveThroughVillage(this, 0.6D, false));
+            this.tasks.addTask(2, new EntityAIMoveThroughVillage(this, GUARD_PATROL_SPEED, false));
             this.tasks.addTask(4, new EntityAIMCAOpenDoor(this, true));
 
             this.targetTasks.addTask(0, new EntityAIHurtByTarget(this, false));
@@ -1110,11 +1166,11 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
             removeExternalAvoidTasks();
 
             if (isGuardArcher()) {
-                this.tasks.addTask(1, new EntityAIArcherGuard(this, 0.8D, 20, 15.0F));
+                this.tasks.addTask(1, new EntityAIArcherGuard(this, GUARD_ARCHER_SPEED, 20, 15.0F));
             } else {
-                this.tasks.addTask(1, new EntityAIAttackMelee(this, 0.8D, false));
+                this.tasks.addTask(1, new EntityAIAttackMelee(this, GUARD_MELEE_SPEED, false));
             }
-            this.tasks.addTask(2, new EntityAIMoveThroughVillage(this, 0.6D, false));
+            this.tasks.addTask(2, new EntityAIMoveThroughVillage(this, GUARD_PATROL_SPEED, false));
 
             this.targetTasks.addTask(0, new EntityAIHurtByTarget(this, false));
             this.targetTasks.addTask(1, new EntityAINearestAttackableTarget<>(this, EntityZombieVillagerMCA.class, 10, true, false, null));

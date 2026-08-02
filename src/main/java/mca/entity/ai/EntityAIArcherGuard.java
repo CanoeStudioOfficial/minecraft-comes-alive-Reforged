@@ -12,6 +12,8 @@ import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.Vec3d;
 
 public class EntityAIArcherGuard extends EntityAIBase {
+    private static final double KITE_SPEED = 0.85D;
+    private static final double EMERGENCY_SPEED = 0.9D;
     private static final double EMERGENCY_DISTANCE_SQUARED = 12.25D;
     private static final double KITE_ENTER_DISTANCE_SQUARED = 36.0D;
     private static final double KITE_EXIT_DISTANCE_SQUARED = 81.0D;
@@ -110,7 +112,7 @@ public class EntityAIArcherGuard extends EntityAIBase {
             this.kiting = true;
             this.strafingTime = -1;
             this.archer.resetActiveHand();
-            moveAwayFrom(target, 0.95D);
+            moveAwayFrom(target, EMERGENCY_SPEED);
             return;
         }
 
@@ -118,7 +120,7 @@ public class EntityAIArcherGuard extends EntityAIBase {
         if (shouldKite) {
             this.kiting = true;
             this.strafingTime = -1;
-            moveAwayFrom(target, 0.85D);
+            moveAwayFrom(target, KITE_SPEED);
             return;
         }
 

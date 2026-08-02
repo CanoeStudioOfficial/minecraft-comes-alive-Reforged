@@ -36,7 +36,9 @@ public class EntityAIProcreate extends EntityAIBase {
             if (spousePlayer != null) {
                 villager.world.playSound(null, villager.posX, villager.posY, villager.posZ, SoundEvents.ENTITY_CHICKEN_EGG, SoundCategory.NEUTRAL, 1.0F, 1.0F);
                 spousePlayer.inventory.addItemStackToInventory(new ItemStack(villager.getRNG().nextBoolean() ? ItemsMCA.BABY_BOY : ItemsMCA.BABY_GIRL));
-                PlayerSaveData.get(spousePlayer).setBabyPresent(true);
+                PlayerSaveData spouseData = PlayerSaveData.get(spousePlayer);
+                spouseData.setBabyPresent(true);
+                spouseData.markProcreated(villager.world.getTotalWorldTime());
 
                 if (villager.getRNG().nextFloat() < MCA.getConfig().chanceToHaveTwins / 100)
                     spousePlayer.inventory.addItemStackToInventory(new ItemStack(villager.getRNG().nextBoolean() ? ItemsMCA.BABY_BOY : ItemsMCA.BABY_GIRL));

@@ -11,6 +11,10 @@ public class EntityBanditMCA extends EntityVillagerMCA {
     public EntityBanditMCA(World worldIn) {
         super(worldIn, Optional.of(ProfessionsMCA.bandit), Optional.absent());
         ensureBanditIdentity();
+        if (worldIn != null && !worldIn.isRemote) {
+            setBanditPillagerCareer();
+            refreshSpecialAI();
+        }
     }
 
     @Override
@@ -35,7 +39,9 @@ public class EntityBanditMCA extends EntityVillagerMCA {
         }
 
         setProfession(ProfessionsMCA.bandit);
-        setBanditPillagerCareer();
+        if (!hasBanditCareer()) {
+            setBanditPillagerCareer();
+        }
 
         if (get(TEXTURE).isEmpty()) {
             set(TEXTURE, API.getRandomSkin(this));

@@ -246,9 +246,20 @@ public class MCAServer {
             return;
         }
 
+        if (!senderData.mayProcreateAgain(sender.world.getTotalWorldTime())) {
+            failMessage(sender, "Maybe later...");
+            return;
+        }
+
         // Ensure the spouse is online.
         EntityPlayer spouse = sender.world.getPlayerEntityByUUID(senderData.getSpouseUUID());
         if (spouse != null) {
+            PlayerSaveData spouseData = PlayerSaveData.get(spouse);
+            if (!spouseData.mayProcreateAgain(sender.world.getTotalWorldTime())) {
+                failMessage(sender, "Maybe later...");
+                return;
+            }
+
             // If the spouse is online and has previously sent a procreation request that hasn't expired, we can continue.
             // Otherwise we notify the spouse that they must also enter the command.
             if (!procreateMap.containsKey(spouse.getUniqueID())) {
@@ -260,9 +271,10 @@ public class MCAServer {
                 successMessage(spouse, "Procreation successful!");
                 spouse.addItemStackToInventory(new ItemStack(sender.world.rand.nextBoolean() ? ItemsMCA.BABY_BOY : ItemsMCA.BABY_GIRL));
 
-                PlayerSaveData spouseData = PlayerSaveData.get(spouse);
                 spouseData.setBabyPresent(true);
                 senderData.setBabyPresent(true);
+                spouseData.markProcreated(sender.world.getTotalWorldTime());
+                senderData.markProcreated(sender.world.getTotalWorldTime());
             }
         } else {
             failMessage(sender, "Your spouse is not present on the server.");

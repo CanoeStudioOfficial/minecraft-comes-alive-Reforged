@@ -3,6 +3,7 @@ package mca.compat;
 import mca.entity.EntityBanditMCA;
 import mca.entity.EntityVillagerMCA;
 import mca.entity.EntityZombieVillagerMCA;
+import mca.util.RangedWeaponUtil;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
@@ -30,9 +31,11 @@ import java.util.Set;
 
 final class RaidsBackportCompatCalls {
     private static final String CONVERTED_TAG = "MCAConvertedRaidBandit";
+    private static final ResourceLocation PILLAGER_ID = new ResourceLocation("raids", "pillager");
+    private static final ResourceLocation VINDICATOR_ID = new ResourceLocation("minecraft", "vindication_illager");
     private static final Set<ResourceLocation> CONVERTIBLE_RAIDERS = new HashSet<>(Arrays.asList(
-            new ResourceLocation("raids", "pillager"),
-            new ResourceLocation("minecraft", "vindication_illager")
+            PILLAGER_ID,
+            VINDICATOR_ID
     ));
     private static final Set<ResourceLocation> CONVERTIBLE_OUTPOST_ENTITIES = new HashSet<>(Arrays.asList(
             new ResourceLocation("raids", "pillager")
@@ -102,8 +105,13 @@ final class RaidsBackportCompatCalls {
         bandit.motionX = source.motionX;
         bandit.motionY = source.motionY;
         bandit.motionZ = source.motionZ;
+        bandit.setNoAI(source.isAIDisabled());
         bandit.setHealth(Math.max(1.0F, Math.min(bandit.getMaxHealth(), source.getHealth())));
         bandit.getEntityData().setBoolean(CONVERTED_TAG, true);
+        applySourceRaidRole(source, bandit);
+        copyEquipment(source, bandit);
+        bandit.setSwingingArms(false);
+        bandit.setChargingRangedWeapon(false);
 
         if (!source.world.spawnEntity(bandit)) {
             return;
@@ -118,15 +126,48 @@ final class RaidsBackportCompatCalls {
             if (wasLeader) {
                 raid.setLeader(wave, bandit);
             }
+            bandit.refreshSpecialAI();
         } else if (patrolData != null && bandit.hasCapability(RaidsContent.RAIDER, null)) {
             Raider banditRaider = bandit.getCapability(RaidsContent.RAIDER, null);
             banditRaider.readNBT(patrolData);
             if (wasLeader) {
                 banditRaider.setLeader();
             }
+            bandit.refreshSpecialAI();
         }
 
         source.setDead();
+    }
+
+    private static void applySourceRaidRole(EntityLiving source, EntityBanditMCA bandit) {
+        ResourceLocation id = EntityList.getKey(source);
+        if (VINDICATOR_ID.equals(id)) {
+            bandit.setBanditMeleeCareer();
+        } else {
+            bandit.setBanditPillagerCareer();
+        }
+    }
+
+    private static void copyEquipment(EntityLiving source, EntityBanditMCA bandit) {
+        boolean copiedMainHand = false;
+        boolean sourceWasPillager = PILLAGER_ID.equals(EntityList.getKey(source));
+        for (EntityEquipmentSlot slot : EntityEquipmentSlot.values()) {
+            ItemStack sourceStack = source.getItemStackFromSlot(slot);
+            if (!sourceStack.isEmpty()) {
+                if (slot == EntityEquipmentSlot.MAINHAND && sourceWasPillager && !RangedWeaponUtil.isMcaRangedWeapon(sourceStack)) {
+                    continue;
+                }
+                bandit.setItemStackToSlot(slot, sourceStack.copy());
+                copiedMainHand |= slot == EntityEquipmentSlot.MAINHAND;
+            }
+        }
+
+        if (!copiedMainHand) {
+            ItemStack defaultMainHand = bandit.getItemStackFromSlot(EntityEquipmentSlot.MAINHAND);
+            if (!defaultMainHand.isEmpty()) {
+                bandit.setItemStackToSlot(EntityEquipmentSlot.MAINHAND, defaultMainHand.copy());
+            }
+        }
     }
 
     private static boolean isConvertibleBanditSource(EntityLiving source) {

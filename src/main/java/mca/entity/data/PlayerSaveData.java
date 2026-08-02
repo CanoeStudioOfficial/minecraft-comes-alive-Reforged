@@ -24,6 +24,7 @@ public class PlayerSaveData extends WorldSavedData {
     private EnumMarriageState marriageState = EnumMarriageState.NOT_MARRIED;
     private String spouseName = "";
     private boolean babyPresent = false;
+    private int lastProcreation = 0;
     private EnumGender gender = EnumGender.MALE;
     private boolean hasChosenDestiny = false;
 
@@ -41,6 +42,12 @@ public class PlayerSaveData extends WorldSavedData {
 
     public boolean isBabyPresent() {
         return babyPresent;
+    }
+
+    public boolean mayProcreateAgain(long worldTime) {
+        int intTime = (int) worldTime;
+        int delta = intTime - lastProcreation;
+        return lastProcreation == 0 || delta < 0 || delta > MCA.getConfig().procreationCooldown;
     }
 
     public EnumGender getGender() {
@@ -77,6 +84,7 @@ public class PlayerSaveData extends WorldSavedData {
         nbt.setInteger("marriageState", marriageState.getId());
         nbt.setString("spouseName", spouseName);
         nbt.setBoolean("babyPresent", babyPresent);
+        nbt.setInteger("lastProcreation", lastProcreation);
         nbt.setInteger("gender", gender.getId());
         nbt.setBoolean("hasChosenDestiny", hasChosenDestiny);
         return nbt;
@@ -88,6 +96,7 @@ public class PlayerSaveData extends WorldSavedData {
         marriageState = EnumMarriageState.byId(nbt.getInteger("marriageState"));
         spouseName = nbt.getString("spouseName");
         babyPresent = nbt.getBoolean("babyPresent");
+        lastProcreation = nbt.getInteger("lastProcreation");
         gender = EnumGender.byId(nbt.getInteger("gender"));
         hasChosenDestiny = nbt.getBoolean("hasChosenDestiny");
     }
@@ -125,9 +134,15 @@ public class PlayerSaveData extends WorldSavedData {
         markDirty();
     }
 
+    public void markProcreated(long worldTime) {
+        this.lastProcreation = (int) worldTime;
+        markDirty();
+    }
+
     public void reset() {
         endMarriage();
         setBabyPresent(false);
+        lastProcreation = 0;
         markDirty();
     }
 

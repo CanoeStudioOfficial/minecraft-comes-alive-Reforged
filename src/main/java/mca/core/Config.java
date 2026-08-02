@@ -18,6 +18,7 @@ public final class Config implements Serializable {
     public int infectionChance;
     public boolean allowGrimReaper;
     public int guardSpawnRate;
+    public int procreationCooldown;
     public int chanceToHaveTwins;
     public int marriageHeartsRequirement;
     public int babyGrowUpTime;
@@ -45,6 +46,7 @@ public final class Config implements Serializable {
         infectionChance = config.get("General", "Chance of Infection", 5, "Chance that a villager will be infected on hit from a zombie. Default is 5 for 5%.").getInt();
         allowGrimReaper = config.get("General", "Allow Grim Reaper?", true, "Should the Grim Reaper boss be enabled?").getBoolean();
         guardSpawnRate = config.get("General", "Guard Spawn Rate", 6, "How many villagers that should be in a village before a guard spawns.").getInt();
+        procreationCooldown = config.get("General", "Procreation Cooldown", 72000, "Time in ticks before villagers or players can procreate again. High-version MCA defaults to 72000 ticks.").getInt();
         chanceToHaveTwins = config.get("General", "Chance to Have Twins", 2, "Chance that you will have twins. Default is 2 for 2%.").getInt();
         marriageHeartsRequirement = config.get("General", "Marriage Hearts Requirement", 100, "Number of hearts required to get married.").getInt();
         babyGrowUpTime = config.get("General", "Baby Grow Up Time (Minutes)", 30, "Minutes it takes for a baby to be ready to grow up.").getInt();

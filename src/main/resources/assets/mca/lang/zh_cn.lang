@@ -341,6 +341,9 @@ spouse.interaction.procreate.fail.hasbaby1=我们已经有了一个宝宝�
 spouse.interaction.procreate.fail.hasbaby2=你失去了宝宝乔比，不是吗？等等他的名字叫乔比吗？
 spouse.interaction.procreate.fail.lowhearts1=多花点时间陪我！我还没准备好生孩子。
 spouse.interaction.procreate.fail.lowhearts2=嗯还没有。我想我们应该先多花点时间在一起。
+spouse.interaction.procreate.fail.toosoon1=求你让我休息会吧！
+spouse.interaction.procreate.fail.toosoon2=还要继续？！
+spouse.interaction.procreate.fail.toosoon3=晚点再说吧……
 
 notify.spouseendedmarriage=%Name%已结束与你之间的婚姻。
 notify.spousedied=你的配偶%v1%因为%v2%死掉了

@@ -344,6 +344,9 @@ spouse.interaction.procreate.fail.hasbaby1=We already have a baby...you didn't l
 spouse.interaction.procreate.fail.hasbaby2=...you lost baby Joby didn't you? Wait...was his name Joby?
 spouse.interaction.procreate.fail.lowhearts1=Spend more time with me! I'm not ready for a child.
 spouse.interaction.procreate.fail.lowhearts2=Hmm...not just yet. I think we need to spend more time together first.
+spouse.interaction.procreate.fail.toosoon1=Give me a break!
+spouse.interaction.procreate.fail.toosoon2=Again?!
+spouse.interaction.procreate.fail.toosoon3=Maybe later...
 
 notify.spouseendedmarriage=%Name% has ended their marriage with you.
 notify.spousedied=Your spouse %v1% has died by %v2%
