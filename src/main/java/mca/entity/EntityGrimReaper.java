@@ -55,8 +55,6 @@ public class EntityGrimReaper extends EntityMob {
         super(world);
         setSize(1.0F, 2.6F);
         setNoGravity(true);
-        setItemStackToSlot(EntityEquipmentSlot.MAINHAND, new ItemStack(ItemsMCA.SCYTHE));
-        setDropChance(EntityEquipmentSlot.MAINHAND, 0.0F);
         this.experienceValue = 100;
 
         this.tasks.addTask(1, new EntityAISwimming(this));
