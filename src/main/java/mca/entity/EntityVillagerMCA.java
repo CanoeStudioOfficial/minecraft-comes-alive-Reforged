@@ -109,6 +109,7 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
     private static final double GUARD_ARCHER_SPEED = 0.5D;
     private static final double GUARD_MELEE_SPEED = 0.75D;
     private static final double GUARD_PATROL_SPEED = 0.4D;
+    private static final double VILLAGER_IDLE_SPEED = 0.5D;
 
     public final InventoryMCA inventory;
     public int babyAge = 0;
@@ -1216,6 +1217,8 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
                 this.tasks.addTask(1, new EntityAIAttackMelee(this, GUARD_MELEE_SPEED, false));
             }
             this.tasks.addTask(2, new EntityAIMoveThroughVillage(this, GUARD_PATROL_SPEED, false));
+            this.tasks.addTask(9, new EntityAIWatchClosest(this, EntityPlayer.class, 8.0F));
+            this.tasks.addTask(10, new EntityAILookIdle(this));
 
             this.targetTasks.addTask(0, new EntityAIHurtByTarget(this, false));
             this.targetTasks.addTask(1, new EntityAINearestAttackableTarget<>(this, EntityZombieVillagerMCA.class, 10, true, false, null));
@@ -1223,6 +1226,9 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
         } else {
             //every other villager is allowed to defend itself from zombies while fleeing
             this.tasks.addTask(0, new EntityAIDefendFromTarget(this));
+            this.tasks.addTask(8, new EntityAIWanderAvoidWater(this, VILLAGER_IDLE_SPEED));
+            this.tasks.addTask(9, new EntityAIWatchClosest(this, EntityPlayer.class, 8.0F));
+            this.tasks.addTask(10, new EntityAILookIdle(this));
 
             this.targetTasks.addTask(0, new EntityAINearestAttackableTarget<>(this, EntityZombie.class, 100, false, false, null));
         }
@@ -1237,6 +1243,9 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
         removeCertainTasks(EntityAIArcherGuard.class);
         removeCertainTasks(EntityAIMoveThroughVillage.class);
         removeCertainTasks(EntityAIDefendFromTarget.class);
+        removeCertainTasks(EntityAIWanderAvoidWater.class);
+        removeCertainTasks(EntityAIWatchClosest.class);
+        removeCertainTasks(EntityAILookIdle.class);
     }
 
     private boolean isGuardArcher() {
