@@ -1097,9 +1097,6 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
 
     @Override
     protected void initEntityAI() {
-        super.initEntityAI();
-        removeCertainTasks(EntityAIOpenDoor.class);
-        removeCertainTasks(EntityAIRestrictOpenDoor.class);
         configureDoorNavigation();
         this.tasks.addTask(0, new EntityAIProspecting(this));
         this.tasks.addTask(0, new EntityAIHunting(this));
@@ -1112,8 +1109,6 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
         this.tasks.addTask(5, new EntityAIGoHangout(this));
         this.tasks.addTask(4, new EntityAIMCAOpenDoor(this, true));
         this.tasks.addTask(1, new EntityAISleeping(this));
-        this.tasks.addTask(10, new EntityAIWatchClosest(this, EntityPlayer.class, 8.0F));
-        this.tasks.addTask(10, new EntityAILookIdle(this));
     }
 
     public void refreshSpecialAI() {
@@ -1121,6 +1116,7 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
     }
 
     private void refreshLoadedAI() {
+        this.getNavigator().clearPath();
         this.tasks.taskEntries.clear();
         this.targetTasks.taskEntries.clear();
         initEntityAI();
@@ -1200,7 +1196,7 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
             }
             this.tasks.addTask(2, new EntityAIMoveThroughVillage(this, GUARD_PATROL_SPEED, false));
             this.tasks.addTask(4, new EntityAIMCAOpenDoor(this, true));
-            this.tasks.addTask(8, new EntityAIWanderAvoidWater(this, GUARD_PATROL_SPEED));
+            this.tasks.addTask(8, new EntityAIMCAWander(this, GUARD_PATROL_SPEED, 80));
             this.tasks.addTask(9, new EntityAIWatchClosest(this, EntityPlayer.class, 8.0F));
             this.tasks.addTask(10, new EntityAILookIdle(this));
 
@@ -1225,8 +1221,10 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
             this.targetTasks.addTask(2, new EntityAINearestAttackableTarget<>(this, EntityLivingBase.class, 20, false, false, target -> GuardTargeting.isGuardEnemy(this, target)));
         } else {
             //every other villager is allowed to defend itself from zombies while fleeing
+            this.tasks.addTask(1, new EntityAIAvoidEntity<>(this, EntityZombie.class, 8.0F, 0.6D, 0.6D));
+            this.tasks.addTask(1, new EntityAIAvoidEntity<>(this, EntityVex.class, 8.0F, 0.6D, 0.6D));
             this.tasks.addTask(0, new EntityAIDefendFromTarget(this));
-            this.tasks.addTask(8, new EntityAIWanderAvoidWater(this, VILLAGER_IDLE_SPEED));
+            this.tasks.addTask(8, new EntityAIMCAWander(this, VILLAGER_IDLE_SPEED, 80));
             this.tasks.addTask(9, new EntityAIWatchClosest(this, EntityPlayer.class, 8.0F));
             this.tasks.addTask(10, new EntityAILookIdle(this));
 
@@ -1243,7 +1241,9 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
         removeCertainTasks(EntityAIArcherGuard.class);
         removeCertainTasks(EntityAIMoveThroughVillage.class);
         removeCertainTasks(EntityAIDefendFromTarget.class);
+        removeCertainTasks(EntityAIAvoidEntity.class);
         removeCertainTasks(EntityAIWanderAvoidWater.class);
+        removeCertainTasks(EntityAIMCAWander.class);
         removeCertainTasks(EntityAIWatchClosest.class);
         removeCertainTasks(EntityAILookIdle.class);
     }
