@@ -63,7 +63,7 @@ public class EntityAIArcherGuard extends EntityAIBase {
     @Override
     public void startExecuting() {
         super.startExecuting();
-        this.archer.setChargingRangedWeapon(false);
+        clearRangedState(false);
     }
 
     @Override
@@ -76,9 +76,7 @@ public class EntityAIArcherGuard extends EntityAIBase {
         this.strafingTime = -1;
         this.crossbowChargeTicks = 0;
         this.kiting = false;
-        this.archer.setSwingingArms(false);
-        this.archer.setChargingRangedWeapon(false);
-        this.archer.resetActiveHand();
+        clearRangedState(true);
         this.archer.getNavigator().clearPath();
     }
 
@@ -86,6 +84,8 @@ public class EntityAIArcherGuard extends EntityAIBase {
     public void updateTask() {
         EntityLivingBase target = this.archer.getAttackTarget();
         if (!isValidTarget(target)) {
+            this.archer.setAttackTarget(null);
+            clearRangedState(true);
             return;
         }
 
@@ -172,17 +172,12 @@ public class EntityAIArcherGuard extends EntityAIBase {
 
         if (this.attackTime > 0) {
             this.attackTime--;
-            this.crossbowChargeTicks = 0;
-            this.archer.setSwingingArms(false);
-            this.archer.setChargingRangedWeapon(false);
+            clearRangedState(false);
             return;
         }
 
         if (this.kiting || !canSee || distanceSquared > this.maxAttackDistanceSquared) {
-            this.crossbowChargeTicks = 0;
-            this.archer.setSwingingArms(false);
-            this.archer.setChargingRangedWeapon(false);
-            TConstructCompat.setCrossbowLoaded(weapon, false);
+            clearRangedState(false);
             return;
         }
 
@@ -196,6 +191,22 @@ public class EntityAIArcherGuard extends EntityAIBase {
             this.archer.setChargingRangedWeapon(false);
             this.crossbowChargeTicks = 0;
             this.attackTime = this.attackCooldown + 10;
+        }
+    }
+
+    private void clearRangedState(boolean clearTarget) {
+        this.crossbowChargeTicks = 0;
+        this.archer.setSwingingArms(false);
+        this.archer.setChargingRangedWeapon(false);
+        this.archer.resetActiveHand();
+
+        ItemStack weapon = this.archer.getHeldItemMainhand();
+        if (TConstructCompat.isCrossbow(weapon)) {
+            TConstructCompat.setCrossbowLoaded(weapon, false);
+        }
+
+        if (clearTarget) {
+            this.attackTarget = null;
         }
     }
 

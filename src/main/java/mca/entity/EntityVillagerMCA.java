@@ -120,6 +120,7 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
     private ItemStack defaultMainHandStack = ItemStack.EMPTY;
     private VillagerRegistry.VillagerProfession defaultMainHandProfession;
     private VillagerRegistry.VillagerCareer defaultMainHandCareer;
+    private boolean refreshSpecialAIAfterLoad;
 
     public float renderOffsetX;
     public float renderOffsetY;
@@ -254,7 +255,8 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
         this.babyAge = nbt.getInteger("babyAge");
         set(BABY_AGE, nbt.hasKey("babyAgeSeconds") ? nbt.getInteger("babyAgeSeconds") : this.babyAge * 60);
 
-        refreshSpecialAI();
+        restoreLoadedTransientState();
+        refreshSpecialAIAfterLoad = true;
     }
 
     @Override
@@ -1037,6 +1039,11 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
     }
 
     private void onEachServerUpdate() {
+        if (refreshSpecialAIAfterLoad) {
+            refreshSpecialAIAfterLoad = false;
+            refreshSpecialAI();
+        }
+
         if (getProfessionForge() == ProfessionsMCA.guard && (this.ticksExisted <= 5 || this.ticksExisted % 20 == 0)) {
             removeExternalAvoidTasks();
         }
@@ -1109,6 +1116,32 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
 
     public void refreshSpecialAI() {
         applySpecialAI();
+    }
+
+    private void restoreLoadedTransientState() {
+        set(IS_PROCREATING, false);
+        set(IS_SWINGING, false);
+        set(IS_CHARGING_RANGED_WEAPON, false);
+        resetActiveHand();
+
+        if (get(SLEEPING) && !shouldStaySleepingAfterLoad()) {
+            set(SLEEPING, false);
+            set(BED_POS, BlockPos.ORIGIN);
+        }
+    }
+
+    private boolean shouldStaySleepingAfterLoad() {
+        if (world == null || world.isDaytime()) {
+            return false;
+        }
+
+        BlockPos bedLocation = get(BED_POS);
+        if (bedLocation == BlockPos.ORIGIN || !world.isBlockLoaded(bedLocation)) {
+            return false;
+        }
+
+        IBlockState state = world.getBlockState(bedLocation);
+        return state != null && state.getBlock().isBed(state, world, bedLocation, this);
     }
 
     public void removeExternalAvoidTasks() {

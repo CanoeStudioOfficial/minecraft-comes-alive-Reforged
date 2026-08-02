@@ -46,7 +46,5 @@ public class EntityBanditMCA extends EntityVillagerMCA {
         if (get(TEXTURE).isEmpty()) {
             set(TEXTURE, API.getRandomSkin(this));
         }
-
-        refreshSpecialAI();
     }
 }
