@@ -323,6 +323,12 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
         if (!world.isRemote && this.ticksExisted == 1 && home.equals(BlockPos.ORIGIN)) {
             forcePositionAsHome();
         }
+
+        if (!world.isRemote && refreshSpecialAIAfterLoad) {
+            refreshSpecialAIAfterLoad = false;
+            refreshLoadedAI();
+        }
+
         if (this.isServerWorld()) {
             onEachServerUpdate();
         } else {
@@ -1039,11 +1045,6 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
     }
 
     private void onEachServerUpdate() {
-        if (refreshSpecialAIAfterLoad) {
-            refreshSpecialAIAfterLoad = false;
-            refreshSpecialAI();
-        }
-
         if (getProfessionForge() == ProfessionsMCA.guard && (this.ticksExisted <= 5 || this.ticksExisted % 20 == 0)) {
             removeExternalAvoidTasks();
         }
@@ -1118,6 +1119,13 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
         applySpecialAI();
     }
 
+    private void refreshLoadedAI() {
+        this.tasks.taskEntries.clear();
+        this.targetTasks.taskEntries.clear();
+        initEntityAI();
+        applySpecialAI();
+    }
+
     private void restoreLoadedTransientState() {
         set(IS_PROCREATING, false);
         set(IS_SWINGING, false);
@@ -1183,6 +1191,7 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
 
         if (getProfessionForge() == ProfessionsMCA.bandit) {
             this.tasks.taskEntries.clear();
+            this.tasks.addTask(0, new EntityAISwimming(this));
             if (isBanditArcher()) {
                 this.tasks.addTask(1, new EntityAIArcherGuard(this, GUARD_ARCHER_SPEED, 20, 15.0F));
             } else {
@@ -1190,10 +1199,13 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
             }
             this.tasks.addTask(2, new EntityAIMoveThroughVillage(this, GUARD_PATROL_SPEED, false));
             this.tasks.addTask(4, new EntityAIMCAOpenDoor(this, true));
+            this.tasks.addTask(8, new EntityAIWanderAvoidWater(this, GUARD_PATROL_SPEED));
+            this.tasks.addTask(9, new EntityAIWatchClosest(this, EntityPlayer.class, 8.0F));
+            this.tasks.addTask(10, new EntityAILookIdle(this));
 
             this.targetTasks.addTask(0, new EntityAIHurtByTarget(this, false));
             this.targetTasks.addTask(1, new EntityAINearestAttackableTarget<>(this, EntityZombieVillagerMCA.class, 10, true, false, null));
-            this.targetTasks.addTask(2, new EntityAINearestAttackableTarget<>(this, EntityVillagerMCA.class, 100, false, false, BANDIT_TARGET_SELECTOR));
+            this.targetTasks.addTask(2, new EntityAINearestAttackableTarget<>(this, EntityVillagerMCA.class, 10, false, false, BANDIT_TARGET_SELECTOR));
             this.targetTasks.addTask(3, new EntityAINearestAttackableTarget<>(this, EntityPlayer.class, true));
         } else if (getProfessionForge() == ProfessionsMCA.guard) {
             removeExternalAvoidTasks();
