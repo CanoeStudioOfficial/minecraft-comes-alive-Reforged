@@ -1,6 +1,7 @@
 package mca.items;
 
 import com.google.common.base.Optional;
+import mca.entity.EntityGrimReaper;
 import mca.entity.EntityVillagerMCA;
 import mca.entity.EntityZombieVillagerMCA;
 import mca.enums.EnumGender;
@@ -15,16 +16,30 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 public class ItemSpawnEgg extends Item {
+    public enum SpawnType {
+        VILLAGER,
+        ZOMBIE_VILLAGER,
+        GRIM_REAPER
+    }
+
     private final boolean isMale;
-    private final boolean isZombie;
+    private final SpawnType spawnType;
 
     public ItemSpawnEgg(boolean isMale) {
-        this(isMale, false);
+        this(isMale, SpawnType.VILLAGER);
     }
 
     public ItemSpawnEgg(boolean isMale, boolean isZombie) {
+        this(isMale, isZombie ? SpawnType.ZOMBIE_VILLAGER : SpawnType.VILLAGER);
+    }
+
+    public ItemSpawnEgg(SpawnType spawnType) {
+        this(false, spawnType);
+    }
+
+    private ItemSpawnEgg(boolean isMale, SpawnType spawnType) {
         this.isMale = isMale;
-        this.isZombie = isZombie;
+        this.spawnType = spawnType;
         this.setMaxStackSize(1);
     }
 
@@ -35,9 +50,7 @@ public class ItemSpawnEgg extends Item {
         int posZ = pos.getZ();
 
         if (!world.isRemote) {
-            EntityLiving entity = isZombie
-                    ? new EntityZombieVillagerMCA(world, isMale ? EnumGender.MALE : EnumGender.FEMALE)
-                    : new EntityVillagerMCA(world, Optional.absent(), Optional.of(isMale ? EnumGender.MALE : EnumGender.FEMALE));
+            EntityLiving entity = createEntity(world);
             entity.setPosition(posX + 0.5D, posY, posZ + 0.5D);
             entity.onInitialSpawn(world.getDifficultyForLocation(new BlockPos(entity)), null);
             world.spawnEntity(entity);
@@ -46,5 +59,17 @@ public class ItemSpawnEgg extends Item {
         }
 
         return EnumActionResult.PASS;
+    }
+
+    private EntityLiving createEntity(World world) {
+        switch (spawnType) {
+            case ZOMBIE_VILLAGER:
+                return new EntityZombieVillagerMCA(world, isMale ? EnumGender.MALE : EnumGender.FEMALE);
+            case GRIM_REAPER:
+                return new EntityGrimReaper(world);
+            case VILLAGER:
+            default:
+                return new EntityVillagerMCA(world, Optional.absent(), Optional.of(isMale ? EnumGender.MALE : EnumGender.FEMALE));
+        }
     }
 }

@@ -20,6 +20,7 @@ public final class ItemsMCA {
     public static final ItemSpawnEgg EGG_FEMALE = new ItemSpawnEgg(false);
     public static final ItemSpawnEgg EGG_MALE_ZOMBIE = new ItemSpawnEgg(true, true);
     public static final ItemSpawnEgg EGG_FEMALE_ZOMBIE = new ItemSpawnEgg(false, true);
+    public static final ItemSpawnEgg EGG_GRIM_REAPER = new ItemSpawnEgg(ItemSpawnEgg.SpawnType.GRIM_REAPER);
     public static final Item WEDDING_RING = new ItemWeddingRing().setMaxStackSize(1);
     public static final Item WEDDING_RING_RG = new ItemWeddingRing().setMaxStackSize(1);
     public static final Item ENGAGEMENT_RING = new ItemEngagementRing().setMaxStackSize(1);
@@ -31,6 +32,7 @@ public final class ItemsMCA {
     public static final Item ROSE_GOLD_DUST = new Item().setTranslationKey("rose_gold_dust");
     public static final Item VILLAGER_EDITOR = new ItemVillagerEditor();
     public static final Item STAFF_OF_LIFE = new ItemStaffOfLife();
+    public static final Item SCYTHE = new ItemScythe();
     public static final Item WHISTLE = new ItemWhistle();
     public static final Item CRYSTAL_BALL = new ItemCrystalBall();
 

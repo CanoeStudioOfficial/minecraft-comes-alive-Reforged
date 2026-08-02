@@ -240,6 +240,13 @@ public class ModelGrimReaper extends ModelBiped {
         this.scytheHandleRest.setRotationPoint(-1.0F, 7.0F, -10.1F);
         this.scytheHandleRest.addBox(0.5F, -15.5F, 0.5F, 1, 31, 1, 0.0F);
         this.setRotateAngle(scytheHandleRest, 0.091106186954104F, 1.2747884856566583F, 0.091106186954104F);
+
+        this.bipedHead = this.head;
+        this.bipedBody = this.chest;
+        this.bipedRightArm = this.rightArm;
+        this.bipedLeftArm = this.leftArm;
+        this.bipedRightLeg = this.rightLeg;
+        this.bipedLeftLeg = this.leftLeg;
     }
 
     @Override

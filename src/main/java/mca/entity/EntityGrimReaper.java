@@ -28,34 +28,45 @@ import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.DamageSource;
+import net.minecraft.util.EnumHand;
 import net.minecraft.util.SoundEvent;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.BossInfo;
 import net.minecraft.world.BossInfoServer;
 import net.minecraft.world.World;
 
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
+
 public class EntityGrimReaper extends EntityMob {
     private static final DataParameter<Integer> ATTACK_STATE = EntityDataManager.<Integer>createKey(EntityGrimReaper.class, DataSerializers.VARINT);
     private static final DataParameter<Integer> STATE_TRANSITION_COOLDOWN = EntityDataManager.<Integer>createKey(EntityGrimReaper.class, DataSerializers.VARINT);
+    private static final int MELEE_COOLDOWN = 150;
+    private static final int REST_COOLDOWN = 1000;
+    private static final int REST_MAX_COUNT = 5;
+    private static final int REST_TIME = 400;
 
     private final BossInfoServer bossInfo = (BossInfoServer) (new BossInfoServer(this.getDisplayName(), BossInfo.Color.PURPLE, BossInfo.Overlay.PROGRESS)).setDarkenSky(true);
-    private EntityAINearestAttackableTarget aiNearestAttackableTarget = new EntityAINearestAttackableTarget(this, EntityPlayer.class, true);
-    private int healingCooldown;
-    private int timesHealed;
 
     private float floatingTicks;
 
     public EntityGrimReaper(World world) {
         super(world);
         setSize(1.0F, 2.6F);
+        setNoGravity(true);
+        setItemStackToSlot(EntityEquipmentSlot.MAINHAND, new ItemStack(ItemsMCA.SCYTHE));
+        setDropChance(EntityEquipmentSlot.MAINHAND, 0.0F);
         this.experienceValue = 100;
 
         this.tasks.addTask(1, new EntityAISwimming(this));
-        this.tasks.addTask(4, new EntityAIWander(this, 1.0D));
-        this.tasks.addTask(6, new EntityAIWatchClosest(this, EntityPlayer.class, 8.0F));
+        this.tasks.addTask(2, new EntityAIWatchClosest(this, EntityPlayer.class, 24.0F));
+        this.tasks.addTask(3, new GrimReaperRestAI(this));
+        this.tasks.addTask(4, new GrimReaperMeleeAI(this));
+        this.tasks.addTask(5, new GrimReaperIdleAI(this, 1.0D));
         this.tasks.addTask(6, new EntityAILookIdle(this));
         this.targetTasks.addTask(1, new EntityAIHurtByTarget(this, false, new Class[0]));
-        this.targetTasks.addTask(2, aiNearestAttackableTarget);
+        this.targetTasks.addTask(2, new GrimReaperTargetAI(this));
     }
 
     @Override
@@ -63,13 +74,13 @@ public class EntityGrimReaper extends EntityMob {
         super.applyEntityAttributes();
         this.getEntityAttribute(SharedMonsterAttributes.FOLLOW_RANGE).setBaseValue(40.0D);
         this.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.30F);
-        this.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(12.5F);
-        this.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(225.0F);
+        this.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(10.0F);
+        this.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(300.0F);
     }
 
     @Override
     protected void dropFewItems(boolean hitByPlayer, int lootingLvl) {
-        dropItem(ItemsMCA.STAFF_OF_LIFE, 1);
+        dropItem(ItemsMCA.SCYTHE, 1);
     }
 
     @Override
@@ -110,8 +121,6 @@ public class EntityGrimReaper extends EntityMob {
 
     @Override
     public boolean attackEntityFrom(DamageSource source, float damage) {
-        bossInfo.setPercent(this.getHealth() / this.getMaxHealth());
-
         // Ignore wall damage and fire damage.
         if (source == DamageSource.IN_WALL || source == DamageSource.ON_FIRE || source.isExplosion() || source == DamageSource.IN_FIRE) {
             // Teleport out of any walls we may end up in.
@@ -122,133 +131,42 @@ public class EntityGrimReaper extends EntityMob {
             return false;
         }
 
-        // Ignore damage when blocking, and teleport behind the player when they attempt to block.
-        else if (!world.isRemote && this.getAttackState() == EnumReaperAttackState.BLOCK && source.getImmediateSource() instanceof EntityPlayer) {
-            EntityPlayer player = (EntityPlayer) source.getImmediateSource();
+        Entity attacker = source.getTrueSource();
+        Entity direct = source.getImmediateSource();
 
-            double deltaX = this.posX - player.posX;
-            double deltaZ = this.posZ - player.posZ;
-
+        // Ignore damage when blocking.
+        if (!world.isRemote && this.getAttackState() == EnumReaperAttackState.BLOCK && attacker != null) {
             this.playSound(SoundsMCA.reaper_block, 1.0F, 1.0F);
-            teleportTo(player.posX - (deltaX * 2), player.posY + 2, this.posZ - (deltaZ * 2));
-            setStateTransitionCooldown(0);
             return false;
         }
 
-        // Randomly portal behind the player who just attacked.
-        else if (!world.isRemote && source.getImmediateSource() instanceof EntityPlayer && rand.nextFloat() >= 0.30F) {
-            EntityPlayer player = (EntityPlayer) source.getImmediateSource();
-
-            double deltaX = this.posX - player.posX;
-            double deltaZ = this.posZ - player.posZ;
-
-            teleportTo(player.posX - (deltaX * 2), player.posY + 2, this.posZ - (deltaZ * 2));
+        // Teleport next to the player who fired a projectile and ignore its damage.
+        if (!world.isRemote && direct instanceof EntityArrow && getAttackState() != EnumReaperAttackState.REST && attacker != null && rand.nextBoolean()) {
+            double newX = attacker.posX + (rand.nextFloat() >= 0.50F ? 4 : -4);
+            double newZ = attacker.posZ + (rand.nextFloat() >= 0.50F ? 4 : -4);
+            teleportTo(newX, attacker.posY, newZ);
+            direct.setDead();
+            return false;
         }
 
-        // Teleport behind the player who fired an arrow and ignore its damage.
-        else if (source.getImmediateSource() instanceof EntityArrow) {
-            EntityArrow arrow = (EntityArrow) source.getImmediateSource();
+        // Randomly portal behind the attacker.
+        if (!world.isRemote && attacker != null && rand.nextFloat() >= 0.30F) {
+            double deltaX = this.posX - attacker.posX;
+            double deltaZ = this.posZ - attacker.posZ;
+            double distance = Math.sqrt(deltaX * deltaX + deltaZ * deltaZ);
 
-            if (arrow.shootingEntity instanceof EntityPlayer && getAttackState() != EnumReaperAttackState.REST) {
-                EntityPlayer player = (EntityPlayer) arrow.shootingEntity;
-                double newX = player.posX + (rand.nextFloat() > 0.5F ? 2 : -2);
-                double newZ = player.posZ + (rand.nextFloat() > 0.5F ? 2 : -2);
-
-                teleportTo(newX, player.posY, newZ);
+            if (distance > 0.001D) {
+                double length = Math.max(5.0D, distance) / distance * 0.95D;
+                teleportTo(attacker.posX - deltaX * length, attacker.posY + 1.5D, attacker.posZ - deltaZ * length);
             }
-
-            arrow.setDead();
-            return false;
         }
 
         // Still take damage when healing, but reduced by a third.
-        else if (this.getAttackState() == EnumReaperAttackState.REST) {
-            damage /= 3;
+        if (this.getAttackState() == EnumReaperAttackState.REST) {
+            damage *= 0.25F;
         }
 
-        super.attackEntityFrom(source, damage);
-
-        if (!world.isRemote && this.getHealth() <= (this.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).getBaseValue() / 2) && healingCooldown == 0) {
-            setAttackState(EnumReaperAttackState.REST);
-            healingCooldown = 4200; // 3 minutes 30 seconds
-            teleportTo(this.posX, this.posY + 8, this.posZ);
-            setStateTransitionCooldown(1200); // 1 minute
-        }
-
-        return true;
-    }
-
-    protected void attackEntity(Entity entity, float damage) {
-        EntityLivingBase entityToAttack = this.getAttackTarget();
-        if (entityToAttack == null) return;
-
-        // Set attack state to post attack.
-        // If we're blocking, we will teleport away instead of attacking to prevent an unfair attack.
-        // Attacking us WHILE we're blocking will cause us to attack, however.
-        if (this.getDistance(entityToAttack) <= 0.8D && getAttackState() == EnumReaperAttackState.PRE) {
-            if (getAttackState() == EnumReaperAttackState.BLOCK) {
-                int rX = this.getRNG().nextInt(10);
-                int rZ = this.getRNG().nextInt(10);
-                teleportTo(this.posX + 5 + rX, this.posY, this.posZ + rZ);
-            } else {
-                entity.attackEntityFrom(DamageSource.causeMobDamage(this), this.world.getDifficulty().getId() * 5.75F);
-
-                if (entity instanceof EntityLivingBase) {
-                    ((EntityLivingBase) entity).addPotionEffect(new PotionEffect(MobEffects.WITHER, this.world.getDifficulty().getId() * 20, 1));
-                }
-
-                setAttackState(EnumReaperAttackState.POST);
-                setStateTransitionCooldown(10); // For preventing immediate return to the PRE or IDLE stage. Ticked down in onUpdate()
-            }
-        }
-
-        // Check if we're waiting for cooldown from the last attack.
-        if (getStateTransitionCooldown() == 0) {
-            // Within 3 blocks from the target, ready the scythe
-            if (getDistance(entityToAttack) <= 3.5D) {
-                // Check to see if the player's blocking, then teleport behind them.
-                // Also randomly swap their selected item with something else in the hotbar and apply blindness.
-                if (entityToAttack instanceof EntityPlayer) {
-                    EntityPlayer player = (EntityPlayer) entityToAttack;
-
-                    if (player.isActiveItemStackBlocking()) {
-                        double dX = this.posX - player.posX;
-                        double dZ = this.posZ - player.posZ;
-
-                        teleportTo(player.posX - (dX * 2), player.posY + 2, this.posZ - (dZ * 2));
-
-                        if (!world.isRemote && rand.nextFloat() >= 0.20F) {
-                            int currentItem = player.inventory.currentItem;
-                            int randomItem = rand.nextInt(InventoryPlayer.getHotbarSize());
-                            ItemStack currentItemStack = player.inventory.mainInventory.get(currentItem);
-                            ItemStack randomItemStack = player.inventory.mainInventory.get(randomItem);
-
-                            player.inventory.mainInventory.set(currentItem, randomItemStack);
-                            player.inventory.mainInventory.set(randomItem, currentItemStack);
-
-                            player.addPotionEffect(new PotionEffect(MobEffects.BLINDNESS, this.world.getDifficulty().getId() * 40, 1));
-                        }
-                    } else // If the player is not blocking, ready the scythe, or randomly block their attack.
-                    {
-                        // Don't block if we've already committed to an attack.
-                        if (rand.nextFloat() >= 0.4F && getAttackState() != EnumReaperAttackState.PRE) {
-                            setStateTransitionCooldown(20);
-                            setAttackState(EnumReaperAttackState.BLOCK);
-                        } else {
-                            setAttackState(EnumReaperAttackState.PRE);
-                            setStateTransitionCooldown(20);
-                        }
-                    }
-                }
-            } else // Reset the attacking state when we're more than 3 blocks away.
-            {
-                setAttackState(EnumReaperAttackState.IDLE);
-            }
-        }
-    }
-
-    protected Entity findPlayerToAttack() {
-        return world.getClosestPlayerToEntity(this, 48.0D);
+        return super.attackEntityFrom(source, damage);
     }
 
     @Override
@@ -275,6 +193,8 @@ public class EntityGrimReaper extends EntityMob {
     public void onUpdate() {
         super.onUpdate();
         extinguish(); // No fire.
+        bossInfo.setPercent(this.getHealth() / this.getMaxHealth());
+        setNoGravity(true);
 
         if (!MCA.getConfig().allowGrimReaper) {
             setDead();
@@ -282,45 +202,9 @@ public class EntityGrimReaper extends EntityMob {
 
         EntityLivingBase entityToAttack = this.getAttackTarget();
 
-        if (entityToAttack != null && getAttackState() != EnumReaperAttackState.REST) {
-            attackEntity(entityToAttack, 5.0F);
-            this.getMoveHelper().setMoveTo(entityToAttack.posX, entityToAttack.posY, entityToAttack.posZ, 6.0F);
-        }
-
         // Increment floating ticks on the client when resting.
         if (world.isRemote && getAttackState() == EnumReaperAttackState.REST) {
             floatingTicks += 0.1F;
-        }
-
-        // Increase health when resting and check to stop rest state.
-        // Runs on common to spawn lightning.
-        if (getAttackState() == EnumReaperAttackState.REST) {
-            if (!world.isRemote && getStateTransitionCooldown() == 1) {
-                setAttackState(EnumReaperAttackState.IDLE);
-                timesHealed++;
-            } else if (!world.isRemote && getStateTransitionCooldown() % 100 == 0) {
-                this.setHealth(this.getHealth() + MathHelper.clamp(10.5F - (timesHealed * 3.5F), 3.0F, 10.5F));
-
-                // Let's have a light show.
-                int dX = rand.nextInt(8) + 4 * rand.nextFloat() >= 0.50F ? 1 : -1;
-                int dZ = rand.nextInt(8) + 4 * rand.nextFloat() >= 0.50F ? 1 : -1;
-                int y = Util.getSpawnSafeTopLevel(world, (int) posX + dX, 256, (int) posZ + dZ);
-
-                EntityLightningBolt bolt = new EntityLightningBolt(world, dX, y, dZ, false);
-                world.addWeatherEffect(bolt);
-
-                // Also spawn a random skeleton or zombie.
-                if (!world.isRemote) {
-                    EntityMob mob = rand.nextFloat() >= 0.50F ? new EntityZombie(world) : new EntitySkeleton(world);
-                    mob.setPosition(posX + dX + 4, y, posZ + dZ + 4);
-
-                    if (mob instanceof EntitySkeleton) {
-                        mob.setItemStackToSlot(EntityEquipmentSlot.MAINHAND, new ItemStack(Items.BOW));
-                    }
-
-                    world.spawnEntity(mob);
-                }
-            }
         }
 
         // Prevent flying off into oblivion on death...
@@ -353,33 +237,10 @@ public class EntityGrimReaper extends EntityMob {
             setStateTransitionCooldown(getStateTransitionCooldown() - 1);
         }
 
-        if (healingCooldown > 0) {
-            healingCooldown--;
-        }
-
         // See if our entity to attack has died at any point.
         if (entityToAttack != null && entityToAttack.isDead) {
             this.setAttackTarget(null);
             setAttackState(EnumReaperAttackState.IDLE);
-        }
-
-        // Move towards target if we're not resting
-        if (entityToAttack != null && getAttackState() != EnumReaperAttackState.REST) {
-            // If we have a creature to attack, we need to move downwards if we're above it, and vice-versa.
-            double sqDistanceTo = Math.sqrt(Math.pow(entityToAttack.posX - posX, 2) + Math.pow(entityToAttack.posZ - posZ, 2));
-            float moveAmount = 0.0F;
-
-            if (sqDistanceTo < 8F) {
-                moveAmount = MathHelper.clamp(((8F - (float) sqDistanceTo) / 8F) * 4F, 0, 2.5F);
-            }
-
-            if (entityToAttack.posY + 0.2F < posY) {
-                motionY = motionY - 0.05F * moveAmount;
-            }
-
-            if (entityToAttack.posY - 0.5F > posY) {
-                motionY = motionY + 0.01F * moveAmount;
-            }
         }
     }
 
@@ -421,6 +282,322 @@ public class EntityGrimReaper extends EntityMob {
     @Override
     public boolean isNonBoss() {
         return false;
+    }
+
+    private static class GrimReaperTargetAI extends EntityAIBase {
+        private final EntityGrimReaper reaper;
+        private int nextScanTick = 20;
+
+        private GrimReaperTargetAI(EntityGrimReaper reaper) {
+            this.reaper = reaper;
+        }
+
+        @Override
+        public boolean shouldExecute() {
+            if (nextScanTick-- > 0) {
+                return false;
+            }
+
+            nextScanTick = 20;
+
+            if (reaper.world.isRemote) {
+                return false;
+            }
+
+            List<EntityPlayer> players = reaper.world.playerEntities.stream()
+                    .filter(player -> !player.isDead && !player.isSpectator() && !player.capabilities.disableDamage)
+                    .filter(player -> reaper.getDistanceSq(player) <= 48.0D * 48.0D)
+                    .sorted(Comparator.comparingDouble((EntityPlayer player) -> player.posY).reversed())
+                    .collect(Collectors.toList());
+
+            for (EntityPlayer player : players) {
+                if (reaper.canEntityBeSeen(player)) {
+                    reaper.setAttackTarget(player);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        @Override
+        public boolean shouldContinueExecuting() {
+            EntityLivingBase target = reaper.getAttackTarget();
+            return target != null && target.isEntityAlive();
+        }
+    }
+
+    private static class GrimReaperMeleeAI extends EntityAIBase {
+        private final EntityGrimReaper reaper;
+
+        private int blockDuration;
+        private int attackDuration;
+        private int retreatDuration;
+        private int lastAttack = -MELEE_COOLDOWN;
+
+        private GrimReaperMeleeAI(EntityGrimReaper reaper) {
+            this.reaper = reaper;
+            this.setMutexBits(1);
+        }
+
+        @Override
+        public boolean shouldExecute() {
+            EntityLivingBase target = reaper.getAttackTarget();
+            return target != null
+                    && reaper.getDistanceSq(target) <= 144.0D
+                    && reaper.ticksExisted > lastAttack + MELEE_COOLDOWN
+                    && reaper.getAttackState() != EnumReaperAttackState.REST;
+        }
+
+        @Override
+        public boolean shouldContinueExecuting() {
+            return retreatDuration > 0 && reaper.getAttackState() != EnumReaperAttackState.REST;
+        }
+
+        @Override
+        public boolean isInterruptible() {
+            return false;
+        }
+
+        @Override
+        public void startExecuting() {
+            blockDuration = 50;
+            attackDuration = 100;
+            retreatDuration = 20;
+            lastAttack = reaper.ticksExisted;
+        }
+
+        @Override
+        public void resetTask() {
+            reaper.setAttackState(EnumReaperAttackState.IDLE);
+        }
+
+        @Override
+        public void updateTask() {
+            if (reaper.getAttackState() == EnumReaperAttackState.REST) {
+                return;
+            }
+
+            EntityLivingBase target = reaper.getAttackTarget();
+            if (target == null) {
+                retreatDuration = 0;
+                return;
+            }
+
+            if (blockDuration > 0) {
+                blockDuration--;
+                reaper.setAttackState(EnumReaperAttackState.BLOCK);
+
+                if (blockDuration == 0) {
+                    curseBlockingPlayer(target);
+                }
+
+                if (reaper.getDistanceSq(target) <= 4.0D) {
+                    int rX = reaper.getRNG().nextInt(10);
+                    int rY = reaper.getRNG().nextInt(6);
+                    int rZ = reaper.getRNG().nextInt(10);
+                    reaper.teleportTo(reaper.posX - 5 + rX, reaper.posY + rY, reaper.posZ - 5 + rZ);
+                    reaper.getNavigator().clearPath();
+                }
+
+                reaper.motionY = 0.05D;
+            } else if (attackDuration > 0) {
+                attackDuration--;
+                reaper.setAttackState(EnumReaperAttackState.PRE);
+
+                Vec3d dir = new Vec3d(target.posX - reaper.posX, target.posY - reaper.posY, target.posZ - reaper.posZ).normalize().scale(0.15D);
+                reaper.addVelocity(dir.x, dir.y, dir.z);
+
+                if (reaper.getDistanceSq(target) <= 1.0D) {
+                    reaper.swingArm(EnumHand.MAIN_HAND);
+                    attackDuration = 0;
+                    target.attackEntityFrom(DamageSource.causeMobDamage(reaper), (float) reaper.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).getAttributeValue());
+                    target.addPotionEffect(new PotionEffect(MobEffects.WITHER, 200, 0));
+                }
+            } else {
+                retreatDuration--;
+                reaper.setAttackState(EnumReaperAttackState.POST);
+
+                Vec3d dir = new Vec3d(target.posX - reaper.posX, target.posY - reaper.posY, target.posZ - reaper.posZ).normalize().scale(-0.1D);
+                reaper.motionX = dir.x;
+                reaper.motionY = dir.y;
+                reaper.motionZ = dir.z;
+            }
+        }
+
+        private void curseBlockingPlayer(EntityLivingBase target) {
+            if (!(target instanceof EntityPlayer)) {
+                return;
+            }
+
+            EntityPlayer player = (EntityPlayer) target;
+            if (!player.isActiveItemStackBlocking()) {
+                return;
+            }
+
+            double dX = reaper.posX - player.posX;
+            double dZ = reaper.posZ - player.posZ;
+            reaper.teleportTo(player.posX - (dX * 2), player.posY + 2, reaper.posZ - (dZ * 2));
+
+            if (!reaper.world.isRemote && reaper.getRNG().nextFloat() >= 0.20F) {
+                int currentItem = player.inventory.currentItem;
+                int randomItem = reaper.getRNG().nextInt(InventoryPlayer.getHotbarSize());
+                ItemStack currentItemStack = player.inventory.mainInventory.get(currentItem);
+                ItemStack randomItemStack = player.inventory.mainInventory.get(randomItem);
+
+                player.inventory.mainInventory.set(currentItem, randomItemStack);
+                player.inventory.mainInventory.set(randomItem, currentItemStack);
+                player.addPotionEffect(new PotionEffect(MobEffects.BLINDNESS, 200, 0));
+            }
+        }
+    }
+
+    private static class GrimReaperRestAI extends EntityAIBase {
+        private final EntityGrimReaper reaper;
+        private int lastHeal = -REST_COOLDOWN;
+        private int healingCount;
+        private int healingTime;
+
+        private GrimReaperRestAI(EntityGrimReaper reaper) {
+            this.reaper = reaper;
+            this.setMutexBits(1);
+        }
+
+        @Override
+        public boolean shouldExecute() {
+            return reaper.ticksExisted > lastHeal + REST_COOLDOWN
+                    && reaper.getHealth() <= reaper.getMaxHealth() * (1.0F - (healingCount + 1.0F) / (float) REST_MAX_COUNT);
+        }
+
+        @Override
+        public boolean shouldContinueExecuting() {
+            return healingTime > 0;
+        }
+
+        @Override
+        public boolean isInterruptible() {
+            return false;
+        }
+
+        @Override
+        public void startExecuting() {
+            reaper.teleportTo(reaper.posX, reaper.posY + 8, reaper.posZ);
+            healingTime = REST_TIME;
+            lastHeal = reaper.ticksExisted;
+            healingCount++;
+        }
+
+        @Override
+        public void resetTask() {
+            reaper.setAttackState(EnumReaperAttackState.IDLE);
+        }
+
+        @Override
+        public void updateTask() {
+            healingTime--;
+            reaper.setAttackState(EnumReaperAttackState.REST);
+            reaper.motionX = 0.0D;
+            reaper.motionY = 0.0D;
+            reaper.motionZ = 0.0D;
+
+            if (!reaper.world.isRemote && healingTime % (10 + healingCount * 5) == 0) {
+                reaper.setHealth(Math.min(reaper.getMaxHealth(), reaper.getHealth() + 1.0F));
+            }
+
+            if (!reaper.world.isRemote && healingTime % 50 == 0) {
+                int dX = reaper.getRNG().nextInt(16) - 8;
+                int dZ = reaper.getRNG().nextInt(16) - 8;
+                int x = (int) reaper.posX + dX;
+                int z = (int) reaper.posZ + dZ;
+                int y = Util.getSpawnSafeTopLevel(reaper.world, x, 256, z);
+
+                reaper.world.addWeatherEffect(new EntityLightningBolt(reaper.world, x, y, z, false));
+
+                if (healingTime % 100 == 0) {
+                    EntityMob mob = reaper.getRNG().nextFloat() < 0.5F ? new EntityZombie(reaper.world) : new EntitySkeleton(reaper.world);
+                    mob.setPosition(x + 0.5D, y, z + 0.5D);
+
+                    if (mob instanceof EntitySkeleton) {
+                        mob.setItemStackToSlot(EntityEquipmentSlot.MAINHAND, new ItemStack(Items.BOW));
+                    } else {
+                        mob.setItemStackToSlot(EntityEquipmentSlot.MAINHAND, new ItemStack(Items.IRON_SWORD));
+                    }
+
+                    mob.setItemStackToSlot(EntityEquipmentSlot.HEAD, new ItemStack(Items.IRON_HELMET));
+                    mob.setItemStackToSlot(EntityEquipmentSlot.CHEST, new ItemStack(Items.IRON_CHESTPLATE));
+                    mob.setItemStackToSlot(EntityEquipmentSlot.LEGS, new ItemStack(Items.IRON_LEGGINGS));
+                    mob.setItemStackToSlot(EntityEquipmentSlot.FEET, new ItemStack(Items.IRON_BOOTS));
+                    reaper.world.spawnEntity(mob);
+                }
+            }
+        }
+    }
+
+    private static class GrimReaperIdleAI extends EntityAIBase {
+        private final EntityGrimReaper reaper;
+        private final double speed;
+        private final int interval;
+        private double wantedX;
+        private double wantedY;
+        private double wantedZ;
+
+        private GrimReaperIdleAI(EntityGrimReaper reaper, double speed) {
+            this(reaper, speed, 120);
+        }
+
+        private GrimReaperIdleAI(EntityGrimReaper reaper, double speed, int interval) {
+            this.reaper = reaper;
+            this.speed = speed;
+            this.interval = interval;
+            this.setMutexBits(1);
+        }
+
+        @Override
+        public boolean shouldExecute() {
+            if (reaper.getRNG().nextInt(interval) != 0) {
+                return false;
+            }
+
+            Vec3d target = getPosition();
+            if (target == null) {
+                return false;
+            }
+
+            wantedX = target.x;
+            wantedY = target.y;
+            wantedZ = target.z;
+            return true;
+        }
+
+        @Override
+        public boolean shouldContinueExecuting() {
+            return reaper.getAttackState() != EnumReaperAttackState.REST
+                    && reaper.getDistanceSq(wantedX, wantedY, wantedZ) > 2.0D;
+        }
+
+        @Override
+        public void startExecuting() {
+            reaper.getMoveHelper().setMoveTo(wantedX, wantedY, wantedZ, speed);
+        }
+
+        @Override
+        public void resetTask() {
+            reaper.getNavigator().clearPath();
+        }
+
+        @Override
+        public void updateTask() {
+            reaper.getMoveHelper().setMoveTo(wantedX, wantedY, wantedZ, speed);
+        }
+
+        private Vec3d getPosition() {
+            EntityLivingBase target = reaper.getAttackTarget();
+            if (target != null) {
+                return new Vec3d(target.posX, target.posY, target.posZ);
+            }
+
+            return RandomPositionGenerator.findRandomTarget(reaper, 8, 6);
+        }
     }
 
     /**
