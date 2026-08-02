@@ -28,7 +28,7 @@ public class EntityAIChopping extends AbstractEntityAIChore {
         if (villager.getHealth() < villager.getMaxHealth()) {
             villager.stopChore();
         }
-        return EnumChore.byId(villager.get(EntityVillagerMCA.ACTIVE_CHORE)) == EnumChore.CHOP;
+        return canDoChore() && EnumChore.byId(villager.get(EntityVillagerMCA.ACTIVE_CHORE)) == EnumChore.CHOP;
     }
 
     public void updateTask() {

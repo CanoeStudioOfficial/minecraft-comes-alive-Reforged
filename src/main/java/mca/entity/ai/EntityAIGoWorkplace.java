@@ -11,7 +11,7 @@ public class EntityAIGoWorkplace extends AbstractEntityAIChore {
     }
 
     public boolean shouldExecute() {
-        if (villager.getWorkplace().getY() == 0 || villager.world.isRaining()) {
+        if (!canDoChore() || villager.getWorkplace().getY() == 0 || villager.world.isRaining()) {
             return false; //no workplace or it is raining
         }
 

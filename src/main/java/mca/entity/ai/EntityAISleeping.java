@@ -25,8 +25,7 @@ public class EntityAISleeping extends AbstractEntityAIChore {
             return false;
         }
 
-        //if guards detect enemies they won't sleep
-        if (villager.getProfessionForge() == ProfessionsMCA.guard && villager.getAttackTarget() != null) {
+        if (villager.getAttackTarget() != null) {
             //wake up, this is a emergency!
             if (villager.isSleeping()) {
                 villager.stopSleeping();

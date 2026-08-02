@@ -29,7 +29,7 @@ public class EntityAIFishing extends AbstractEntityAIChore {
         if (villager.getHealth() < villager.getMaxHealth()) {
             villager.stopChore();
         }
-        return EnumChore.byId(villager.get(EntityVillagerMCA.ACTIVE_CHORE)) == EnumChore.FISH;
+        return canDoChore() && EnumChore.byId(villager.get(EntityVillagerMCA.ACTIVE_CHORE)) == EnumChore.FISH;
     }
 
     public void updateTask() {

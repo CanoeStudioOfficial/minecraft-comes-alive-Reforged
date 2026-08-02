@@ -29,4 +29,8 @@ public abstract class AbstractEntityAIChore extends EntityAIBase {
         EntityPlayer player = villager.world.getPlayerEntityByUUID(villager.get(EntityVillagerMCA.CHORE_ASSIGNING_PLAYER).or(Constants.ZERO_UUID));
         return Optional.fromNullable(player);
     }
+
+    protected boolean canDoChore() {
+        return villager.getAttackTarget() == null;
+    }
 }

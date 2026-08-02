@@ -22,7 +22,7 @@ public class EntityAIProspecting extends AbstractEntityAIChore {
         if (villager.getHealth() < villager.getMaxHealth()) {
             villager.stopChore();
         }
-        return EnumChore.byId(villager.get(EntityVillagerMCA.ACTIVE_CHORE)) == EnumChore.PROSPECT;
+        return canDoChore() && EnumChore.byId(villager.get(EntityVillagerMCA.ACTIVE_CHORE)) == EnumChore.PROSPECT;
     }
 
     public void updateTask() {

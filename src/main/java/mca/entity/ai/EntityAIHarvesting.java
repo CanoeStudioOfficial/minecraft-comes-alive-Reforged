@@ -31,7 +31,7 @@ public class EntityAIHarvesting extends AbstractEntityAIChore {
         if (villager.getHealth() < villager.getMaxHealth()) {
             villager.stopChore();
         }
-        return EnumChore.byId(villager.get(EntityVillagerMCA.ACTIVE_CHORE)) == EnumChore.HARVEST && (blockWork - villager.ticksExisted) < 0;
+        return canDoChore() && EnumChore.byId(villager.get(EntityVillagerMCA.ACTIVE_CHORE)) == EnumChore.HARVEST && (blockWork - villager.ticksExisted) < 0;
     }
 
     public boolean shouldContinueExecuting() {

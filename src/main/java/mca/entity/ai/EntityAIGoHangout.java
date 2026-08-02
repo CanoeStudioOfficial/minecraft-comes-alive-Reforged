@@ -12,7 +12,7 @@ public class EntityAIGoHangout extends AbstractEntityAIChore {
     }
 
     public boolean shouldExecute() {
-        if (villager.getHangout().getY() == 0) {
+        if (!canDoChore() || villager.getHangout().getY() == 0) {
             return false; //no workplace
         }
 
