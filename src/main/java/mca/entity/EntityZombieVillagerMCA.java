@@ -123,11 +123,11 @@ public class EntityZombieVillagerMCA extends EntityZombieVillager {
             set(VILLAGER_NAME, API.getRandomName(gender));
         }
 
-        if (get(TEXTURE).isEmpty()) {
+        if (API.isLegacySkinPath(get(TEXTURE))) {
             set(TEXTURE, getDefaultZombieTexture());
         }
 
-        if (!this.world.isRemote && get(ORIGINAL_TEXTURE).isEmpty()) {
+        if (!this.world.isRemote && API.isLegacySkinPath(get(ORIGINAL_TEXTURE))) {
             set(ORIGINAL_TEXTURE, getRandomOriginalTextureFor(EnumGender.byId(get(GENDER))));
         }
 
@@ -159,9 +159,11 @@ public class EntityZombieVillagerMCA extends EntityZombieVillager {
     public void readEntityFromNBT(NBTTagCompound compound) {
         super.readEntityFromNBT(compound);
         set(VILLAGER_NAME, compound.getString("mcaName"));
-        set(TEXTURE, compound.getString("mcaTexture"));
-        set(ORIGINAL_TEXTURE, compound.getString("mcaOriginalTexture"));
         set(GENDER, compound.hasKey("mcaGender") ? compound.getInteger("mcaGender") : EnumGender.getRandom().getId());
+        String texture = compound.getString("mcaTexture");
+        set(TEXTURE, API.isLegacySkinPath(texture) ? getDefaultZombieTexture() : texture);
+        String originalTexture = compound.getString("mcaOriginalTexture");
+        set(ORIGINAL_TEXTURE, API.isLegacySkinPath(originalTexture) ? "" : originalTexture);
         set(AGE_STATE, compound.hasKey("mcaAgeState") ? compound.getInteger("mcaAgeState") : EnumAgeState.ADULT.getId());
         this.startingAge = compound.hasKey("mcaStartingAge") ? compound.getInteger("mcaStartingAge") : getDefaultStartingAge(compound.getInteger("mcaGrowthAmount"));
         set(STARTING_AGE, this.startingAge);
@@ -169,12 +171,15 @@ public class EntityZombieVillagerMCA extends EntityZombieVillager {
         set(VANILLA_CAREER, compound.hasKey("mcaCareer") ? compound.getInteger("mcaCareer") : 0);
         this.mcaData = compound.hasKey("mcaData") ? compound.getCompoundTag("mcaData").copy() : new NBTTagCompound();
 
-        if (get(TEXTURE).isEmpty()) {
-            set(TEXTURE, getDefaultZombieTexture());
+        if (get(ORIGINAL_TEXTURE).isEmpty() && mcaData.hasKey("texture")) {
+            String storedTexture = mcaData.getString("texture");
+            if (!API.isLegacySkinPath(storedTexture)) {
+                set(ORIGINAL_TEXTURE, storedTexture);
+            }
         }
 
-        if (get(ORIGINAL_TEXTURE).isEmpty() && mcaData.hasKey("texture")) {
-            set(ORIGINAL_TEXTURE, mcaData.getString("texture"));
+        if (!this.world.isRemote && get(ORIGINAL_TEXTURE).isEmpty()) {
+            set(ORIGINAL_TEXTURE, getRandomOriginalTextureFor(EnumGender.byId(get(GENDER))));
         }
 
         updateAgeStateAndDimensions();
@@ -292,7 +297,8 @@ public class EntityZombieVillagerMCA extends EntityZombieVillager {
     }
 
     public ResourceLocation getTextureResourceLocation() {
-        return ResourceLocationCache.getResourceLocationFor(get(TEXTURE).isEmpty() ? getDefaultZombieTexture() : get(TEXTURE));
+        String texture = get(TEXTURE);
+        return ResourceLocationCache.getResourceLocationFor(API.isLegacySkinPath(texture) ? getDefaultZombieTexture() : texture);
     }
 
     public String getOriginalTextureForMCA() {
@@ -408,7 +414,7 @@ public class EntityZombieVillagerMCA extends EntityZombieVillager {
     }
 
     private String getZombieTextureFor(EnumGender gender) {
-        return String.format("mca:skins/%s/zombievillager.png", gender == EnumGender.FEMALE ? "female" : "male");
+        return API.getFallbackSkin(gender);
     }
 
     private String getRandomOriginalTextureFor(EnumGender gender) {

@@ -30,10 +30,10 @@ import java.util.*;
  * Class API handles interaction with MCA's configurable options via JSON in the resources folder
  */
 public class API {
-    private static final String DEFAULT_SKIN = "mca:skins/default.png";
+    private static final String DEFAULT_MALE_SKIN = "mca:skins/generated/male/minecraft_farmer/minecraft_farmer_00.png";
+    private static final String DEFAULT_FEMALE_SKIN = "mca:skins/generated/female/minecraft_farmer/minecraft_farmer_00.png";
     private static final String[] SKIN_MANIFESTS = {
-            "api/skins.json",
-            "api/skins_high_version.json"
+            "api/skins.json"
     };
 
     private static Map<String, Gift> giftMap = new HashMap<>();
@@ -125,26 +125,7 @@ public class API {
     public static String getRandomSkin(EntityVillagerMCA villager) {
         VillagerRegistry.VillagerProfession profession = villager.getProfessionForge();
         EnumGender gender = EnumGender.byId(villager.get(EntityVillagerMCA.GENDER));
-        String name = villager.get(EntityVillagerMCA.VILLAGER_NAME);
-        String normalizedName = name == null ? "" : name.toLowerCase(Locale.ROOT);
         String professionName = profession == null || profession.getRegistryName() == null ? null : profession.getRegistryName().toString();
-
-        //Special-case skins
-        if (gender == EnumGender.MALE) {
-            switch (normalizedName) {
-                case "pewdiepie": return "mca:skins/male/special/pewdiepie_boy.png";
-                case "sven": return "mca:skins/male/special/sven.png";
-                case "noob":
-                case "noober":
-                case "neeber": return "mca:skins/male/special/noob.png";
-                case "shepard": return "mca:skins/male/special/shepard.png";
-                case "minsc": return "mca:skins/male/special/minsc.png";
-            }
-        } else if (gender == EnumGender.FEMALE) {
-            switch (normalizedName) {
-                case "pewdiepie": return "mca:skins/female/special/pewdiepie_girl.png";
-            }
-        }
 
         List<String> professionSkins = collectSkinPaths(gender, professionName);
         if (!professionSkins.isEmpty()) {
@@ -157,7 +138,27 @@ public class API {
         }
 
         MCA.getLog().error("No MCA villager skins are available for gender " + gender + " and profession " + professionName);
-        return DEFAULT_SKIN;
+        return getFallbackSkin(gender);
+    }
+
+    /**
+     * Returns a valid high-version fallback texture for the requested gender.
+     */
+    public static String getFallbackSkin(EnumGender gender) {
+        return gender == EnumGender.FEMALE ? DEFAULT_FEMALE_SKIN : DEFAULT_MALE_SKIN;
+    }
+
+    /**
+     * Identifies empty or pre-high-version MCA skin paths that need migration.
+     */
+    public static boolean isLegacySkinPath(String texture) {
+        if (texture == null || texture.trim().isEmpty()) {
+            return true;
+        }
+
+        return texture.startsWith("mca:skins/")
+                && !texture.startsWith("mca:skins/generated/")
+                && !texture.startsWith("mca:skins/layers/");
     }
 
     private static void loadSkinGroups(String manifest) {
@@ -240,13 +241,13 @@ public class API {
     public static String getRandomName(@Nonnull EnumGender gender) {
         if (gender == EnumGender.MALE) {
             if (maleNames.isEmpty()) {
-                MCA.getLog().error("maleNames 列表为空，无法生成随机名字！");
+                MCA.getLog().error("maleNames is empty; unable to generate a random name.");
                 return "Steve";
             }
             return maleNames.get(rng.nextInt(maleNames.size()));
         } else if (gender == EnumGender.FEMALE) {
             if (femaleNames.isEmpty()) {
-                MCA.getLog().error("femaleNames 列表为空，无法生成随机名字！");
+                MCA.getLog().error("femaleNames is empty; unable to generate a random name.");
                 return "Alex";
             }
             return femaleNames.get(rng.nextInt(femaleNames.size()));

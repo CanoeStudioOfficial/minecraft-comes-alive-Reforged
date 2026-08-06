@@ -99,7 +99,7 @@ public class ProfessionsMCA {
 
     public static VillagerProfession randomProfession() {
         if (registry == null || registry.getKeys().isEmpty()) {
-            MCA.getLog().error("Villager profession registry 未初始化或为空，无法随机选择职业，回退为 guard。");
+            MCA.getLog().error("Villager profession registry is not initialized or empty; falling back to guard.");
             return guard;
 
         }
@@ -113,7 +113,7 @@ public class ProfessionsMCA {
         }
 
         if (candidates.isEmpty()) {
-            MCA.getLog().error("Villager profession registry 中没有可用职业，无法随机选择，回退为 guard。");
+            MCA.getLog().error("Villager profession registry contains no usable professions; falling back to guard.");
             return guard;
         }
 

@@ -11,7 +11,7 @@ public class LocalizerTest {
     public void setup() throws Exception {
         MCA.proxy = new ServerProxy();
         
-        // 使用反射初始化 MCA 实例，因为它是私有的且没有公开的 setter
+        // Initialize MCA through reflection because its instance field has no public setter.
         MCA mcaInstance = new MCA();
         Field instanceField = MCA.class.getDeclaredField("instance");
         instanceField.setAccessible(true);

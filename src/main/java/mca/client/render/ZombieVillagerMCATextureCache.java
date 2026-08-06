@@ -1,5 +1,6 @@
 package mca.client.render;
 
+import mca.api.API;
 import mca.core.MCA;
 import mca.enums.EnumGender;
 import net.minecraft.client.Minecraft;
@@ -33,7 +34,7 @@ public final class ZombieVillagerMCATextureCache {
     public static ResourceLocation getZombieTexture(String originalTexture, EnumGender gender, ResourceLocation fallback) {
         ensureReloadListener();
 
-        if (originalTexture == null || originalTexture.trim().isEmpty() || originalTexture.endsWith("/zombievillager.png")) {
+        if (API.isLegacySkinPath(originalTexture)) {
             return fallback;
         }
 

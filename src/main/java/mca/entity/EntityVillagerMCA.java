@@ -224,7 +224,8 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
         super.readEntityFromNBT(nbt);
         set(VILLAGER_NAME, nbt.getString("name"));
         set(GENDER, nbt.getInteger("gender"));
-        set(TEXTURE, nbt.getString("texture"));
+        String texture = nbt.getString("texture");
+        set(TEXTURE, API.isLegacySkinPath(texture) ? API.getRandomSkin(this) : texture);
         set(GIRTH, nbt.getFloat("girth"));
         set(TALLNESS, nbt.getFloat("tallness"));
         set(PLAYER_HISTORY_MAP, nbt.getCompoundTag("playerHistoryMap"));
@@ -1104,11 +1105,13 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
     }
 
     public ResourceLocation getTextureResourceLocation() {
-        if (get(IS_INFECTED)) {
-            return ResourceLocationCache.getResourceLocationFor(String.format("mca:skins/%s/zombievillager.png", get(GENDER) == EnumGender.MALE.getId() ? "male" : "female"));
-        } else {
-            return ResourceLocationCache.getResourceLocationFor(get(TEXTURE));
+        EnumGender gender = EnumGender.byId(get(GENDER));
+        String texture = get(TEXTURE);
+        if (API.isLegacySkinPath(texture)) {
+            texture = API.getFallbackSkin(gender);
         }
+
+        return ResourceLocationCache.getResourceLocationFor(texture);
     }
 
     @Override

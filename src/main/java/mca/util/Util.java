@@ -23,7 +23,7 @@ public class Util {
     private static final String RESOURCE_PREFIX = "assets/mca/";
 
     /**
-     * 获取地面以上安全出生点（第一个空气方块上方）。
+     * Finds the first safe spawn position above the ground.
      */
     public static int getSpawnSafeTopLevel(World world, int x, int y, int z) {
         BlockPos pos;
@@ -42,7 +42,7 @@ public class Util {
     }
 
     /**
-     * 从 mod JAR 中读取资源为字符串。
+     * Reads a resource from the mod JAR as a string.
      */
     public static String readResource(String path) {
         String location = RESOURCE_PREFIX + path;
@@ -60,7 +60,7 @@ public class Util {
     }
 
     /**
-     * 将资源内容解析为 JSON 对象。
+     * Parses a resource as a JSON object.
      */
     public static <T> T readResourceAsJSON(String path, Class<T> type) {
         Gson gson = new Gson();
@@ -68,7 +68,7 @@ public class Util {
     }
 
     /**
-     * 通过 UUID 获取实体。
+     * Finds an entity by UUID.
      */
     public static Optional<Entity> getEntityByUUID(World world, UUID uuid) {
         for (Entity entity : world.loadedEntityList) {
@@ -80,7 +80,7 @@ public class Util {
     }
 
     /**
-     * 获取指定类型的 UUID 对应实体。
+     * Finds an entity of the requested type by UUID.
      */
     public static <T extends Entity> Optional<T> getEntityByUUID(World world, UUID uuid, Class<? extends T> clazz) {
         for (Entity entity : world.loadedEntityList) {
@@ -92,7 +92,7 @@ public class Util {
     }
 
     /**
-     * 获取附近指定距离内所有符合条件的方块坐标。
+     * Collects nearby block positions matching the requested type.
      */
     public static List<BlockPos> getNearbyBlocks(BlockPos origin, World world, @Nullable Class<? extends Block> filter, int xzDist, int yDist) {
         List<BlockPos> result = new ArrayList<>();
@@ -116,7 +116,7 @@ public class Util {
     }
 
     /**
-     * 获取距离 origin 最近的方块位置。
+     * Returns the block position nearest to the origin.
      */
     public static BlockPos getNearestPoint(BlockPos origin, List<BlockPos> blocks) {
         BlockPos nearest = null;
