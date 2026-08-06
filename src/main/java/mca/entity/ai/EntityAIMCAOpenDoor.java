@@ -70,6 +70,7 @@ public class EntityAIMCAOpenDoor extends EntityAIBase {
 
         this.doorBlock = null;
         this.doorPosition = BlockPos.ORIGIN;
+        this.closeDoorTicks = 0;
     }
 
     @Override

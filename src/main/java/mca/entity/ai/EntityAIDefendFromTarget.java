@@ -48,6 +48,7 @@ public class EntityAIDefendFromTarget extends EntityAIBase {
     }
 
     public void resetTask() {
+        this.attacker.resetActiveHand();
     }
 
     public void updateTask() {

@@ -15,27 +15,30 @@ public class EntityAIProspecting extends AbstractEntityAIChore {
 
     public EntityAIProspecting(EntityVillagerMCA entityIn) {
         super(entityIn);
-        this.setMutexBits(4);
+        this.setMutexBits(1);
     }
 
     public boolean shouldExecute() {
         if (villager.getHealth() < villager.getMaxHealth()) {
             villager.stopChore();
         }
-        return canDoChore() && EnumChore.byId(villager.get(EntityVillagerMCA.ACTIVE_CHORE)) == EnumChore.PROSPECT;
+        return canDoChore() && isAssignedChore(EnumChore.PROSPECT);
     }
 
     public void updateTask() {
         super.updateTask();
+        if (!hasAssigningPlayer()) {
+            return;
+        }
 
         ItemStack pickStack = villager.inventory.getBestItemOfType(ItemPickaxe.class);
-        if (pickStack == ItemStack.EMPTY) {
+        if (pickStack.isEmpty()) {
             villager.say(getAssigningPlayer(), "chore.mining.nopick");
             villager.stopChore();
             return;
         }
 
-        float efficiency = Item.ToolMaterial.valueOf(((ItemPickaxe) pickStack.getItem()).getToolMaterialName()).getEfficiency();
+        float efficiency = getToolEfficiency(pickStack);
         float notifyRate = Math.max(600 - efficiency * 50, 100);
 
         if (ticks >= notifyRate) {
@@ -50,5 +53,19 @@ public class EntityAIProspecting extends AbstractEntityAIChore {
             return;
         }
         ticks++;
+    }
+
+    @Override
+    public void resetTask() {
+        super.resetTask();
+        ticks = 0;
+    }
+
+    private float getToolEfficiency(ItemStack stack) {
+        try {
+            return Item.ToolMaterial.valueOf(((ItemPickaxe) stack.getItem()).getToolMaterialName()).getEfficiency();
+        } catch (IllegalArgumentException e) {
+            return 1.0F;
+        }
     }
 }

@@ -236,7 +236,7 @@ public class EntityGrimReaper extends EntityMob {
         }
 
         // See if our entity to attack has died at any point.
-        if (entityToAttack != null && entityToAttack.isDead) {
+        if (entityToAttack != null && !entityToAttack.isEntityAlive()) {
             this.setAttackTarget(null);
             setAttackState(EnumReaperAttackState.IDLE);
         }
@@ -303,7 +303,7 @@ public class EntityGrimReaper extends EntityMob {
             }
 
             List<EntityPlayer> players = reaper.world.playerEntities.stream()
-                    .filter(player -> !player.isDead && !player.isSpectator() && !player.capabilities.disableDamage)
+                    .filter(player -> player.isEntityAlive() && !player.isSpectator() && !player.capabilities.disableDamage)
                     .filter(player -> reaper.getDistanceSq(player) <= 48.0D * 48.0D)
                     .sorted(Comparator.comparingDouble((EntityPlayer player) -> player.posY).reversed())
                     .collect(Collectors.toList());
@@ -331,7 +331,7 @@ public class EntityGrimReaper extends EntityMob {
         private int blockDuration;
         private int attackDuration;
         private int retreatDuration;
-        private int lastAttack = -MELEE_COOLDOWN;
+        private int lastAttack;
 
         private GrimReaperMeleeAI(EntityGrimReaper reaper) {
             this.reaper = reaper;
@@ -342,6 +342,7 @@ public class EntityGrimReaper extends EntityMob {
         public boolean shouldExecute() {
             EntityLivingBase target = reaper.getAttackTarget();
             return target != null
+                    && target.isEntityAlive()
                     && reaper.getDistanceSq(target) <= 144.0D
                     && reaper.ticksExisted > lastAttack + MELEE_COOLDOWN
                     && reaper.getAttackState() != EnumReaperAttackState.REST;
@@ -377,7 +378,7 @@ public class EntityGrimReaper extends EntityMob {
             }
 
             EntityLivingBase target = reaper.getAttackTarget();
-            if (target == null) {
+            if (target == null || !target.isEntityAlive()) {
                 retreatDuration = 0;
                 return;
             }

@@ -2,22 +2,30 @@ package mca.entity.ai;
 
 import mca.core.minecraft.ProfessionsMCA;
 import mca.entity.EntityVillagerMCA;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;
 
 public class EntityAISleeping extends AbstractEntityAIChore {
+    private int retryCooldown;
+
     public EntityAISleeping(EntityVillagerMCA villagerIn) {
         super(villagerIn);
         this.setMutexBits(1);
     }
 
     public boolean shouldExecute() {
+        if (retryCooldown > 0) {
+            retryCooldown--;
+            return false;
+        }
+
         //let the avoid tasks work
         if (villager.getHealth() < villager.getMaxHealth()) {
             return false;
         }
 
         long time = villager.world.getWorldTime() % 24000L;
-        if (villager.get(EntityVillagerMCA.BED_POS) == BlockPos.ORIGIN && time < 16000) { //at tick 18000 villager without bed are allowed to automatically choose one
+        if (BlockPos.ORIGIN.equals(villager.get(EntityVillagerMCA.BED_POS)) && time < 16000) { //at tick 18000 villager without bed are allowed to automatically choose one
             //wake up if still sleeping
             if (villager.isSleeping()) {
                 villager.stopSleeping();
@@ -49,26 +57,37 @@ public class EntityAISleeping extends AbstractEntityAIChore {
     }
 
     public void startExecuting() {
-        if (villager.get(EntityVillagerMCA.BED_POS) == BlockPos.ORIGIN || villager.getDistanceSq(villager.get(EntityVillagerMCA.BED_POS)) < 4.0) {
+        if (villager.isSleeping()) {
+            return;
+        }
+
+        BlockPos rememberedBed = villager.get(EntityVillagerMCA.BED_POS);
+        boolean needsBedSearch = BlockPos.ORIGIN.equals(rememberedBed)
+                || villager.getDistanceSq(rememberedBed) < 4.0
+                || !isValidBed(rememberedBed);
+        if (needsBedSearch) {
             //search for the nearest bed, might be different than before
             BlockPos pos = villager.searchBed();
 
             if (pos == null) {
                 //no bed found, let's forget about the remembered bed
-                if (villager.get(EntityVillagerMCA.BED_POS) != BlockPos.ORIGIN) {
-                    //TODO: notify the player?
-                    villager.set(EntityVillagerMCA.BED_POS, BlockPos.ORIGIN);
-                }
+                //TODO: notify the player?
+                villager.set(EntityVillagerMCA.BED_POS, BlockPos.ORIGIN);
+                retryCooldown = 100;
             } else {
                 villager.set(EntityVillagerMCA.BED_POS, pos);
                 villager.startSleeping();
             }
         } else {
-            villager.moveTowardsBlock(villager.get(EntityVillagerMCA.BED_POS), 0.75);
+            if (!villager.moveTowardsBlock(rememberedBed, 0.75)) {
+                retryCooldown = 100;
+            }
         }
     }
 
+    @Override
     public void resetTask() {
+        super.resetTask();
         if (villager.isSleeping()) {
             villager.stopSleeping();
         }
@@ -79,5 +98,14 @@ public class EntityAISleeping extends AbstractEntityAIChore {
             villager.setRotationYawHead(0.0f);
             villager.rotationYaw = 0.0f;
         }
+    }
+
+    private boolean isValidBed(BlockPos pos) {
+        if (BlockPos.ORIGIN.equals(pos) || !villager.world.isBlockLoaded(pos)) {
+            return false;
+        }
+
+        IBlockState state = villager.world.getBlockState(pos);
+        return state.getBlock().isBed(state, villager.world, pos, villager);
     }
 }

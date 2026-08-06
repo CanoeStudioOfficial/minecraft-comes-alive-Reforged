@@ -144,12 +144,15 @@ public class EntityAIArcherGuard extends EntityAIBase {
 
     private void updateBowAttack(EntityLivingBase target, double distanceSquared, boolean canSee) {
         this.crossbowChargeTicks = 0;
-        this.archer.setChargingRangedWeapon(false);
         if (this.attackTime > 0) {
             this.attackTime--;
+            this.archer.resetActiveHand();
+            this.archer.setChargingRangedWeapon(false);
+            return;
         }
 
         if (this.archer.isHandActive()) {
+            this.archer.setChargingRangedWeapon(true);
             if (!canSee && this.seeTime < -LOST_SIGHT_CANCEL_TICKS) {
                 this.archer.resetActiveHand();
             } else if (canSee && this.archer.getItemInUseMaxCount() >= 20) {
@@ -162,6 +165,7 @@ public class EntityAIArcherGuard extends EntityAIBase {
             return;
         }
 
+        this.archer.setChargingRangedWeapon(false);
         if (!this.kiting && canSee && distanceSquared <= this.maxAttackDistanceSquared && this.attackTime <= 0) {
             this.archer.setActiveHand(EnumHand.MAIN_HAND);
         }

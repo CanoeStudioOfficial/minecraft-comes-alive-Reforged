@@ -2,9 +2,11 @@ package mca.entity.ai;
 
 import mca.entity.EntityVillagerMCA;
 import mca.enums.EnumChore;
+import net.minecraft.util.math.BlockPos;
 
 public class EntityAIGoHangout extends AbstractEntityAIChore {
     private boolean atHangout = false;
+    private int retryCooldown;
     
     public EntityAIGoHangout(EntityVillagerMCA villagerIn) {
         super(villagerIn);
@@ -12,7 +14,12 @@ public class EntityAIGoHangout extends AbstractEntityAIChore {
     }
 
     public boolean shouldExecute() {
-        if (!canDoChore() || villager.getHangout().getY() == 0) {
+        if (retryCooldown > 0) {
+            retryCooldown--;
+            return false;
+        }
+
+        if (villager.getAttackTarget() != null || BlockPos.ORIGIN.equals(villager.getHangout())) {
             return false; //no workplace
         }
 
@@ -46,14 +53,27 @@ public class EntityAIGoHangout extends AbstractEntityAIChore {
     }
 
     public boolean shouldContinueExecuting() {
-        return !villager.getNavigator().noPath();
+        return isHangoutTime() && villager.getAttackTarget() == null && !villager.getNavigator().noPath();
     }
 
     public void startExecuting() {
-        villager.moveTowardsBlock(villager.getHangout());
+        if (!villager.moveTowardsBlock(villager.getHangout())) {
+            retryCooldown = 100;
+        }
     }
 
     public void updateTask() {
 
+    }
+
+    @Override
+    public void resetTask() {
+        super.resetTask();
+        atHangout = false;
+    }
+
+    private boolean isHangoutTime() {
+        long time = villager.world.getWorldTime() % 24000L;
+        return time >= 9000L && time <= 11000L;
     }
 }

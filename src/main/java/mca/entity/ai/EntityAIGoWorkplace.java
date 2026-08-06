@@ -1,9 +1,11 @@
 package mca.entity.ai;
 
 import mca.entity.EntityVillagerMCA;
+import net.minecraft.util.math.BlockPos;
 
 public class EntityAIGoWorkplace extends AbstractEntityAIChore {
     private boolean atWork = false;
+    private int retryCooldown;
 
     public EntityAIGoWorkplace(EntityVillagerMCA villagerIn) {
         super(villagerIn);
@@ -11,7 +13,12 @@ public class EntityAIGoWorkplace extends AbstractEntityAIChore {
     }
 
     public boolean shouldExecute() {
-        if (!canDoChore() || villager.getWorkplace().getY() == 0 || villager.world.isRaining()) {
+        if (retryCooldown > 0) {
+            retryCooldown--;
+            return false;
+        }
+
+        if (villager.getAttackTarget() != null || BlockPos.ORIGIN.equals(villager.getWorkplace()) || villager.world.isRaining()) {
             return false; //no workplace or it is raining
         }
 
@@ -40,15 +47,28 @@ public class EntityAIGoWorkplace extends AbstractEntityAIChore {
     }
 
     public boolean shouldContinueExecuting() {
-        return !villager.getNavigator().noPath();
+        return isWorkTime() && villager.getAttackTarget() == null && !villager.world.isRaining() && !villager.getNavigator().noPath();
     }
 
     public void startExecuting() {
         //MCA.getLog().info(villager.getName() + " goes to work");
-        villager.moveTowardsBlock(villager.getWorkplace());
+        if (!villager.moveTowardsBlock(villager.getWorkplace())) {
+            retryCooldown = 100;
+        }
     }
 
     public void updateTask() {
 
+    }
+
+    @Override
+    public void resetTask() {
+        super.resetTask();
+        atWork = false;
+    }
+
+    private boolean isWorkTime() {
+        long time = villager.world.getWorldTime() % 24000L;
+        return time >= 4000L && time <= 7000L;
     }
 }

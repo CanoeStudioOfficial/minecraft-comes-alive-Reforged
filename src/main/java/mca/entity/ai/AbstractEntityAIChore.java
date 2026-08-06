@@ -4,6 +4,7 @@ import com.google.common.base.Optional;
 import mca.core.Constants;
 import mca.core.MCA;
 import mca.entity.EntityVillagerMCA;
+import mca.enums.EnumChore;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.entity.player.EntityPlayer;
 
@@ -25,9 +26,23 @@ public abstract class AbstractEntityAIChore extends EntityAIBase {
         }
     }
 
-    Optional<EntityPlayer> getAssigningPlayer() {
+    @Override
+    public void resetTask() {
+        villager.getNavigator().clearPath();
+        villager.resetActiveHand();
+    }
+
+    protected Optional<EntityPlayer> getAssigningPlayer() {
         EntityPlayer player = villager.world.getPlayerEntityByUUID(villager.get(EntityVillagerMCA.CHORE_ASSIGNING_PLAYER).or(Constants.ZERO_UUID));
         return Optional.fromNullable(player);
+    }
+
+    protected boolean hasAssigningPlayer() {
+        return getAssigningPlayer().isPresent();
+    }
+
+    protected boolean isAssignedChore(EnumChore chore) {
+        return EnumChore.byId(villager.get(EntityVillagerMCA.ACTIVE_CHORE)) == chore && hasAssigningPlayer();
     }
 
     protected boolean canDoChore() {

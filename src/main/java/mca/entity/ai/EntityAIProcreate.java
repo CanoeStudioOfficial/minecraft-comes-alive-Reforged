@@ -18,11 +18,17 @@ public class EntityAIProcreate extends EntityAIBase {
 
     public EntityAIProcreate(EntityVillagerMCA villager) {
         this.villager = villager;
+        this.setMutexBits(1);
     }
 
     @Override
     public boolean shouldExecute() {
         return villager.get(EntityVillagerMCA.IS_PROCREATING);
+    }
+
+    @Override
+    public boolean shouldContinueExecuting() {
+        return villager.get(EntityVillagerMCA.IS_PROCREATING) && villager.getAttackTarget() == null;
     }
 
     @Override
@@ -44,5 +50,11 @@ public class EntityAIProcreate extends EntityAIBase {
                     spousePlayer.inventory.addItemStackToInventory(new ItemStack(villager.getRNG().nextBoolean() ? ItemsMCA.BABY_BOY : ItemsMCA.BABY_GIRL));
             }
         }
+    }
+
+    @Override
+    public void resetTask() {
+        procreateTimer = 0;
+        villager.set(EntityVillagerMCA.IS_PROCREATING, false);
     }
 }

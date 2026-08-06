@@ -1,7 +1,6 @@
 package mca.entity.ai;
 
 import mca.entity.EntityVillagerMCA;
-import mca.enums.EnumChore;
 import mca.enums.EnumMoveState;
 import net.minecraft.entity.EntityCreature;
 import net.minecraft.entity.ai.EntityAIBase;
@@ -47,7 +46,7 @@ public class EntityAIMCAWander extends EntityAIBase {
 
     @Override
     public boolean shouldContinueExecuting() {
-        return entity.getAttackTarget() == null && !entity.getNavigator().noPath();
+        return canIdleMove() && !entity.getNavigator().noPath();
     }
 
     @Override
@@ -63,8 +62,7 @@ public class EntityAIMCAWander extends EntityAIBase {
         if (entity instanceof EntityVillagerMCA) {
             EntityVillagerMCA villager = (EntityVillagerMCA) entity;
             return !villager.isSleeping()
-                    && EnumMoveState.byId(villager.get(EntityVillagerMCA.MOVE_STATE)) == EnumMoveState.MOVE
-                    && EnumChore.byId(villager.get(EntityVillagerMCA.ACTIVE_CHORE)) == EnumChore.NONE;
+                    && EnumMoveState.byId(villager.get(EntityVillagerMCA.MOVE_STATE)) == EnumMoveState.MOVE;
         }
 
         return true;

@@ -4,8 +4,10 @@ import mca.entity.EntityVillagerMCA;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.inventory.InventoryBasic;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemAxe;
 import net.minecraft.item.ItemArmor;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemSword;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 
@@ -31,8 +33,8 @@ public class InventoryMCA extends InventoryBasic {
 
     public boolean contains(Class<?> clazz) {
         for (int i = 0; i < getSizeInventory(); i++) {
-            Item item = getStackInSlot(i).getItem();
-            if (item.getClass() == clazz) {
+            ItemStack stack = getStackInSlot(i);
+            if (!stack.isEmpty() && clazz.isInstance(stack.getItem())) {
                 return true;
             }
         }
@@ -50,6 +52,19 @@ public class InventoryMCA extends InventoryBasic {
         return slot >= 0 ? getStackInSlot(slot) : ItemStack.EMPTY;
     }
 
+    public ItemStack getBestHuntingWeapon() {
+        ItemStack best = ItemStack.EMPTY;
+        for (int i = 0; i < getSizeInventory(); i++) {
+            ItemStack stack = getStackInSlot(i);
+            Item item = stack.getItem();
+            if ((item instanceof ItemSword || item instanceof ItemAxe)
+                    && (best.isEmpty() || stack.getMaxDamage() > best.getMaxDamage())) {
+                best = stack;
+            }
+        }
+        return best;
+    }
+
     public int getBestItemOfTypeSlot(@Nullable Class<?> type) {
         if (type == null) return -1;
 
@@ -60,7 +75,7 @@ public class InventoryMCA extends InventoryBasic {
             ItemStack stack = getStackInSlot(i);
             Item item = stack.getItem();
 
-            if (item.getClass() == type) {
+            if (type.isInstance(item)) {
                 int damage = stack.getMaxDamage();
                 if (damage > highestDamage) {
                     best = i;

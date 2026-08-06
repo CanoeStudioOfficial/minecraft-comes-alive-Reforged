@@ -20,6 +20,7 @@ import mca.entity.inventory.InventoryMCA;
 import mca.enums.*;
 import mca.items.ItemSpecialCaseGift;
 import mca.util.ItemStackCache;
+import mca.util.RangedWeaponUtil;
 import mca.util.ResourceLocationCache;
 import mca.util.Util;
 import net.minecraft.block.BlockBed;
@@ -447,6 +448,18 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
     }
 
     @Override
+    public void setActiveHand(EnumHand hand) {
+        super.setActiveHand(hand);
+        setChargingRangedWeapon(RangedWeaponUtil.isMcaRangedWeapon(getHeldItem(hand)));
+    }
+
+    @Override
+    public void resetActiveHand() {
+        super.resetActiveHand();
+        setChargingRangedWeapon(false);
+    }
+
+    @Override
     public void swingArm(EnumHand hand) {
         if (!TConstructCompat.isCrossbow(getHeldItemMainhand())) {
             this.setActiveHand(EnumHand.MAIN_HAND);
@@ -495,7 +508,8 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
         arrow.shoot(targetX, targetY + horizontalDistance * 0.20000000298023224D, targetZ, 1.6F, 14 - this.world.getDifficulty().getId() * 4);
         playSound(SoundEvents.ENTITY_SKELETON_SHOOT, 1.0F, 1.0F / (getRNG().nextFloat() * 0.4F + 0.8F));
         world.spawnEntity(arrow);
-        setSwingingArms(true);
+        resetActiveHand();
+        setSwingingArms(false);
     }
 
     protected EntityArrow getArrow(float distanceFactor) {
@@ -527,7 +541,7 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
             if (get(HAS_BABY)) {
                 return ItemStackCache.get(get(BABY_IS_MALE) ? ItemsMCA.BABY_BOY : ItemsMCA.BABY_GIRL);
             } else if (chore != EnumChore.NONE) {
-                return inventory.getBestItemOfType(chore.getToolType());
+                return chore == EnumChore.HUNT ? inventory.getBestHuntingWeapon() : inventory.getBestItemOfType(chore.getToolType());
             } else {
                 return getDefaultMainHandStack(profession, getVanillaCareer());
             }
@@ -737,7 +751,7 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
     }
 
     private void goHome(EntityPlayerMP player) {
-        if (home.equals(Vec3d.ZERO)) {
+        if (home.equals(BlockPos.ORIGIN)) {
             say(Optional.of(player), "interaction.gohome.fail");
         } else {
             say(Optional.of(player), "interaction.gohome.success");
@@ -877,6 +891,8 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
                 break;
             case "gui.button.stay":
                 set(MOVE_STATE, EnumMoveState.STAY.getId());
+                this.playerToFollowUUID = Constants.ZERO_UUID;
+                stopChore();
                 break;
             case "gui.button.follow":
                 set(MOVE_STATE, EnumMoveState.FOLLOW.getId());
@@ -1112,27 +1128,49 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
     }
 
     public void refreshSpecialAI() {
+        getNavigator().clearPath();
+        clearAITasks();
+        setAttackTarget(null);
+        clearTransientAIState();
+        if (isSleeping()) {
+            stopSleeping();
+        }
+        initEntityAI();
         applySpecialAI();
     }
 
     private void refreshLoadedAI() {
         this.getNavigator().clearPath();
-        this.tasks.taskEntries.clear();
-        this.targetTasks.taskEntries.clear();
+        clearAITasks();
+        setAttackTarget(null);
         initEntityAI();
         applySpecialAI();
     }
 
+    private void clearAITasks() {
+        for (EntityAITasks.EntityAITaskEntry entry : new ArrayList<>(this.tasks.taskEntries)) {
+            this.tasks.removeTask(entry.action);
+        }
+        for (EntityAITasks.EntityAITaskEntry entry : new ArrayList<>(this.targetTasks.taskEntries)) {
+            this.targetTasks.removeTask(entry.action);
+        }
+    }
+
     private void restoreLoadedTransientState() {
+        clearTransientAIState();
         set(IS_PROCREATING, false);
-        set(IS_SWINGING, false);
-        set(IS_CHARGING_RANGED_WEAPON, false);
-        resetActiveHand();
 
         if (get(SLEEPING) && !shouldStaySleepingAfterLoad()) {
             set(SLEEPING, false);
             set(BED_POS, BlockPos.ORIGIN);
         }
+    }
+
+    private void clearTransientAIState() {
+        setSwingingArms(false);
+        setChargingRangedWeapon(false);
+        resetActiveHand();
+        TConstructCompat.setCrossbowLoaded(getHeldItemMainhand(), false);
     }
 
     private boolean shouldStaySleepingAfterLoad() {
@@ -1141,7 +1179,7 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
         }
 
         BlockPos bedLocation = get(BED_POS);
-        if (bedLocation == BlockPos.ORIGIN || !world.isBlockLoaded(bedLocation)) {
+        if (BlockPos.ORIGIN.equals(bedLocation) || !world.isBlockLoaded(bedLocation)) {
             return false;
         }
 
@@ -1207,6 +1245,7 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
         } else if (getProfessionForge() == ProfessionsMCA.guard) {
             removeExternalAvoidTasks();
 
+            this.tasks.addTask(0, new EntityAISwimming(this));
             if (isGuardArcher()) {
                 this.tasks.addTask(1, new EntityAIArcherGuard(this, GUARD_ARCHER_SPEED, 20, 15.0F));
             } else {
@@ -1236,6 +1275,7 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
 
     private void resetSpecialAI() {
         this.targetTasks.taskEntries.clear();
+        removeCertainTasks(EntityAISwimming.class);
         removeCertainTasks(EntityAIAttackMelee.class);
         removeCertainTasks(EntityAIAttackRanged.class);
         removeCertainTasks(EntityAIArcherGuard.class);
@@ -1265,7 +1305,7 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
             EntityAITasks.EntityAITaskEntry entityaitasks$entityaitaskentry = iterator.next();
             EntityAIBase entityaibase = entityaitasks$entityaitaskentry.action;
 
-            if (entityaibase.getClass().equals(typ)) {
+            if (typ.isInstance(entityaibase)) {
                 iterator.remove();
             }
         }
@@ -1287,12 +1327,15 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
     public void stopChore() {
         set(ACTIVE_CHORE, EnumChore.NONE.getId());
         set(CHORE_ASSIGNING_PLAYER, Optional.of(Constants.ZERO_UUID));
+        getNavigator().clearPath();
     }
 
     public void startChore(EnumChore chore, EntityPlayer player) {
         set(ACTIVE_CHORE, chore.getId());
         set(CHORE_ASSIGNING_PLAYER, Optional.of(player.getUniqueID()));
         set(MOVE_STATE, EnumMoveState.MOVE.getId());
+        this.playerToFollowUUID = Constants.ZERO_UUID;
+        getNavigator().clearPath();
     }
 
     public boolean playerIsParent(EntityPlayer player) {
@@ -1324,22 +1367,35 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
         return null;
     }
 
-    public void moveTowardsBlock(BlockPos target) {
-        moveTowardsBlock(target, 0.5D);
+    public boolean moveTowardsBlock(BlockPos target) {
+        return moveTowardsBlock(target, 0.5D);
     }
 
-    public void moveTowardsBlock(BlockPos target, double speed) {
+    public boolean moveTowardsBlock(BlockPos target, double speed) {
+        if (target == null || BlockPos.ORIGIN.equals(target)) {
+            getNavigator().clearPath();
+            return false;
+        }
+
         double range = getNavigator().getPathSearchRange() - 6.0D;
 
         if (getDistanceSq(target) > Math.pow(range, 2.0)) {
             Vec3d vec3d = RandomPositionGenerator.findRandomTargetBlockTowards(this, (int) range, 8, new Vec3d(target.getX(), target.getY(), target.getZ()));
-            if (vec3d != null && !getNavigator().setPath(getNavigator().getPathToXYZ(vec3d.x, vec3d.y, vec3d.z), speed)) {
-                attemptTeleport(vec3d.x, vec3d.y, vec3d.z);
+            if (vec3d == null) {
+                return false;
             }
+
+            if (getNavigator().setPath(getNavigator().getPathToXYZ(vec3d.x, vec3d.y, vec3d.z), speed)) {
+                return true;
+            }
+
+            return attemptTeleport(vec3d.x, vec3d.y, vec3d.z);
         } else {
-            if (!getNavigator().setPath(getNavigator().getPathToPos(target), speed)) {
-                attemptTeleport(target.getX(), target.getY(), target.getZ());
+            if (getNavigator().setPath(getNavigator().getPathToPos(target), speed)) {
+                return true;
             }
+
+            return attemptTeleport(target.getX(), target.getY(), target.getZ());
         }
     }
 
@@ -1362,7 +1418,7 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
     @SideOnly(Side.CLIENT)
     public float getBedOrientationInDegrees() {
         BlockPos bedLocation = get(EntityVillagerMCA.BED_POS);
-        IBlockState state = bedLocation == BlockPos.ORIGIN ? null : this.world.getBlockState(bedLocation);
+        IBlockState state = BlockPos.ORIGIN.equals(bedLocation) ? null : this.world.getBlockState(bedLocation);
         if (state != null && state.getBlock().isBed(state, world, bedLocation, this)) {
             EnumFacing enumfacing = state.getBlock().getBedDirection(state, world, bedLocation);
 
@@ -1439,7 +1495,7 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
 
     public void stopSleeping() {
         BlockPos bedLocation = get(EntityVillagerMCA.BED_POS);
-        if (bedLocation != BlockPos.ORIGIN) {
+        if (!BlockPos.ORIGIN.equals(bedLocation)) {
             IBlockState blockstate = this.world.getBlockState(bedLocation);
 
             if (blockstate.getBlock().isBed(blockstate, world, bedLocation, this)) {

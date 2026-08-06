@@ -31,11 +31,7 @@ public class EntityAIHarvesting extends AbstractEntityAIChore {
         if (villager.getHealth() < villager.getMaxHealth()) {
             villager.stopChore();
         }
-        return canDoChore() && EnumChore.byId(villager.get(EntityVillagerMCA.ACTIVE_CHORE)) == EnumChore.HARVEST && (blockWork - villager.ticksExisted) < 0;
-    }
-
-    public boolean shouldContinueExecuting() {
-        return !villager.getNavigator().noPath();
+        return canDoChore() && isAssignedChore(EnumChore.HARVEST) && (blockWork - villager.ticksExisted) < 0;
     }
 
     private BlockPos searchCrop(int rangeX, int rangeY) {
@@ -54,9 +50,15 @@ public class EntityAIHarvesting extends AbstractEntityAIChore {
     }
 
     public void startExecuting() {
+        if (!hasAssigningPlayer()) {
+            villager.stopChore();
+            return;
+        }
+
         if (!villager.inventory.contains(ItemHoe.class)) {
             villager.say(getAssigningPlayer(), "chore.harvesting.nohoe");
             villager.stopChore();
+            return;
         }
 
         //search crop
@@ -71,10 +73,12 @@ public class EntityAIHarvesting extends AbstractEntityAIChore {
         }
 
         if (target == null) {
-            if (villager.getWorkplace().getY() > 0 && villager.getDistanceSq(villager.getWorkplace()) > 256.0D) {
+            if (!BlockPos.ORIGIN.equals(villager.getWorkplace()) && villager.getDistanceSq(villager.getWorkplace()) > 256.0D) {
                 //go to their workplace (if set and more than 16 blocks away)
                 //MCA.getLog().info(villager.getName() + " goes to workplace");
-                villager.moveTowardsBlock(villager.getWorkplace());
+                if (!villager.moveTowardsBlock(villager.getWorkplace())) {
+                    blockWork = villager.ticksExisted + 100;
+                }
             } else {
                 //failed (no crop on range), allows now other, lower priority tasks to interrupt
                 //MCA.getLog().info(villager.getName() + " idles");
@@ -85,7 +89,9 @@ public class EntityAIHarvesting extends AbstractEntityAIChore {
             double distanceTo = Math.sqrt(villager.getDistanceSq(target));
             if (distanceTo >= 2.0D) {
                 if (!villager.getNavigator().setPath(villager.getNavigator().getPathToPos(target), 0.5D)) {
-                    villager.attemptTeleport(target.getX(), target.getY(), target.getZ());
+                    if (!villager.attemptTeleport(target.getX(), target.getY(), target.getZ())) {
+                        blockWork = villager.ticksExisted + 100;
+                    }
                 }
             } else {
                 //harvest
@@ -115,9 +121,36 @@ public class EntityAIHarvesting extends AbstractEntityAIChore {
 
                 //wait before harvesting next crop
                 ItemStack hoeStack = villager.inventory.getBestItemOfType(ItemHoe.class);
-                float efficiency = hoeStack == ItemStack.EMPTY ? 0.0f : Item.ToolMaterial.valueOf(((ItemHoe) hoeStack.getItem()).getMaterialName()).getEfficiency();
+                float efficiency = getToolEfficiency(hoeStack);
                 blockWork = villager.ticksExisted + (int) Math.max(2.0f, 60.0f - efficiency * 5.0f);
             }
+        }
+    }
+
+    @Override
+    public boolean shouldContinueExecuting() {
+        return villager.getAttackTarget() == null
+                && isAssignedChore(EnumChore.HARVEST)
+                && !villager.getNavigator().noPath();
+    }
+
+    @Override
+    public void resetTask() {
+        super.resetTask();
+        if (!getAssigningPlayer().isPresent()) {
+            villager.stopChore();
+        }
+    }
+
+    private float getToolEfficiency(ItemStack stack) {
+        if (stack.isEmpty()) {
+            return 0.0F;
+        }
+
+        try {
+            return Item.ToolMaterial.valueOf(((ItemHoe) stack.getItem()).getMaterialName()).getEfficiency();
+        } catch (IllegalArgumentException e) {
+            return 1.0F;
         }
     }
 }
