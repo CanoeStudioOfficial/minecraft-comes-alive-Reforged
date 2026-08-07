@@ -90,6 +90,11 @@ public class MCAServer {
         proposals.put(target.getUniqueID(), list);
     }
 
+    private void removeAllProposalsFor(UUID uuid) {
+        proposals.remove(uuid);
+        proposals.values().forEach(list -> list.remove(uuid));
+    }
+
     /**
      * Lists all proposals for the given player.
      *
@@ -106,7 +111,7 @@ public class MCAServer {
 
         // Send the name of all online players to the command sender.
         proposals.forEach((uuid -> {
-            EntityPlayer player = sender.world.getPlayerEntityByUUID(uuid);
+            EntityPlayer player = getOnlinePlayer(uuid);
             if (player != null) {
                 infoMessage(sender, "- " + player.getName());
             }
@@ -120,15 +125,25 @@ public class MCAServer {
      * @param receiver The player being proposed to.
      */
     public void sendProposal(EntityPlayer sender, EntityPlayer receiver) {
-        // Ensure the sender isn't already married.
+        if (receiver == null) {
+            failMessage(sender, "Player not found on the server.");
+            return;
+        }
+
+        // A proposal is only valid for players who have no active relationship.
         if (PlayerSaveData.get(sender).isMarriedOrEngaged()) {
             failMessage(sender, "You cannot send a proposal since you are already married or engaged.");
             return;
         }
 
         // Ensure the sender isn't himself.
-        if (sender == receiver) {
+        if (sender.getUniqueID().equals(receiver.getUniqueID())) {
             failMessage(sender, "You cannot propose to yourself.");
+            return;
+        }
+
+        if (PlayerSaveData.get(receiver).isMarriedOrEngaged()) {
+            failMessage(sender, receiver.getName() + " is already married or engaged.");
             return;
         }
 
@@ -175,23 +190,30 @@ public class MCAServer {
         // Ensure a proposal is active.
         if (!hasProposalFrom(receiver, sender)) {
             failMessage(sender, receiver.getName() + " hasn't proposed to you.");
-        } else {
-            // Notify of acceptance.
-            successMessage(receiver, sender.getName() + " has accepted your proposal!");
-
-            // Set both player datas as married.
-            PlayerSaveData senderData = PlayerSaveData.get(sender);
-            PlayerSaveData receiverData = PlayerSaveData.get(receiver);
-            senderData.marry(receiver.getUniqueID(), receiver.getName());
-            receiverData.marry(sender.getUniqueID(), sender.getName());
-
-            // Send success messages.
-            successMessage(sender, "You and " + receiver.getName() + " are now married.");
-            successMessage(receiver, "You and " + sender.getName() + " are now married.");
-
-            // Remove the proposal.
-            removeProposalFor(sender, receiver);
+            return;
         }
+
+        PlayerSaveData senderData = PlayerSaveData.get(sender);
+        PlayerSaveData receiverData = PlayerSaveData.get(receiver);
+
+        // Re-check both sides when the proposal is accepted. A proposal can
+        // outlive a logout, reset, or another relationship change.
+        if (senderData.isMarriedOrEngaged() || receiverData.isMarriedOrEngaged()) {
+            failMessage(sender, "This proposal is no longer valid because one of you is already married or engaged.");
+            failMessage(receiver, "Your proposal to " + sender.getName() + " is no longer valid.");
+            removeProposalFor(sender, receiver);
+            return;
+        }
+
+        // Notify of acceptance and set both player datas atomically on the
+        // server thread before sending the success messages.
+        senderData.marry(receiver.getUniqueID(), receiver.getName());
+        receiverData.marry(sender.getUniqueID(), sender.getName());
+        removeAllProposalsFor(sender.getUniqueID());
+        removeAllProposalsFor(receiver.getUniqueID());
+        successMessage(receiver, sender.getName() + " has accepted your proposal!");
+        successMessage(sender, "You and " + receiver.getName() + " are now married.");
+        successMessage(receiver, "You and " + sender.getName() + " are now married.");
     }
 
     /**
@@ -203,28 +225,47 @@ public class MCAServer {
         // Retrieve all data instances and an instance of the ex-spouse if they are present.
         PlayerSaveData senderData = PlayerSaveData.get(sender);
 
-        // Ensure the sender is married
-        if (!senderData.isMarriedOrEngaged()) {
+        // Only a completed marriage can be ended by this command.
+        if (!senderData.isMarried()) {
             failMessage(sender, "You are not married.");
             return;
         }
 
+        UUID spouseUUID = senderData.getSpouseUUID();
+
         // Lookup the spouse, if it's a villager, we can't continue
-        Optional<Entity> spouse = sender.world.loadedEntityList.stream().filter(e -> e.getUniqueID().equals(senderData.getSpouseUUID())).findFirst();
+        EntityPlayer onlineSpouse = getOnlinePlayer(spouseUUID);
+        Optional<Entity> spouse = sender.world.loadedEntityList.stream()
+                .filter(e -> e.getUniqueID().equals(spouseUUID))
+                .findFirst();
+        if (onlineSpouse != null) {
+            spouse = Optional.of(onlineSpouse);
+        }
         if (spouse.isPresent() && spouse.get() instanceof EntityVillagerMCA) {
             failMessage(sender, "You cannot use this command when married to a villager.");
             return;
         }
 
-        PlayerSaveData receiverData = PlayerSaveData.getExisting(sender.world, senderData.getSpouseUUID());
+        PlayerSaveData receiverData = onlineSpouse == null
+                ? PlayerSaveData.getExisting(sender.world, spouseUUID)
+                : PlayerSaveData.get(onlineSpouse);
 
         // Notify the sender of the success and end both marriages.
         successMessage(sender, "Your marriage to " + senderData.getSpouseName() + " has ended.");
         senderData.endMarriage();
-        receiverData.endMarriage();
+        if (receiverData == null && onlineSpouse != null) {
+            receiverData = PlayerSaveData.get(onlineSpouse);
+        }
+        if (receiverData != null) {
+            receiverData.endMarriage();
+        }
+        removeAllProposalsFor(sender.getUniqueID());
+        removeAllProposalsFor(spouseUUID);
 
         // Notify the ex if they are online.
-        spouse.ifPresent(e -> failMessage((EntityPlayer) e, sender.getName() + " has ended their marriage with you."));
+        if (onlineSpouse != null) {
+            failMessage(onlineSpouse, sender.getName() + " has ended their marriage with you.");
+        }
     }
 
     /**
@@ -235,7 +276,7 @@ public class MCAServer {
     public void procreate(EntityPlayer sender) {
         // Ensure the sender is married.
         PlayerSaveData senderData = PlayerSaveData.get(sender);
-        if (!senderData.isMarriedOrEngaged()) {
+        if (!senderData.isMarried()) {
             failMessage(sender, "You cannot procreate if you are not married.");
             return;
         }
@@ -252,9 +293,19 @@ public class MCAServer {
         }
 
         // Ensure the spouse is online.
-        EntityPlayer spouse = sender.world.getPlayerEntityByUUID(senderData.getSpouseUUID());
+        EntityPlayer spouse = getOnlinePlayer(senderData.getSpouseUUID());
         if (spouse != null) {
             PlayerSaveData spouseData = PlayerSaveData.get(spouse);
+            if (!spouseData.isMarriedTo(sender.getUniqueID())) {
+                failMessage(sender, "Your marriage data is incomplete. Both players must be married to each other.");
+                return;
+            }
+
+            if (spouseData.isBabyPresent()) {
+                failMessage(sender, "Your spouse already has a baby.");
+                return;
+            }
+
             if (!spouseData.mayProcreateAgain(sender.world.getTotalWorldTime())) {
                 failMessage(sender, "Maybe later...");
                 return;
@@ -275,6 +326,8 @@ public class MCAServer {
                 senderData.setBabyPresent(true);
                 spouseData.markProcreated(sender.world.getTotalWorldTime());
                 senderData.markProcreated(sender.world.getTotalWorldTime());
+                procreateMap.remove(sender.getUniqueID());
+                procreateMap.remove(spouse.getUniqueID());
             }
         } else {
             failMessage(sender, "Your spouse is not present on the server.");
@@ -291,5 +344,13 @@ public class MCAServer {
 
     private void infoMessage(EntityPlayer player, String message) {
         player.sendMessage(new TextComponentString(Constants.Color.YELLOW + message));
+    }
+
+    private EntityPlayer getOnlinePlayer(UUID uuid) {
+        if (uuid == null || Constants.ZERO_UUID.equals(uuid)) {
+            return null;
+        }
+
+        return FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList().getPlayerByUUID(uuid);
     }
 }

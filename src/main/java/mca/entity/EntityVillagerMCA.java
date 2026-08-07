@@ -237,8 +237,13 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
         set(TALLNESS, nbt.getFloat("tallness"));
         set(PLAYER_HISTORY_MAP, nbt.getCompoundTag("playerHistoryMap"));
         set(MOVE_STATE, nbt.getInteger("moveState"));
-        set(MARRIAGE_STATE, nbt.getInteger("marriageState"));
-        set(SPOUSE_UUID, Optional.of(nbt.getUniqueId("spouseUUID")));
+        UUID spouseUUID = nbt.hasUniqueId("spouseUUID") ? nbt.getUniqueId("spouseUUID") : Constants.ZERO_UUID;
+        int marriageState = nbt.getInteger("marriageState");
+        if (Constants.ZERO_UUID.equals(spouseUUID)) {
+            marriageState = EnumMarriageState.NOT_MARRIED.getId();
+        }
+        set(MARRIAGE_STATE, marriageState);
+        set(SPOUSE_UUID, Optional.of(spouseUUID));
         set(SPOUSE_NAME, nbt.getString("spouseName"));
         set(IS_PROCREATING, nbt.getBoolean("isProcreating"));
         set(LAST_PROCREATION, nbt.getInteger("lastProcreation"));
@@ -834,11 +839,21 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
     }
 
     public boolean isMarried() {
-        return !get(SPOUSE_UUID).or(Constants.ZERO_UUID).equals(Constants.ZERO_UUID);
+        return EnumMarriageState.byId(get(MARRIAGE_STATE)) == EnumMarriageState.MARRIED
+                && !get(SPOUSE_UUID).or(Constants.ZERO_UUID).equals(Constants.ZERO_UUID);
     }
 
     public boolean isMarriedTo(UUID uuid) {
-        return get(SPOUSE_UUID).or(Constants.ZERO_UUID).equals(uuid);
+        return isMarried() && get(SPOUSE_UUID).or(Constants.ZERO_UUID).equals(uuid);
+    }
+
+    public boolean isEngaged() {
+        return EnumMarriageState.byId(get(MARRIAGE_STATE)) == EnumMarriageState.ENGAGED
+                && !get(SPOUSE_UUID).or(Constants.ZERO_UUID).equals(Constants.ZERO_UUID);
+    }
+
+    public boolean isEngagedTo(UUID uuid) {
+        return isEngaged() && get(SPOUSE_UUID).or(Constants.ZERO_UUID).equals(uuid);
     }
 
     public boolean mayProcreateAgain(long worldTime) {
@@ -858,7 +873,13 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
         set(MARRIAGE_STATE, EnumMarriageState.MARRIED.getId());
     }
 
-    private void endMarriage() {
+    public void engage(EntityPlayer player) {
+        set(SPOUSE_UUID, Optional.of(player.getUniqueID()));
+        set(SPOUSE_NAME, player.getName());
+        set(MARRIAGE_STATE, EnumMarriageState.ENGAGED.getId());
+    }
+
+    public void endMarriage() {
         set(SPOUSE_UUID, Optional.of(Constants.ZERO_UUID));
         set(SPOUSE_NAME, "");
         set(MARRIAGE_STATE, EnumMarriageState.NOT_MARRIED.getId());
@@ -1017,8 +1038,11 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
         Item item = stack.getItem();
 
         if (item instanceof ItemSpecialCaseGift && !this.isChild()) { // special case gifts are rings so far so prevent giving them to children
-            boolean decStackSize = ((ItemSpecialCaseGift) item).handle(player, this);
-            if (decStackSize) player.inventory.decrStackSize(player.inventory.currentItem, -1);
+            ItemSpecialCaseGift specialGift = (ItemSpecialCaseGift) item;
+            boolean decStackSize = specialGift.handle(player, this);
+            if (decStackSize && !player.isCreative()) {
+                player.inventory.decrStackSize(player.inventory.currentItem, specialGift.getStackSizeToConsume());
+            }
             return true;
         } else if (item == Items.CAKE) {
             Optional<Entity> spouse = Util.getEntityByUUID(world, get(SPOUSE_UUID).or(Constants.ZERO_UUID));

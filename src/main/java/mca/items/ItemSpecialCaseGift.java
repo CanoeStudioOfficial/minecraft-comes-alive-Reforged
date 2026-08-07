@@ -6,4 +6,8 @@ import net.minecraft.item.Item;
 
 public abstract class ItemSpecialCaseGift extends Item {
     public abstract boolean handle(EntityPlayer player, EntityVillagerMCA villager);
+
+    public int getStackSizeToConsume() {
+        return 1;
+    }
 }

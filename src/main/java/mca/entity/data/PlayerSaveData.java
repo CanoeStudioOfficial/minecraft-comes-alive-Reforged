@@ -92,13 +92,20 @@ public class PlayerSaveData extends WorldSavedData {
 
     @Override
     public void readFromNBT(NBTTagCompound nbt) {
-        spouseUUID = nbt.getUniqueId("spouseUUID");
+        spouseUUID = nbt.hasUniqueId("spouseUUID") ? nbt.getUniqueId("spouseUUID") : Constants.ZERO_UUID;
         marriageState = EnumMarriageState.byId(nbt.getInteger("marriageState"));
         spouseName = nbt.getString("spouseName");
         babyPresent = nbt.getBoolean("babyPresent");
         lastProcreation = nbt.getInteger("lastProcreation");
         gender = EnumGender.byId(nbt.getInteger("gender"));
         hasChosenDestiny = nbt.getBoolean("hasChosenDestiny");
+
+        // A relationship without a partner cannot be restored safely. This also
+        // repairs saves written by older builds that only stored one side.
+        if (Constants.ZERO_UUID.equals(spouseUUID)) {
+            marriageState = EnumMarriageState.NOT_MARRIED;
+            spouseName = "";
+        }
     }
 
     public void setGender(EnumGender gender) {
@@ -112,7 +119,30 @@ public class PlayerSaveData extends WorldSavedData {
     }
 
     public boolean isMarriedOrEngaged() {
-        return marriageState != EnumMarriageState.NOT_MARRIED;
+        return isMarried() || isEngaged();
+    }
+
+    public boolean isMarried() {
+        return marriageState == EnumMarriageState.MARRIED && !Constants.ZERO_UUID.equals(spouseUUID);
+    }
+
+    public boolean isEngaged() {
+        return marriageState == EnumMarriageState.ENGAGED && !Constants.ZERO_UUID.equals(spouseUUID);
+    }
+
+    public boolean isMarriedTo(UUID uuid) {
+        return isMarried() && spouseUUID.equals(uuid);
+    }
+
+    public boolean isEngagedTo(UUID uuid) {
+        return isEngaged() && spouseUUID.equals(uuid);
+    }
+
+    public void engage(UUID uuid, String name) {
+        spouseUUID = uuid;
+        marriageState = EnumMarriageState.ENGAGED;
+        spouseName = name;
+        markDirty();
     }
 
     public void marry(UUID uuid, String name) {

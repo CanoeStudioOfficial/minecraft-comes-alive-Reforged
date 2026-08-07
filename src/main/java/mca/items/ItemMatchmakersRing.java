@@ -4,13 +4,17 @@ import com.google.common.base.Optional;
 import mca.entity.EntityVillagerMCA;
 import mca.enums.EnumMarriageState;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumParticleTypes;
 
 import java.util.Comparator;
 import java.util.List;
 
 public class ItemMatchmakersRing extends ItemSpecialCaseGift {
+    @Override
+    public int getStackSizeToConsume() {
+        return 2;
+    }
+
     public boolean handle(EntityPlayer player, EntityVillagerMCA villager) {
         // ensure two rings are in the inventory
         if (player.inventory.getStackInSlot(player.inventory.currentItem).getCount() < 2) {
@@ -24,7 +28,14 @@ public class ItemMatchmakersRing extends ItemSpecialCaseGift {
             return false;
         }
 
-        List<EntityVillagerMCA> villagers = villager.world.getEntities(EntityVillagerMCA.class, v -> v != null && !v.isMarried() && !v.isChild() && v.getDistance(villager) < 3.0D && v != villager);
+        if (villager.isEngaged()) {
+            villager.say(Optional.of(player), "interaction.matchmaker.fail.engaged");
+            return false;
+        }
+
+        List<EntityVillagerMCA> villagers = villager.world.getEntities(EntityVillagerMCA.class,
+                v -> v != null && !v.isMarried() && !v.isEngaged() && !v.isChild()
+                        && v.getDistance(villager) < 3.0D && v != villager);
         java.util.Optional<EntityVillagerMCA> target = villagers.stream().min(Comparator.comparingDouble(villager::getDistance));
 
         // ensure we found a nearby villager
@@ -35,7 +46,7 @@ public class ItemMatchmakersRing extends ItemSpecialCaseGift {
 
         // setup the marriage by assigning spouse UUIDs
         EntityVillagerMCA spouse = target.get();
-        villager.set(EntityVillagerMCA.SPOUSE_UUID, Optional.of(target.get().getUniqueID()));
+        villager.set(EntityVillagerMCA.SPOUSE_UUID, Optional.of(spouse.getUniqueID()));
         villager.set(EntityVillagerMCA.MARRIAGE_STATE, EnumMarriageState.MARRIED.getId());
         villager.set(EntityVillagerMCA.SPOUSE_NAME, spouse.get(EntityVillagerMCA.VILLAGER_NAME));
         spouse.set(EntityVillagerMCA.SPOUSE_UUID, Optional.of(villager.getUniqueID()));
@@ -46,8 +57,7 @@ public class ItemMatchmakersRing extends ItemSpecialCaseGift {
         villager.spawnParticles(EnumParticleTypes.HEART);
         target.get().spawnParticles(EnumParticleTypes.HEART);
 
-        // remove the rings for survival mode
-        if (!player.isCreative()) player.inventory.setInventorySlotContents(player.inventory.currentItem, ItemStack.EMPTY);
+        // The common special-gift handler consumes exactly two rings after success.
         return true;
     }
 }

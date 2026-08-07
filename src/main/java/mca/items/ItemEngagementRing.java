@@ -13,7 +13,7 @@ import java.util.List;
 
 public class ItemEngagementRing extends ItemWeddingRing {
     public boolean handle(EntityPlayer player, EntityVillagerMCA villager) {
-        return super.handle(player, villager);
+        return handleEngagement(player, villager);
     }
 
     @SideOnly(Side.CLIENT)

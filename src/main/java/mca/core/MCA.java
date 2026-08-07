@@ -1,7 +1,6 @@
 package mca.core;
 
 import mca.api.API;
-import mca.command.CommandAdminMCA;
 import mca.command.CommandMCA;
 import mca.core.forge.EventHooks;
 import mca.core.forge.GuiHandler;
@@ -106,7 +105,6 @@ public class MCA {
     @EventHandler
     public void serverStarting(FMLServerStartingEvent event) {
         event.registerServerCommand(new CommandMCA());
-        event.registerServerCommand(new CommandAdminMCA());
     }
 
 
