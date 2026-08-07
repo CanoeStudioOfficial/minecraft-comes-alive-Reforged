@@ -18,8 +18,9 @@ public class PathNavigateGroundMCA extends PathNavigateGround {
 
     @Override
     protected PathFinder getPathFinder() {
+        boolean canEnterDoors = this.nodeProcessor == null || this.nodeProcessor.getCanEnterDoors();
         this.nodeProcessor = new WalkNodeProcessorMCA();
-        this.nodeProcessor.setCanEnterDoors(true);
+        this.nodeProcessor.setCanEnterDoors(canEnterDoors);
         return new PathFinder(this.nodeProcessor);
     }
 

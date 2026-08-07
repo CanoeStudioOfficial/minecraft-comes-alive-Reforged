@@ -32,6 +32,8 @@ import net.minecraft.entity.IRangedAttackMob;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.*;
 import net.minecraft.entity.monster.EntityVex;
+import net.minecraft.entity.monster.EntityEvoker;
+import net.minecraft.entity.monster.EntityVindicator;
 import net.minecraft.entity.monster.EntityZombie;
 import net.minecraft.entity.passive.EntityHorse;
 import net.minecraft.entity.passive.EntityVillager;
@@ -111,6 +113,7 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
     private static final double GUARD_MELEE_SPEED = 0.75D;
     private static final double GUARD_PATROL_SPEED = 0.4D;
     private static final double VILLAGER_IDLE_SPEED = 0.5D;
+    private static final int VILLAGER_WANDER_EXECUTION_CHANCE = 40;
 
     public final InventoryMCA inventory;
     public int babyAge = 0;
@@ -236,7 +239,10 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
         set(GIRTH, nbt.getFloat("girth"));
         set(TALLNESS, nbt.getFloat("tallness"));
         set(PLAYER_HISTORY_MAP, nbt.getCompoundTag("playerHistoryMap"));
-        set(MOVE_STATE, nbt.getInteger("moveState"));
+        // Old or externally-created MCA entities may not have this key. MOVE is the
+        // vanilla-like default; an explicit STAY/FOLLOW state must still survive a reload.
+        int moveState = nbt.hasKey("moveState", 3) ? nbt.getInteger("moveState") : EnumMoveState.MOVE.getId();
+        set(MOVE_STATE, EnumMoveState.byId(moveState).getId());
         UUID spouseUUID = nbt.hasUniqueId("spouseUUID") ? nbt.getUniqueId("spouseUUID") : Constants.ZERO_UUID;
         int marriageState = nbt.getInteger("marriageState");
         if (Constants.ZERO_UUID.equals(spouseUUID)) {
@@ -1294,11 +1300,19 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
             this.targetTasks.addTask(1, new EntityAINearestAttackableTarget<>(this, EntityZombieVillagerMCA.class, 10, true, false, null));
             this.targetTasks.addTask(2, new EntityAINearestAttackableTarget<>(this, EntityLivingBase.class, 20, false, false, target -> GuardTargeting.isGuardEnemy(this, target)));
         } else {
-            //every other villager is allowed to defend itself from zombies while fleeing
+            // Restore the movement layer present on vanilla villagers. MCA's profession
+            // and chore tasks are layered on top of these instead of replacing them.
+            this.tasks.addTask(0, new EntityAISwimming(this));
             this.tasks.addTask(1, new EntityAIAvoidEntity<>(this, EntityZombie.class, 8.0F, 0.6D, 0.6D));
+            this.tasks.addTask(1, new EntityAIAvoidEntity<>(this, EntityEvoker.class, 12.0F, 0.8D, 0.8D));
+            this.tasks.addTask(1, new EntityAIAvoidEntity<>(this, EntityVindicator.class, 8.0F, 0.8D, 0.8D));
             this.tasks.addTask(1, new EntityAIAvoidEntity<>(this, EntityVex.class, 8.0F, 0.6D, 0.6D));
+            this.tasks.addTask(2, new EntityAIMoveIndoors(this));
+            this.tasks.addTask(3, new EntityAIRestrictOpenDoor(this));
+            this.tasks.addTask(5, new EntityAIMoveTowardsRestriction(this, 0.6D));
+            this.tasks.addTask(7, new EntityAIFollowGolem(this));
             this.tasks.addTask(0, new EntityAIDefendFromTarget(this));
-            this.tasks.addTask(8, new EntityAIMCAWander(this, VILLAGER_IDLE_SPEED, 80));
+            this.tasks.addTask(8, new EntityAIMCAWander(this, VILLAGER_IDLE_SPEED, VILLAGER_WANDER_EXECUTION_CHANCE));
             this.tasks.addTask(9, new EntityAIWatchClosest(this, EntityPlayer.class, 8.0F));
             this.tasks.addTask(10, new EntityAILookIdle(this));
 
@@ -1311,6 +1325,10 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
     private void resetSpecialAI() {
         this.targetTasks.taskEntries.clear();
         removeCertainTasks(EntityAISwimming.class);
+        removeCertainTasks(EntityAIMoveIndoors.class);
+        removeCertainTasks(EntityAIRestrictOpenDoor.class);
+        removeCertainTasks(EntityAIMoveTowardsRestriction.class);
+        removeCertainTasks(EntityAIFollowGolem.class);
         removeCertainTasks(EntityAIAttackMelee.class);
         removeCertainTasks(EntityAIAttackRanged.class);
         removeCertainTasks(EntityAIArcherGuard.class);

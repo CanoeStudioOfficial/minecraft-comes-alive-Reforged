@@ -5,6 +5,7 @@ import mca.enums.EnumMoveState;
 import net.minecraft.entity.EntityCreature;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.entity.ai.RandomPositionGenerator;
+import net.minecraft.pathfinding.Path;
 import net.minecraft.util.math.Vec3d;
 
 public class EntityAIMCAWander extends EntityAIBase {
@@ -15,6 +16,8 @@ public class EntityAIMCAWander extends EntityAIBase {
     private double x;
     private double y;
     private double z;
+    private Path path;
+    private int retryCooldown;
 
     public EntityAIMCAWander(EntityCreature entity, double speed, int executionChance) {
         this.entity = entity;
@@ -25,6 +28,11 @@ public class EntityAIMCAWander extends EntityAIBase {
 
     @Override
     public boolean shouldExecute() {
+        if (retryCooldown > 0) {
+            retryCooldown--;
+            return false;
+        }
+
         if (!canIdleMove() || !entity.getNavigator().noPath() || entity.getRNG().nextInt(executionChance) != 0) {
             return false;
         }
@@ -41,7 +49,8 @@ public class EntityAIMCAWander extends EntityAIBase {
         x = target.x;
         y = target.y;
         z = target.z;
-        return true;
+        path = entity.getNavigator().getPathToXYZ(x, y, z);
+        return path != null && !path.isFinished();
     }
 
     @Override
@@ -51,7 +60,15 @@ public class EntityAIMCAWander extends EntityAIBase {
 
     @Override
     public void startExecuting() {
-        entity.getNavigator().tryMoveToXYZ(x, y, z, speed);
+        if (path == null || !entity.getNavigator().setPath(path, speed)) {
+            retryCooldown = 20;
+        }
+        path = null;
+    }
+
+    @Override
+    public void resetTask() {
+        path = null;
     }
 
     private boolean canIdleMove() {
