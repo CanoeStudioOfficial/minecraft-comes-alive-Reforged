@@ -21,6 +21,9 @@ public class EntityBanditMCA extends EntityVillagerMCA {
     public void readEntityFromNBT(NBTTagCompound nbt) {
         super.readEntityFromNBT(nbt);
         ensureBanditIdentity();
+        if (world != null && !world.isRemote) {
+            refreshSpecialAI();
+        }
     }
 
     public void ensureBanditIdentity() {

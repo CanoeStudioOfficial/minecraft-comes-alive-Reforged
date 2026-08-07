@@ -31,9 +31,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.IRangedAttackMob;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.*;
-import net.minecraft.entity.monster.EntityVex;
-import net.minecraft.entity.monster.EntityEvoker;
-import net.minecraft.entity.monster.EntityVindicator;
+import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.monster.EntityZombie;
 import net.minecraft.entity.passive.EntityHorse;
 import net.minecraft.entity.passive.EntityVillager;
@@ -109,6 +107,8 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
     public static final DataParameter<Boolean> SLEEPING = EntityDataManager.createKey(EntityVillagerMCA.class, DataSerializers.BOOLEAN);
 
     private static final Predicate<EntityVillagerMCA> BANDIT_TARGET_SELECTOR = (v) -> v.getProfessionForge() != ProfessionsMCA.bandit && v.getProfessionForge() != ProfessionsMCA.child;
+    private static final Predicate<EntityLivingBase> VILLAGER_THREAT_SELECTOR = (target) -> target instanceof EntityMob
+            || (target instanceof EntityVillagerMCA && ((EntityVillagerMCA) target).getProfessionForge() == ProfessionsMCA.bandit);
     private static final double GUARD_ARCHER_SPEED = 0.5D;
     private static final double GUARD_MELEE_SPEED = 0.75D;
     private static final double GUARD_PATROL_SPEED = 0.4D;
@@ -125,7 +125,6 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
     private ItemStack defaultMainHandStack = ItemStack.EMPTY;
     private VillagerRegistry.VillagerProfession defaultMainHandProfession;
     private VillagerRegistry.VillagerCareer defaultMainHandCareer;
-    private boolean refreshSpecialAIAfterLoad;
 
     public float renderOffsetX;
     public float renderOffsetY;
@@ -277,7 +276,12 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
         set(BABY_AGE, nbt.hasKey("babyAgeSeconds") ? nbt.getInteger("babyAgeSeconds") : this.babyAge * 60);
 
         restoreLoadedTransientState();
-        refreshSpecialAIAfterLoad = true;
+        // EntityLiving creates the initial task list before MCA profession data is
+        // read. Rebuild it now, after the profession and movement state are valid,
+        // so the first server tick cannot use the wrong AI profile.
+        if (world != null && !world.isRemote) {
+            refreshLoadedAI();
+        }
     }
 
     @Override
@@ -343,11 +347,6 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
 
         if (!world.isRemote && this.ticksExisted == 1 && home.equals(BlockPos.ORIGIN)) {
             forcePositionAsHome();
-        }
-
-        if (!world.isRemote && refreshSpecialAIAfterLoad) {
-            refreshSpecialAIAfterLoad = false;
-            refreshLoadedAI();
         }
 
         if (this.isServerWorld()) {
@@ -1303,10 +1302,9 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
             // Restore the movement layer present on vanilla villagers. MCA's profession
             // and chore tasks are layered on top of these instead of replacing them.
             this.tasks.addTask(0, new EntityAISwimming(this));
-            this.tasks.addTask(1, new EntityAIAvoidEntity<>(this, EntityZombie.class, 8.0F, 0.6D, 0.6D));
-            this.tasks.addTask(1, new EntityAIAvoidEntity<>(this, EntityEvoker.class, 12.0F, 0.8D, 0.8D));
-            this.tasks.addTask(1, new EntityAIAvoidEntity<>(this, EntityVindicator.class, 8.0F, 0.8D, 0.8D));
-            this.tasks.addTask(1, new EntityAIAvoidEntity<>(this, EntityVex.class, 8.0F, 0.6D, 0.6D));
+            // Vanilla villagers flee hostile mobs. MCA bandits are villagers by
+            // inheritance, so they must be included explicitly in the selector.
+            this.tasks.addTask(1, new EntityAIAvoidEntity<>(this, EntityLivingBase.class, VILLAGER_THREAT_SELECTOR, 8.0F, 0.8D, 0.8D));
             this.tasks.addTask(2, new EntityAIMoveIndoors(this));
             this.tasks.addTask(3, new EntityAIRestrictOpenDoor(this));
             this.tasks.addTask(5, new EntityAIMoveTowardsRestriction(this, 0.6D));
