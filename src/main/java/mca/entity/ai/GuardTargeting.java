@@ -6,9 +6,7 @@ import mca.entity.EntityVillagerMCA;
 import mca.entity.EntityZombieVillagerMCA;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.monster.EntityVex;
-import net.minecraft.entity.monster.EntityVindicator;
-import net.minecraft.entity.monster.EntityZombie;
+import net.minecraft.entity.monster.IMob;
 
 public final class GuardTargeting {
     private GuardTargeting() {
@@ -35,6 +33,6 @@ public final class GuardTargeting {
             return true;
         }
 
-        return target instanceof EntityZombie || target instanceof EntityVex || target instanceof EntityVindicator;
+        return target instanceof IMob;
     }
 }

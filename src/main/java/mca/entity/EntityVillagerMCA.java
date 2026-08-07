@@ -137,6 +137,13 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
         super(worldIn);
         inventory = new InventoryMCA(this);
         configureDoorNavigation();
+
+        // EntityLiving builds its task list before this constructor body runs. Rebuild it
+        // after the world-backed entity is ready so newly spawned villagers and guards get
+        // their profession-specific tasks immediately.
+        if (worldIn != null && !worldIn.isRemote) {
+            refreshSpecialAI();
+        }
     }
 
     public EntityVillagerMCA(World worldIn, Optional<VillagerRegistry.VillagerProfession> profession, Optional<EnumGender> gender) {
@@ -1255,6 +1262,7 @@ public class EntityVillagerMCA extends EntityVillager implements IRangedAttackMo
                 this.tasks.addTask(1, new EntityAIAttackMelee(this, GUARD_MELEE_SPEED, false));
             }
             this.tasks.addTask(2, new EntityAIMoveThroughVillage(this, GUARD_PATROL_SPEED, false));
+            this.tasks.addTask(8, new EntityAIMCAWander(this, GUARD_PATROL_SPEED, 80));
             this.tasks.addTask(9, new EntityAIWatchClosest(this, EntityPlayer.class, 8.0F));
             this.tasks.addTask(10, new EntityAILookIdle(this));
 
