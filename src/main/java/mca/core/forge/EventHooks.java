@@ -9,6 +9,7 @@ import mca.core.minecraft.ItemsMCA;
 import mca.core.minecraft.ProfessionsMCA;
 import mca.core.minecraft.WorldEventListenerMCA;
 import mca.core.minecraft.SoundsMCA;
+import mca.entity.ai.GuardTargeting;
 import mca.entity.EntityGrimReaper;
 import mca.entity.EntityVillagerMCA;
 import mca.entity.EntityZombieVillagerMCA;
@@ -37,6 +38,7 @@ import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.PlaySoundAtEntityEvent;
 import net.minecraftforge.event.entity.item.ItemTossEvent;
+import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingSetAttackTargetEvent;
@@ -174,6 +176,19 @@ public class EventHooks {
     }
 
     @SubscribeEvent
+    public void onLivingAttack(LivingAttackEvent event) {
+        Entity source = event.getSource() != null ? event.getSource().getTrueSource() : null;
+        Entity target = event.getEntityLiving();
+        if (isGuardFriendlyFire(source, target)) {
+            event.setCanceled(true);
+            EntityVillagerMCA villager = (EntityVillagerMCA) target;
+            if (villager.getAttackTarget() == source) {
+                villager.setAttackTarget(null);
+            }
+        }
+    }
+
+    @SubscribeEvent
     public void onEntityDamaged(LivingDamageEvent event) {
         if (event.getEntity() instanceof EntityVillagerMCA) {
             EntityVillagerMCA villager = (EntityVillagerMCA)event.getEntity();
@@ -184,9 +199,22 @@ public class EventHooks {
                         e instanceof EntityVillagerMCA &&
                         e.getDistance(villager) <= 10.0D &&
                         ((EntityVillagerMCA)e).getProfessionForge() == ProfessionsMCA.guard)
-                .forEach(e -> ((EntityVillagerMCA) e).setAttackTarget((EntityLivingBase)source));
+                .forEach(e -> {
+                    EntityVillagerMCA guard = (EntityVillagerMCA) e;
+                    if (GuardTargeting.isGuardEnemy(guard, (EntityLivingBase) source)) {
+                        guard.setAttackTarget((EntityLivingBase) source);
+                    }
+                });
             }
         }
+    }
+
+    private boolean isGuardFriendlyFire(Entity source, Entity target) {
+        return source instanceof EntityVillagerMCA
+                && target instanceof EntityVillagerMCA
+                && source != target
+                && ((EntityVillagerMCA) source).getProfessionForge() == ProfessionsMCA.guard
+                && ((EntityVillagerMCA) target).getProfessionForge() != ProfessionsMCA.bandit;
     }
 
     @SubscribeEvent

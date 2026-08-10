@@ -3,6 +3,7 @@ package mca.entity.ai;
 import mca.entity.EntityVillagerMCA;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockDoor;
+import net.minecraft.block.BlockFenceGate;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.ai.EntityAIBase;
@@ -19,7 +20,7 @@ public class EntityAIMCAOpenDoor extends EntityAIBase {
     private final EntityVillagerMCA villager;
     private final boolean closeDoor;
     private BlockPos doorPosition = BlockPos.ORIGIN;
-    private BlockDoor doorBlock;
+    private Block openableBlock;
     private int closeDoorTicks;
 
     public EntityAIMCAOpenDoor(EntityVillagerMCA villager, boolean closeDoor) {
@@ -59,16 +60,16 @@ public class EntityAIMCAOpenDoor extends EntityAIBase {
     @Override
     public void startExecuting() {
         this.closeDoorTicks = CLOSE_DELAY_TICKS;
-        this.doorBlock.toggleDoor(this.villager.world, this.doorPosition, true);
+        this.setOpen(true);
     }
 
     @Override
     public void resetTask() {
-        if (this.closeDoor && this.doorBlock != null) {
-            this.doorBlock.toggleDoor(this.villager.world, this.doorPosition, false);
+        if (this.closeDoor && this.openableBlock != null) {
+            this.setOpen(false);
         }
 
-        this.doorBlock = null;
+        this.openableBlock = null;
         this.doorPosition = BlockPos.ORIGIN;
         this.closeDoorTicks = 0;
     }
@@ -93,7 +94,15 @@ public class EntityAIMCAOpenDoor extends EntityAIBase {
     private boolean tryUseDoor(BlockPos pos) {
         IBlockState state = this.villager.world.getBlockState(pos);
         Block block = state.getBlock();
-        if (!(block instanceof BlockDoor) || state.getMaterial() != Material.WOOD || BlockDoor.isOpen(this.villager.world, pos)) {
+        if (block instanceof BlockDoor) {
+            if (state.getMaterial() != Material.WOOD || BlockDoor.isOpen(this.villager.world, pos)) {
+                return false;
+            }
+        } else if (block instanceof BlockFenceGate) {
+            if (state.getValue(BlockFenceGate.OPEN)) {
+                return false;
+            }
+        } else {
             return false;
         }
 
@@ -102,12 +111,21 @@ public class EntityAIMCAOpenDoor extends EntityAIBase {
         }
 
         this.doorPosition = getLowerDoorPosition(pos, state);
-        this.doorBlock = (BlockDoor) block;
+        this.openableBlock = block;
         return true;
     }
 
     private BlockPos getLowerDoorPosition(BlockPos pos, IBlockState state) {
-        return state.getValue(BlockDoor.HALF) == BlockDoor.EnumDoorHalf.LOWER ? pos : pos.down();
+        return state.getBlock() instanceof BlockDoor && state.getValue(BlockDoor.HALF) == BlockDoor.EnumDoorHalf.UPPER ? pos.down() : pos;
+    }
+
+    private void setOpen(boolean open) {
+        IBlockState state = this.villager.world.getBlockState(this.doorPosition);
+        if (this.openableBlock instanceof BlockDoor) {
+            ((BlockDoor) this.openableBlock).toggleDoor(this.villager.world, this.doorPosition, open);
+        } else if (this.openableBlock instanceof BlockFenceGate && state.getBlock() == this.openableBlock) {
+            this.villager.world.setBlockState(this.doorPosition, state.withProperty(BlockFenceGate.OPEN, open), 10);
+        }
     }
 
     private boolean shouldKeepDoorOpen() {

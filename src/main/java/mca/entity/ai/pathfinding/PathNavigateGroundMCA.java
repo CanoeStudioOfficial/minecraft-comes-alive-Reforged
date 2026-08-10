@@ -2,6 +2,10 @@ package mca.entity.ai.pathfinding;
 
 import mca.util.MCACollisionUtil;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockDoor;
+import net.minecraft.block.BlockFenceGate;
+import net.minecraft.block.material.Material;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.pathfinding.PathFinder;
 import net.minecraft.pathfinding.PathNavigateGround;
@@ -132,14 +136,27 @@ public class PathNavigateGroundMCA extends PathNavigateGround {
             double offsetZ = (double) pos.getZ() + 0.5D - start.z;
 
             if (offsetX * deltaX + offsetZ * deltaZ >= 0.0D) {
-                Block block = this.world.getBlockState(pos).getBlock();
+                IBlockState state = this.world.getBlockState(pos);
 
-                if (!block.isPassable(this.world, pos) && !MCACollisionUtil.isPassableCarpet(this.world, pos)) {
+                if (!isPassableForVillager(state, pos)) {
                     return false;
                 }
             }
         }
 
         return true;
+    }
+
+    private boolean isPassableForVillager(IBlockState state, BlockPos pos) {
+        Block block = state.getBlock();
+        if (block instanceof BlockFenceGate) {
+            return true;
+        }
+
+        if (block instanceof BlockDoor && state.getMaterial() == Material.WOOD) {
+            return true;
+        }
+
+        return block.isPassable(this.world, pos) || MCACollisionUtil.isPassableCarpet(this.world, pos);
     }
 }
