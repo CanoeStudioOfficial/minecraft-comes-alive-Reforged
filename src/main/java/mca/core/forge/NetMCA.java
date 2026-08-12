@@ -15,6 +15,8 @@ import mca.enums.EnumSetupType;
 import mca.items.ItemBaby;
 import mca.items.ItemCrystalBall;
 import mca.server.ServerMessageHandler;
+import mca.structure.McaDestinyManager;
+import mca.structure.McaBlueprintManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.Entity;
@@ -65,6 +67,7 @@ public class NetMCA {
         INSTANCE.registerMessage(SetProfessionHandler.class, SetProfession.class, 16, Side.SERVER);
         INSTANCE.registerMessage(SetPlayerGenderHandler.class, SetPlayerGender.class, 17, Side.SERVER);
         INSTANCE.registerMessage(SetupCompleteHandler.class, SetupComplete.class, 18, Side.SERVER);
+        INSTANCE.registerMessage(BlueprintScanHandler.class, BlueprintScan.class, 19, Side.SERVER);
     }
 
     @SideOnly(Side.CLIENT)
@@ -796,12 +799,20 @@ public class NetMCA {
 
     public static class SetupComplete implements IMessage {
         private EnumSetupType setupType;
+        private String playerName = "";
+        private EnumGender genderPreference = EnumGender.UNASSIGNED;
 
         public SetupComplete() {
         }
 
         public SetupComplete(EnumSetupType setupType) {
             this.setupType = setupType;
+        }
+
+        public SetupComplete(EnumSetupType setupType, String playerName, EnumGender genderPreference) {
+            this.setupType = setupType;
+            this.playerName = playerName == null ? "" : playerName;
+            this.genderPreference = genderPreference == null ? EnumGender.UNASSIGNED : genderPreference;
         }
 
         public EnumSetupType getSetupType() {
@@ -811,11 +822,15 @@ public class NetMCA {
         @Override
         public void toBytes(ByteBuf buf) {
             buf.writeInt(setupType.getId());
+            ByteBufUtils.writeUTF8String(buf, playerName == null ? "" : playerName);
+            buf.writeInt(genderPreference == null ? EnumGender.UNASSIGNED.getId() : genderPreference.getId());
         }
 
         @Override
         public void fromBytes(ByteBuf buf) {
             this.setupType = EnumSetupType.byId(buf.readInt());
+            this.playerName = ByteBufUtils.readUTF8String(buf);
+            this.genderPreference = EnumGender.byId(buf.readInt());
         }
     }
 
@@ -825,17 +840,27 @@ public class NetMCA {
             EntityPlayerMP player = ctx.getServerHandler().player;
             player.getServerWorld().addScheduledTask(() -> {
                 PlayerSaveData data = PlayerSaveData.get(player);
-                data.setHasChosenDestiny(true);
-
-                if (player.getHeldItemMainhand().getItem() instanceof ItemCrystalBall) {
-                    player.getHeldItemMainhand().shrink(1);
-                } else if (player.getHeldItemOffhand().getItem() instanceof ItemCrystalBall) {
-                    player.getHeldItemOffhand().shrink(1);
-                }
-
-                player.sendMessage(new TextComponentTranslation("notify.setup.destiny_chose", new TextComponentTranslation("gui.button." + message.setupType.getName())));
-                
+                McaDestinyManager.choose(player, message.setupType, message.playerName, message.genderPreference);
             });
+            return null;
+        }
+    }
+
+    public static class BlueprintScan implements IMessage {
+        @Override
+        public void toBytes(ByteBuf buf) {
+        }
+
+        @Override
+        public void fromBytes(ByteBuf buf) {
+        }
+    }
+
+    public static class BlueprintScanHandler implements IMessageHandler<BlueprintScan, IMessage> {
+        @Override
+        public IMessage onMessage(BlueprintScan message, MessageContext ctx) {
+            EntityPlayerMP player = ctx.getServerHandler().player;
+            player.getServerWorld().addScheduledTask(() -> McaBlueprintManager.scan(player));
             return null;
         }
     }

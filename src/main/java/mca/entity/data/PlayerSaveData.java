@@ -26,7 +26,10 @@ public class PlayerSaveData extends WorldSavedData {
     private boolean babyPresent = false;
     private int lastProcreation = 0;
     private EnumGender gender = EnumGender.MALE;
+    private EnumGender genderPreference = EnumGender.UNASSIGNED;
+    private String playerName = "";
     private boolean hasChosenDestiny = false;
+    private boolean destinyInProgress = false;
 
     public UUID getSpouseUUID() {
         return spouseUUID;
@@ -58,6 +61,18 @@ public class PlayerSaveData extends WorldSavedData {
         return hasChosenDestiny;
     }
 
+    public boolean isDestinyInProgress() {
+        return destinyInProgress;
+    }
+
+    public EnumGender getGenderPreference() {
+        return genderPreference;
+    }
+
+    public String getPlayerName(EntityPlayer player) {
+        return playerName.isEmpty() ? player.getName() : playerName;
+    }
+
     public PlayerSaveData(String id) {
         super(id);
     }
@@ -86,7 +101,10 @@ public class PlayerSaveData extends WorldSavedData {
         nbt.setBoolean("babyPresent", babyPresent);
         nbt.setInteger("lastProcreation", lastProcreation);
         nbt.setInteger("gender", gender.getId());
+        nbt.setInteger("genderPreference", genderPreference.getId());
+        nbt.setString("playerName", playerName);
         nbt.setBoolean("hasChosenDestiny", hasChosenDestiny);
+        nbt.setBoolean("destinyInProgress", false);
         return nbt;
     }
 
@@ -98,7 +116,10 @@ public class PlayerSaveData extends WorldSavedData {
         babyPresent = nbt.getBoolean("babyPresent");
         lastProcreation = nbt.getInteger("lastProcreation");
         gender = EnumGender.byId(nbt.getInteger("gender"));
+        genderPreference = EnumGender.byId(nbt.getInteger("genderPreference"));
+        playerName = nbt.getString("playerName");
         hasChosenDestiny = nbt.getBoolean("hasChosenDestiny");
+        destinyInProgress = false;
 
         // A relationship without a partner cannot be restored safely. This also
         // repairs saves written by older builds that only stored one side.
@@ -115,6 +136,21 @@ public class PlayerSaveData extends WorldSavedData {
 
     public void setHasChosenDestiny(boolean value) {
         this.hasChosenDestiny = value;
+        markDirty();
+    }
+
+    public void setDestinyInProgress(boolean value) {
+        this.destinyInProgress = value;
+        markDirty();
+    }
+
+    public void setGenderPreference(EnumGender genderPreference) {
+        this.genderPreference = genderPreference == null ? EnumGender.UNASSIGNED : genderPreference;
+        markDirty();
+    }
+
+    public void setPlayerName(String playerName) {
+        this.playerName = playerName == null ? "" : playerName.trim();
         markDirty();
     }
 

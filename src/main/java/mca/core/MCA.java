@@ -15,6 +15,7 @@ import mca.entity.EntityVillagerMCA;
 import mca.entity.EntityZombieVillagerMCA;
 import mca.enums.EnumGender;
 import mca.mca.Tags;
+import mca.structure.McaStructureRegistry;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
@@ -87,6 +88,7 @@ public class MCA {
 
     @EventHandler
     public void init(FMLInitializationEvent event) {
+        McaStructureRegistry.load();
         EntityRegistry.registerModEntity(new ResourceLocation(MODID, "EntityVillagerMCA"), EntityVillagerMCA.class, EntityVillagerMCA.class.getSimpleName(), 1120, this, 50, 2, true);
         EntityRegistry.registerModEntity(new ResourceLocation(MODID, "GrimReaperMCA"), EntityGrimReaper.class, EntityGrimReaper.class.getSimpleName(), 1121, this, 50, 2, true);
         EntityRegistry.registerModEntity(new ResourceLocation(MODID, "bandit_mca"), EntityBanditMCA.class, EntityBanditMCA.class.getSimpleName(), 1122, this, 50, 2, true);

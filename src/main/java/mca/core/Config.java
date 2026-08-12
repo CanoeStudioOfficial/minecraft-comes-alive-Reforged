@@ -33,6 +33,9 @@ public final class Config implements Serializable {
     public boolean allowPlayerMarriage;
     public boolean enableAdminCommands;
     public boolean allowRoseGoldGeneration;
+    public boolean giveCrystalBall;
+    public boolean enableStructureSpawning;
+    public boolean serverEnableStructureSpawning;
 
     public Config(FMLPreInitializationEvent event) {
         config = new Configuration(event.getSuggestedConfigurationFile());
@@ -60,6 +63,9 @@ public final class Config implements Serializable {
         allowPlayerMarriage = config.get("General", "Allow Player Marriage?", true, "Enables or disables player marriage.").getBoolean();
         enableAdminCommands = config.get("General", "Enable Admin Commands?", true, "Enables or disables MCA admin commands for ops.").getBoolean();
         allowRoseGoldGeneration = config.get("General", "Allow Rose Gold World Generation", true, "If enabled, generates rose gold in your world. If disabled, generates stone instead.").getBoolean();
+        giveCrystalBall = config.get("General", "Give Crystal Ball", true, "Give each player a crystal ball until their destiny is chosen.").getBoolean();
+        enableStructureSpawning = config.get("General", "Enable Destiny Structures", true, "Allow crystal ball destiny structures in single-player and LAN worlds.").getBoolean();
+        serverEnableStructureSpawning = config.get("server", "Enable Destiny Structures", false, "Allow crystal ball destiny structures on dedicated servers.").getBoolean();
         villagerMaxHealth = config.get("General", "Villager Max Health", 20, "Each villager's maximum health. 1 point equals 1 heart.").getInt();
         config.save();
     }

@@ -46,6 +46,8 @@ public class GuiHandler implements IGuiHandler {
                 return new GuiWhistle();
             case Constants.GUI_ID_SETUP:
                 return new GuiSetup();
+            case Constants.GUI_ID_BLUEPRINT:
+                return new GuiBlueprint();
             default:
                 MCA.getLog().fatal("Failed to handle provided GUI ID on client: " + guiId);
                 return null;

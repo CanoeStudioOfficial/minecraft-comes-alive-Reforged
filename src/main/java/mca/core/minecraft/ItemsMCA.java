@@ -35,6 +35,8 @@ public final class ItemsMCA {
     public static final Item SCYTHE = new ItemScythe();
     public static final Item WHISTLE = new ItemWhistle();
     public static final Item CRYSTAL_BALL = new ItemCrystalBall();
+    public static final Item BLUEPRINT = new ItemBlueprint();
+    public static final Item BOOK_BLUEPRINT = new ItemBlueprintBook();
 
     private static final List<Item> ITEMS = new ArrayList<>();
 

@@ -13,7 +13,9 @@ import mca.entity.ai.GuardTargeting;
 import mca.entity.EntityGrimReaper;
 import mca.entity.EntityVillagerMCA;
 import mca.entity.EntityZombieVillagerMCA;
+import mca.entity.data.PlayerSaveData;
 import mca.items.ItemBaby;
+import mca.structure.McaStructurePlacer;
 import mca.util.MCACollisionUtil;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
@@ -84,6 +86,15 @@ public class EventHooks {
     }
 
     @SubscribeEvent
+    public void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
+        if (!event.player.world.isRemote && !PlayerSaveData.get(event.player).isHasChosenDestiny()
+                && MCA.getConfig().giveCrystalBall
+                && !event.player.inventory.hasItemStack(new ItemStack(ItemsMCA.CRYSTAL_BALL))) {
+            event.player.inventory.addItemStackToInventory(new ItemStack(ItemsMCA.CRYSTAL_BALL));
+        }
+    }
+
+    @SubscribeEvent
     public void onClientTick(TickEvent.ClientTickEvent event) {
         ClientMessageQueue.processScheduledMessages();
     }
@@ -91,6 +102,7 @@ public class EventHooks {
     @SubscribeEvent
     public void onServerTick(TickEvent.ServerTickEvent event) {
         MCAServer.get().tick();
+        McaStructurePlacer.tick();
 
         if (reaperSummonTicks > 0) {
             reaperSummonTicks--;
