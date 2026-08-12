@@ -1,15 +1,20 @@
 package mca.entity.ai.pathfinding;
 
 import mca.util.MCACollisionUtil;
+import mca.core.minecraft.ProfessionsMCA;
+import mca.entity.EntityVillagerMCA;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockDoor;
+import net.minecraft.block.BlockFence;
 import net.minecraft.block.BlockFenceGate;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.EntityLiving;
+import net.minecraft.pathfinding.Path;
 import net.minecraft.pathfinding.PathFinder;
 import net.minecraft.pathfinding.PathNavigateGround;
 import net.minecraft.pathfinding.PathNodeType;
+import net.minecraft.pathfinding.PathPoint;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
@@ -26,6 +31,36 @@ public class PathNavigateGroundMCA extends PathNavigateGround {
         this.nodeProcessor = new WalkNodeProcessorMCA();
         this.nodeProcessor.setCanEnterDoors(canEnterDoors);
         return new PathFinder(this.nodeProcessor);
+    }
+
+    @Override
+    public Path getPathToPos(BlockPos pos) {
+        if (this.isOrdinaryVillager() && this.isFence(pos)) {
+            return null;
+        }
+
+        Path path = super.getPathToPos(pos);
+        if (!this.isOrdinaryVillager() || path == null || path.isFinished()) {
+            return path;
+        }
+
+        BlockPos resolvedTarget = this.resolvePathTarget(pos);
+        PathPoint finalPoint = path.getFinalPathPoint();
+        if (finalPoint == null || finalPoint.x != resolvedTarget.getX()
+                || finalPoint.y != resolvedTarget.getY() || finalPoint.z != resolvedTarget.getZ()) {
+            return null;
+        }
+
+        return path;
+    }
+
+    @Override
+    public boolean canEntityStandOnPos(BlockPos pos) {
+        if (!super.canEntityStandOnPos(pos)) {
+            return false;
+        }
+
+        return !this.isOrdinaryVillager() || !this.isFence(pos);
     }
 
     @Override
@@ -158,5 +193,52 @@ public class PathNavigateGroundMCA extends PathNavigateGround {
         }
 
         return block.isPassable(this.world, pos) || MCACollisionUtil.isPassableCarpet(this.world, pos);
+    }
+
+    private boolean isOrdinaryVillager() {
+        if (!(this.entity instanceof EntityVillagerMCA)) {
+            return false;
+        }
+
+        EntityVillagerMCA villager = (EntityVillagerMCA) this.entity;
+        return villager.getProfessionForge() != ProfessionsMCA.guard
+                && villager.getProfessionForge() != ProfessionsMCA.bandit;
+    }
+
+    private boolean isFence(BlockPos pos) {
+        Block block = this.world.getBlockState(pos).getBlock();
+        return block instanceof BlockFence;
+    }
+
+    private BlockPos resolvePathTarget(BlockPos pos) {
+        IBlockState state = this.world.getBlockState(pos);
+        if (state.getMaterial() == Material.AIR) {
+            BlockPos blockPos;
+            for (blockPos = pos.down(); blockPos.getY() > 0
+                    && this.world.getBlockState(blockPos).getMaterial() == Material.AIR; blockPos = blockPos.down()) {
+                // Find the block supporting the destination.
+            }
+
+            if (blockPos.getY() > 0) {
+                return blockPos.up();
+            }
+
+            while (blockPos.getY() < this.world.getHeight()
+                    && this.world.getBlockState(blockPos).getMaterial() == Material.AIR) {
+                blockPos = blockPos.up();
+            }
+            pos = blockPos;
+        }
+
+        if (!this.world.getBlockState(pos).getMaterial().isSolid()) {
+            return pos;
+        }
+
+        BlockPos blockPos;
+        for (blockPos = pos.up(); blockPos.getY() < this.world.getHeight()
+                && this.world.getBlockState(blockPos).getMaterial().isSolid(); blockPos = blockPos.up()) {
+            // Find the first open block above a solid destination.
+        }
+        return blockPos;
     }
 }
