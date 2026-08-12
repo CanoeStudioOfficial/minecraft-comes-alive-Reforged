@@ -37,6 +37,7 @@ item.divorce_papers.name=Divorce Papers
 item.rose_gold_ingot.name=Rose Gold Ingot
 item.new_outfit.name=New Outfit
 item.tombstone.name=Tombstone
+tile.mca:tombstone.name=Tombstone
 item.rose_gold_dust.name=Rose Gold Dust
 item.gold_dust.name=Gold Dust
 item.whistle.name=Whistle

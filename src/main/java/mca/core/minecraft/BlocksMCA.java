@@ -1,6 +1,7 @@
 package mca.core.minecraft;
 
 import mca.blocks.BlockVillagerSpawner;
+import mca.blocks.BlockTombstone;
 import mca.core.MCA;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockOre;
@@ -20,6 +21,7 @@ import java.util.ArrayList;
 public final class BlocksMCA {
     public static final Block ROSE_GOLD_BLOCK = new BlockOre();
     public static final BlockVillagerSpawner VILLAGER_SPAWNER = new BlockVillagerSpawner();
+    public static final BlockTombstone TOMBSTONE = new BlockTombstone();
 
     private static final ArrayList<Block> BLOCKS = new ArrayList<>();
 
@@ -27,14 +29,17 @@ public final class BlocksMCA {
         ROSE_GOLD_BLOCK.setHardness(3.0F).setResistance(5.0F).setCreativeTab(MCA.creativeTab);
         ROSE_GOLD_BLOCK.setHarvestLevel("pickaxe", 2);
         VILLAGER_SPAWNER.setCreativeTab(MCA.creativeTab);
+        TOMBSTONE.setCreativeTab(MCA.creativeTab);
 
         Block[] blocks = {
                 ROSE_GOLD_BLOCK,
-                VILLAGER_SPAWNER
+                VILLAGER_SPAWNER,
+                TOMBSTONE
         };
 
         setBlockName(ROSE_GOLD_BLOCK, "rose_gold_block");
         setBlockName(VILLAGER_SPAWNER, "villager_spawner");
+        setBlockName(TOMBSTONE, "tombstone");
 
         for (Block block : blocks) {
             event.getRegistry().register(block);
@@ -66,7 +71,10 @@ public final class BlocksMCA {
         ItemModelMesher mesher = Minecraft.getMinecraft().getRenderItem().getItemModelMesher();
 
         for (Block block : BLOCKS) {
-            mesher.register(Item.getItemFromBlock(block), 0, new ModelResourceLocation(block.getRegistryName(), "inventory"));
+            Item item = Item.getItemFromBlock(block);
+            if (item != null) {
+                mesher.register(item, 0, new ModelResourceLocation(block.getRegistryName(), "inventory"));
+            }
         }
     }
 }

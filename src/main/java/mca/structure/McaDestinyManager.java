@@ -4,6 +4,7 @@ import com.google.common.base.Optional;
 import mca.api.API;
 import mca.core.Config;
 import mca.core.MCA;
+import mca.core.minecraft.BlocksMCA;
 import mca.core.minecraft.ProfessionsMCA;
 import mca.entity.EntityVillagerMCA;
 import mca.entity.data.PlayerHistory;
@@ -15,6 +16,7 @@ import mca.items.ItemCrystalBall;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentTranslation;
@@ -176,10 +178,23 @@ public final class McaDestinyManager {
 
     private static void createVillage(WorldServer world, BlockPos anchor, McaStructure structure) {
         for (McaStructure.ResolvedBlock block : structure.getResolvedBlocks()) {
+            BlockPos pos = getTargetPosition(structure, anchor, block);
             if (block.getState().getBlock() == Blocks.MOB_SPAWNER) {
-                BlockPos pos = getTargetPosition(structure, anchor, block);
                 world.setBlockToAir(pos);
                 createVillager(world, EnumGender.getRandom(), pos.getX() + 0.5D, pos.getY() + 1.0D, pos.getZ() + 0.5D);
+            } else if (block.getState().getBlock() == Blocks.BEDROCK) {
+                world.setBlockState(pos, BlocksMCA.TOMBSTONE.getDefaultState(), 3);
+                TileEntity tile = world.getTileEntity(pos);
+                if (tile instanceof mca.tile.TileTombstone) {
+                    mca.tile.TileTombstone tombstone = (mca.tile.TileTombstone) tile;
+                    EnumGender gender = world.rand.nextBoolean() ? EnumGender.MALE : EnumGender.FEMALE;
+                    tombstone.signText[0] = new net.minecraft.util.text.TextComponentString("");
+                    tombstone.signText[1] = new net.minecraft.util.text.TextComponentString(API.getRandomName(gender));
+                    tombstone.signText[2] = new net.minecraft.util.text.TextComponentString("RIP");
+                    tombstone.signText[3] = new net.minecraft.util.text.TextComponentString("");
+                    tombstone.markDirty();
+                    world.notifyBlockUpdate(pos, BlocksMCA.TOMBSTONE.getDefaultState(), BlocksMCA.TOMBSTONE.getDefaultState(), 3);
+                }
             }
         }
     }

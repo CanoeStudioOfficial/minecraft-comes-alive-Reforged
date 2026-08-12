@@ -16,6 +16,7 @@ import mca.entity.EntityZombieVillagerMCA;
 import mca.enums.EnumGender;
 import mca.mca.Tags;
 import mca.structure.McaStructureRegistry;
+import mca.tile.TileTombstone;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
@@ -29,6 +30,7 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
 import net.minecraftforge.fml.common.registry.EntityRegistry;
+import net.minecraftforge.fml.common.registry.GameRegistry;
 import org.apache.logging.log4j.Logger;
 
 @Mod(modid = Tags.MOD_ID, name = Tags.MOD_NAME, version = Tags.VERSION, guiFactory = "mca.client.MCAGuiFactory", dependencies = "after:raids")
@@ -82,6 +84,7 @@ public class MCA {
         MinecraftForge.EVENT_BUS.register(new EventHooks());
         NetworkRegistry.INSTANCE.registerGuiHandler(this, new GuiHandler());
         NetMCA.registerMessages();
+        GameRegistry.registerTileEntity(TileTombstone.class, "tombstone");
 
 
     }

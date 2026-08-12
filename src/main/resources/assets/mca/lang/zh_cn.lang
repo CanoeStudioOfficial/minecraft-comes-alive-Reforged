@@ -37,6 +37,7 @@ item.divorce_papers.name=离婚协议书
 item.rose_gold_ingot.name=玫瑰金锭
 item.new_outfit.name=新衣服
 item.tombstone.name=墓碑
+tile.mca:tombstone.name=墓碑
 item.rose_gold_dust.name=玫瑰金粉
 item.gold_dust.name=金粉
 item.whistle.name=哨子
